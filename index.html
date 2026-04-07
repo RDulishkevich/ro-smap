@@ -116,16 +116,16 @@
         <!-- Центральная часть и Плеер (снизу) -->
         <div class="flex-grow flex flex-col justify-end items-center pointer-events-none pb-0 md:pb-8 w-full">
             
-            <!-- Всплывающий Плеер -->
-            <div id="player-card" class="pointer-events-auto bg-white rounded-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-2xl p-5 md:p-6 w-full max-w-lg transform transition-all duration-300 translate-y-[120%] opacity-0 border border-slate-100 relative z-30 mx-auto md:mx-0">
+            <!-- Всплывающий Плеер (адаптирован для мобильных) -->
+            <div id="player-card" class="pointer-events-auto bg-white rounded-[1.5rem] md:rounded-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] md:shadow-2xl p-4 md:p-6 w-[92%] md:w-full max-w-lg transform transition-all duration-300 translate-y-[120%] opacity-0 border border-slate-100 relative z-30 mb-20 md:mb-0">
                 
                 <!-- Кнопка закрытия плеера -->
-                <button onclick="closePlayerCard()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors z-40" title="Закрыть плеер">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button onclick="closePlayerCard()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors z-40" title="Закрыть плеер">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
 
                 <!-- Профессиональный таймлайн (waveform) -->
-                <div id="waveform-wrapper" class="relative w-full h-16 cursor-pointer group mb-1">
+                <div id="waveform-wrapper" class="relative w-full h-10 md:h-16 cursor-pointer group mb-1">
                     <!-- Базовая (серая) волна -->
                     <div id="waveform-bg" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-200"></div>
                     <!-- Активная (синяя) волна (обрезается через clip-path) -->
@@ -139,42 +139,42 @@
                 </div>
                 
                 <!-- Таймкоды -->
-                <div class="flex justify-between text-xs font-semibold text-slate-400 mb-4 px-1">
+                <div class="flex justify-between text-[10px] md:text-xs font-semibold text-slate-400 mb-3 md:mb-4 px-1">
                     <span id="time-current">0:00</span>
                     <span id="time-total">0:00</span>
                 </div>
 
-                <div class="flex items-start gap-5">
+                <div class="flex items-center gap-4 md:gap-5">
                     <!-- Кнопка Play/Pause в плеере -->
-                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-14 h-14 bg-slate-800 text-white rounded-full flex items-center justify-center hover:bg-slate-700 transition-colors flex-shrink-0 shadow-md">
-                        <svg id="main-play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        <svg id="main-pause-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-12 h-12 md:w-14 md:h-14 bg-slate-800 text-white rounded-full flex items-center justify-center hover:bg-slate-700 transition-colors flex-shrink-0 shadow-md">
+                        <svg id="main-play-icon" width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <svg id="main-pause-icon" width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                     </button>
                     
-                    <div class="flex-grow w-full overflow-hidden">
-                        <div class="flex justify-between items-start mb-2 group">
+                    <div class="flex-grow min-w-0">
+                        <div class="flex items-center mb-1 group">
                             <!-- Кликабельный заголовок, открывающий подробности -->
-                            <h2 id="player-title" onclick="openDetailsModal()" class="text-xl font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors truncate pr-8" title="Открыть подробную информацию">Название аудио</h2>
+                            <h2 id="player-title" onclick="openDetailsModal()" class="text-lg md:text-xl font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors truncate pr-2" title="Открыть подробную информацию">Название аудио</h2>
                             <!-- Кнопка (i) -->
-                            <button onclick="openDetailsModal()" class="text-slate-400 hover:text-blue-600 transition-colors p-1 shrink-0 hidden md:block" title="Информация о звуке">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            <button onclick="openDetailsModal()" class="text-slate-400 hover:text-blue-600 transition-colors shrink-0" title="Информация о звуке">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                             </button>
                         </div>
                         
                         <!-- Теги -->
-                        <div id="player-tags" class="flex flex-wrap gap-2 mb-2">
+                        <div id="player-tags" class="flex flex-wrap gap-1.5 mb-1">
                             <!-- Теги вставляются сюда -->
                         </div>
                         
-                        <p id="player-gear" class="text-xs text-slate-400 font-medium mt-1 truncate">Rec: Загрузка...</p>
+                        <p id="player-gear" class="text-[10px] md:text-xs text-slate-400 font-medium truncate">Rec: Загрузка...</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Кнопка Добавления звука (Плавающая) -->
-        <div id="add-audio-btn" class="absolute bottom-6 right-6 md:bottom-10 md:right-10 pointer-events-auto z-20 transition-all duration-300">
-            <button onclick="toggleAddModal()" class="w-14 h-14 bg-white text-slate-800 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-105 transition-all border border-slate-100 group">
+        <!-- Кнопка Добавления звука (Плавающая - перемещена вправо вверх для мобильных) -->
+        <div id="add-audio-btn" class="absolute top-6 right-6 md:top-auto md:bottom-10 md:right-10 pointer-events-auto z-20 transition-all duration-300">
+            <button onclick="toggleAddModal()" class="w-12 h-12 md:w-14 md:h-14 bg-white text-slate-800 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-105 transition-all border border-slate-100 group">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-90 transition-transform duration-300"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
         </div>
@@ -391,7 +391,7 @@
             { id: 'u7', title: 'Природный парк "Донской"', category: 'nature', lat: 47.3000, lng: 39.3500, duration: '2:15', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Tascam DR-40X', date: '28 Июл 2023', description: 'Хор насекомых, кваканье и крики цапель в пойменных лесах Дона.', image: '' },
             { id: 'u8', title: 'Новошахтинский НЗ', category: 'industrial', lat: 47.7800, lng: 39.9000, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '16 Сен 2023', description: 'Технологический, ровный гул нефтеперерабатывающего завода в отдалении.', image: '' },
             { id: 'u9', title: 'Донские мустанги (Остров Водный)', category: 'nature', lat: 46.4700, lng: 42.8400, duration: '1:25', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Soundmark', semanticTag: 'Wildlife', gear: 'Zoom F6', date: '03 Авг 2023', description: 'Фырканье и топот копыт табуна диких лошадей на изолированном острове озера Маныч.', image: '' },
-            { id: 'u10', title: 'Аэропорт Платов (Закрыт)', category: 'industrial', lat: 47.4900, lng: 39.9200, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '10 Ян 2023', description: 'Пугающая тишина гигантского пустого терминала современного аэропорта, гул кондиционеров.', image: '' }
+            { id: 'u10', title: 'Аэропорт Платов (Закрыт)', category: 'industrial', lat: 47.4900, lng: 39.9200, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '10 Янв 2023', description: 'Пугающая тишина гигантского пустого терминала современного аэропорта, гул кондиционеров.', image: '' }
         ];
 
         // Состояние приложения
@@ -518,8 +518,6 @@
                 if (!sidebar.classList.contains('sidebar-hidden')) {
                     toggleSidebar();
                 }
-                // Прячем кнопку "Добавить звук", чтобы плеер не перекрывал её
-                document.getElementById('add-audio-btn').classList.add('translate-y-[200%]', 'opacity-0', 'pointer-events-none');
             }
 
             if (map) {
@@ -597,11 +595,6 @@
             
             currentPlayingId = null;
             renderList(document.getElementById('search-input').value.toLowerCase());
-
-            // Возвращаем кнопку добавления звука на мобильных
-            if (window.innerWidth < 768) {
-                document.getElementById('add-audio-btn').classList.remove('translate-y-[200%]', 'opacity-0', 'pointer-events-none');
-            }
         }
 
         function toggleMainPlay() {
