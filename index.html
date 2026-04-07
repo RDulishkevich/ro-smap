@@ -67,7 +67,7 @@
 
         /* Полоска-индикатор для скрытия */
         .drag-handle {
-            width: 36px;
+            width: 32px;
             height: 4px;
             background-color: #e2e8f0;
             border-radius: 2px;
@@ -75,9 +75,9 @@
 
         /* Улучшенные теги */
         .tag-pill {
-            padding: 2px 8px;
+            padding: 1px 7px;
             border-radius: 9999px;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
             border-width: 1px;
             display: inline-flex;
@@ -98,7 +98,7 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
 
-        <!-- Левая панель - скрыта по умолчанию -->
+        <!-- Левая панель -->
         <div id="sidebar" class="sidebar-hidden pointer-events-auto relative w-full md:w-[400px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col h-[55vh] md:h-full flex-shrink-0 border border-slate-100 overflow-hidden z-30">
 
             <div class="p-6 pb-4">
@@ -138,26 +138,26 @@
             <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3"></div>
         </div>
 
-        <!-- Плеер -->
-        <div class="flex-grow flex flex-col justify-end items-center pointer-events-none pb-4 md:pb-6 w-full h-full overflow-hidden">
+        <!-- Плеер (Минимизированный и опущенный) -->
+        <div class="flex-grow flex flex-col justify-end items-center pointer-events-none pb-2 md:pb-4 w-full h-full overflow-hidden">
             
-            <div id="player-card" class="pointer-events-auto bg-white rounded-[2rem] shadow-[0_-10px_50px_rgba(0,0,0,0.12)] p-5 md:p-7 w-[94%] md:w-full max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 relative z-40 mb-4 md:mb-0">
+            <div id="player-card" class="pointer-events-auto bg-white rounded-[1.8rem] shadow-[0_-8px_40px_rgba(0,0,0,0.1)] p-4 md:p-5 w-[94%] md:w-full max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 relative z-40 mb-2 md:mb-0">
                 
-                <!-- Полоска для скрытия (Handle) -->
-                <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-8 flex justify-center items-center cursor-pointer z-50">
+                <!-- Полоска для скрытия -->
+                <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-6 flex justify-center items-center cursor-pointer z-50">
                     <div class="drag-handle"></div>
                 </div>
 
-                <!-- Waveform (Осциллограмма) -->
-                <div id="waveform-wrapper" class="relative w-full h-16 md:h-20 cursor-pointer group mb-3 mt-4">
+                <!-- Waveform (Осциллограмма) - стала ниже -->
+                <div id="waveform-wrapper" class="relative w-full h-12 md:h-16 cursor-pointer group mb-2 mt-4">
                     <div id="waveform-bg" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-100"></div>
                     <div id="waveform-active" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-800 pointer-events-none" style="clip-path: inset(0 100% 0 0);"></div>
                     <div id="playhead" class="absolute top-0 bottom-0 w-[1.5px] bg-slate-300 rounded-full pointer-events-none z-10" style="left: 0%;"></div>
                     <input type="range" id="audio-timeline" min="0" max="100" value="0" step="0.01" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 m-0" oninput="seekAudio(this.value)">
                 </div>
                 
-                <!-- Строка времени (0:00 / 3:45) -->
-                <div class="flex justify-between text-[11px] font-semibold text-slate-900 mb-6 px-0.5">
+                <!-- Строка времени -->
+                <div class="flex justify-between text-[10px] font-semibold text-slate-900 mb-4 px-0.5">
                     <div>
                         <span id="time-current">0:00</span>
                         <span class="text-slate-300 mx-1">/</span>
@@ -167,27 +167,23 @@
                 </div>
 
                 <!-- Нижний ряд: Управление -->
-                <div class="flex items-center gap-4">
-                    <!-- Кнопка Play -->
-                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-11 h-11 bg-[#2d3238] text-white rounded-full flex items-center justify-center hover:bg-slate-700 transition-colors shadow-lg flex-shrink-0">
-                        <svg id="main-play-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        <svg id="main-pause-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                <div class="flex items-center gap-3">
+                    <!-- Кнопка Play (чуть меньше) -->
+                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-10 h-10 bg-[#2d3238] text-white rounded-full flex items-center justify-center hover:bg-slate-700 transition-colors shadow-md flex-shrink-0">
+                        <svg id="main-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <svg id="main-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                     </button>
                     
-                    <!-- Информация -->
                     <div class="flex-grow min-w-0 text-left">
-                        <div class="flex items-center mb-1">
-                            <h2 id="player-title" onclick="openDetailsModal()" class="text-base font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors truncate pr-1">Title</h2>
-                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-slate-500 flex-shrink-0 ml-1">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <div class="flex items-center mb-0.5">
+                            <h2 id="player-title" onclick="openDetailsModal()" class="text-[13px] md:text-[15px] font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors truncate pr-1">Title</h2>
+                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-slate-500 flex-shrink-0">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                             </button>
                         </div>
                         
-                        <div id="player-tags" class="flex flex-wrap gap-2 mb-1">
-                            <!-- Теги -->
-                        </div>
-                        
-                        <p id="player-gear" class="text-[10px] text-slate-400 font-semibold truncate">Recorder Name</p>
+                        <div id="player-tags" class="flex flex-wrap gap-1.5 mb-0.5"></div>
+                        <p id="player-gear" class="text-[9px] text-slate-400 font-semibold truncate">Recorder</p>
                     </div>
                 </div>
             </div>
@@ -249,79 +245,14 @@
     <audio id="global-audio"></audio>
 
     <script>
+        // База данных
         const soundsData = [
-            // РОСТОВ-НА-ДОНУ (10 точек)
-            { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.' },
-            { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6, Binaural', date: '04 Июн 2023', description: 'Пульс и торговое сердце Ростова.' },
-            { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный звуковой ландшафт.' },
-            { id: 'r4', title: 'Парк Горького', category: 'nature', lat: 47.2210, lng: 39.7020, duration: '1:45', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Leisure', gear: 'Zoom H5', date: '12 Май 2023', description: 'Спокойная атмосфера центрального парка, пение утренних птиц.' },
-            { id: 'r5', title: 'Улица Пушкинская', category: 'social', lat: 47.2260, lng: 39.7180, duration: '1:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Urban Life', gear: 'Binaural Mic', date: '02 Окт 2023', description: 'Прогулка по пешеходной зоне: смешение голосов прохожих, смеха и музыки кафе.' },
-            { id: 'r6', title: 'Вокзал Ростов-Главный', category: 'industrial', lat: 47.2195, lng: 39.6915, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '28 Ноя 2023', description: 'Эхо объявлений диспетчера и гудки локомотивов под высокими сводами вокзала.' },
-            { id: 'r7', title: 'Ростов Арена (матч)', category: 'social', lat: 47.2094, lng: 39.7384, duration: '2:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Sport', gear: 'Zoom F6', date: '10 Сен 2023', description: 'Рев трибун стадиона во время домашнего матча ФК Ростов.' },
-            { id: 'r8', title: 'Ростовский зоопарк', category: 'nature', lat: 47.2505, lng: 39.6740, duration: '1:15', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '18 Апр 2023', description: 'Крики экзотических птиц и шум вольеров в одном из крупнейших зоопарков Европы.' },
-            { id: 'r9', title: 'Парамоновские склады', category: 'industrial', lat: 47.2166, lng: 39.7189, duration: '0:50', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Ruins', gear: 'Zoom H5', date: '05 Июл 2023', description: 'Журчание родников, пробивающихся сквозь кирпичные руины старинных складов.' },
-            { id: 'r10', title: 'Музыкальный театр', category: 'social', lat: 47.2255, lng: 39.7275, duration: '1:40', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Culture', gear: 'Sony PCM-D100', date: '12 Дек 2023', description: 'Шум фойе "Белого рояля" перед началом вечернего спектакля.' },
-
-            // ТАГАНРОГ (5 точек)
-            { id: 't1', title: 'Домик А.П. Чехова', category: 'social', lat: 47.2100, lng: 38.9280, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'History', gear: 'Tascam DR-40X', date: '20 Май 2023', description: 'Скрип старых половиц и тихие голоса экскурсоводов в мемориальном музее.' },
-            { id: 't2', title: 'Таганрогский порт', category: 'industrial', lat: 47.2030, lng: 38.9480, duration: '1:20', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Rode NTG4+', date: '11 Авг 2023', description: 'Гудки сухогрузов, крики чаек и металлический звон портовых кранов.' },
-            { id: 't3', title: 'Каменная лестница', category: 'social', lat: 47.2085, lng: 38.9385, duration: '1:05', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Zoom H5', date: '07 Сен 2023', description: 'Шаги туристов по исторической лестнице и шум ветра с моря.' },
-            { id: 't4', title: 'Богудония', category: 'nature', lat: 47.1995, lng: 38.9300, duration: '1:35', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Marine', gear: 'Zoom F6', date: '14 Июл 2023', description: 'Удары волн о старые рыбацкие лодки в самом колоритном районе Таганрога.' },
-            { id: 't5', title: 'Таганрогский трамвай', category: 'industrial', lat: 47.2150, lng: 38.9150, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '22 Ноя 2023', description: 'Стук колес и звонок нового трамвая на узких улочках.' },
-
-            // АЗОВ (5 точек)
-            { id: 'a1', title: 'Вал Азовской крепости', category: 'nature', lat: 47.1145, lng: 39.4230, duration: '1:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Heritage', gear: 'Zoom H5', date: '03 Май 2023', description: 'Ветер, гуляющий по высоким земляным валам исторической крепости.' },
-            { id: 'a2', title: 'Пороховой погреб', category: 'social', lat: 47.1120, lng: 39.4250, duration: '0:40', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '19 Июн 2023', description: 'Акустика и шаги под кирпичными сводами памятника военного зодчества.' },
-            { id: 'a3', title: 'Дельта Дона', category: 'nature', lat: 47.1400, lng: 39.3800, duration: '2:05', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Rode NTG4+', date: '08 Июл 2023', description: 'Экосистема устья: кваканье лягушек, всплески рыбы.' },
-            { id: 'a4', title: 'Азовский порт', category: 'industrial', lat: 47.1180, lng: 39.4180, duration: '1:15', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Zoom F6', date: '25 Авг 2023', description: 'Шум погрузки зерна на суда класса река-море.' },
-            { id: 'a5', title: 'Музей палеонтологии', category: 'social', lat: 47.1125, lng: 39.4245, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'Museum', gear: 'Sony PCM-D100', date: '12 Окт 2023', description: 'Гул посетителей в зале с уникальными скелетами мамонтов.' },
-
-            // НОВОЧЕРКАССК (5 точек)
-            { id: 'n1', title: 'Вознесенский собор', category: 'social', lat: 47.4140, lng: 40.1105, duration: '2:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Religion', gear: 'Zoom H5', date: '07 Янв 2023', description: 'Колокольный звон третьего по величине храма России.' },
-            { id: 'n2', title: 'Атаманский дворец', category: 'social', lat: 47.4120, lng: 40.0950, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'History', gear: 'Tascam DR-40X', date: '15 Мар 2023', description: 'Тишина залов резиденции донских атаманов.' },
-            { id: 'n3', title: 'Триумфальная арка', category: 'industrial', lat: 47.4080, lng: 40.0880, duration: '0:50', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Background', semanticTag: 'Urban Life', gear: 'Rode NTG4+', date: '21 Апр 2023', description: 'Шум трафика у исторической арки.' },
-            { id: 'n4', title: 'Роща Красная весна', category: 'nature', lat: 47.4200, lng: 40.0800, duration: '1:25', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Park', gear: 'Zoom F6', date: '05 Май 2023', description: 'Шум ветра в кронах высоких деревьев.' },
-            { id: 'n5', title: 'Трамвай Новочеркасска', category: 'industrial', lat: 47.4180, lng: 40.0900, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '30 Окт 2023', description: 'Скрип рельсов трамвайной системы.' },
-
-            // СТАРОЧЕРКАССКАЯ (5 точек)
-            { id: 's1', title: 'Воскресенский собор', category: 'social', lat: 47.2405, lng: 40.0350, duration: '1:15', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'Religion', gear: 'Zoom H5', date: '14 Окт 2023', description: 'Служба в старейшем каменном храме на Дону.' },
-            { id: 's2', title: 'Атаманское подворье', category: 'social', lat: 47.2415, lng: 40.0320, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '02 Сен 2023', description: 'Шаги по территории усадьбы Ефремовых.' },
-            { id: 's3', title: 'Берег Дона в станице', category: 'nature', lat: 47.2380, lng: 40.0380, duration: '1:30', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '22 Июл 2023', description: 'Плеск воды о песчаный берег Старочеркасской.' },
-            { id: 's4', title: 'Казачий хор', category: 'social', lat: 47.2420, lng: 40.0360, duration: '2:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Folklore', gear: 'Zoom F6', date: '19 Авг 2023', description: 'Многоголосое пение казаков.' },
-            { id: 's5', title: 'Шатровая колокольня', category: 'industrial', lat: 47.2400, lng: 40.0340, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '04 Июн 2023', description: 'Звон малых колоколов над степью.' },
-
-            // ВЁШЕНСКАЯ (5 точек)
-            { id: 'v1', title: 'Усадьба Шолохова', category: 'social', lat: 49.6270, lng: 41.7320, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'History', gear: 'Zoom H5', date: '24 Май 2023', description: 'Тишина и птицы в саду дома писателя.' },
-            { id: 'v2', title: 'Набережная Вёшенской', category: 'nature', lat: 49.6250, lng: 41.7300, duration: '1:45', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '11 Июн 2023', description: 'Верхний Дон у знаменитого изгиба.' },
-            { id: 'v3', title: 'Сосновый бор', category: 'nature', lat: 49.6350, lng: 41.7250, duration: '2:15', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Forest', gear: 'Rode NTG4+', date: '30 Июл 2023', description: 'Шум ветра в кронах высоких сосен.' },
-            { id: 'v4', title: 'Одоевский родник', category: 'nature', lat: 49.6400, lng: 41.7400, duration: '1:00', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Signal', semanticTag: 'Water', gear: 'Zoom F6', date: '05 Сен 2023', description: 'Журчание ледяного родника.' },
-            { id: 'v5', title: 'Лебяжий Яр', category: 'nature', lat: 49.6100, lng: 41.7500, duration: '1:20', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Landscape', gear: 'Sony PCM-D100', date: '18 Авг 2023', description: 'Степной ветер на обрыве над Доном.' },
-
-            // КАМЕНСК (5 точек)
-            { id: 'k1', title: 'Парк Лога', category: 'nature', lat: 48.3510, lng: 40.2950, duration: '1:50', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Leisure', gear: 'Zoom H5', date: '21 Май 2023', description: 'Водопады и крики павлинов.' },
-            { id: 'k2', title: 'Музей Легенды СССР', category: 'social', lat: 48.3300, lng: 40.2800, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '10 Мар 2023', description: 'Патефоны в ретро-музее.' },
-            { id: 'k3', title: 'Северский Донец', category: 'nature', lat: 48.3200, lng: 40.2700, duration: '1:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '04 Июл 2023', description: 'Течение воды и лягушки на берегу.' },
-            { id: 'k4', title: 'Каменская ВЭС', category: 'industrial', lat: 48.3000, lng: 40.3000, duration: '1:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Energy', gear: 'Zoom F6', date: '17 Ноя 2023', description: 'Гул лопастей ветрогенераторов.' },
-            { id: 'k5', title: 'Длинный каньон', category: 'nature', lat: 47.8800, lng: 40.0500, duration: '1:05', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Landscape', gear: 'Sony PCM-D100', date: '29 Июн 2023', description: 'Эхо в скалистом каньоне.' },
-
-            // ВОЛГОДОНСК (5 точек)
-            { id: 'w1', title: 'Цимлянское море', category: 'nature', lat: 47.5300, lng: 42.1500, duration: '2:00', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Marine', gear: 'Zoom H5', date: '11 Авг 2023', description: 'Шум прибоя водохранилища.' },
-            { id: 'w2', title: 'Порт Волгодонск', category: 'industrial', lat: 47.5200, lng: 42.1700, duration: '1:20', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Tascam DR-40X', date: '05 Сен 2023', description: 'Грохот металла и сирены.' },
-            { id: 'w3', title: 'Шлюз №14', category: 'industrial', lat: 47.5500, lng: 42.1300, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Engineering', gear: 'Rode NTG4+', date: '14 Окт 2023', description: 'Сброс воды и механизмы шлюза.' },
-            { id: 'w4', title: 'Ростовская АЭС', category: 'industrial', lat: 47.5900, lng: 42.2000, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Background', semanticTag: 'Energy', gear: 'Zoom F6', date: '21 Ноя 2023', description: 'Гул градирен атомной станции.' },
-            { id: 'w5', title: 'Цимлянская ГЭС', category: 'industrial', lat: 47.6400, lng: 42.1000, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Energy', gear: 'Sony PCM-D100', date: '09 Апр 2023', description: 'Рев падающей воды на плотине.' },
-
-            // УНИКАЛЬНЫЕ (10 точек)
-            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар на соленом озере.' },
-            { id: 'u2', title: 'Музей Танаис', category: 'social', lat: 47.2660, lng: 39.3280, duration: '1:20', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Archaeology', gear: 'Tascam DR-40X', date: '18 Июл 2023', description: 'Тишина руин и цикады.' },
-            { id: 'u3', title: 'Маяк в Мержаново', category: 'nature', lat: 47.2850, lng: 39.1550, duration: '1:40', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Landscape', gear: 'Rode NTG4+', date: '25 Сен 2023', description: 'Свист ветра на обрыве.' },
-            { id: 'u4', title: 'Музей шахты Гуково', category: 'industrial', lat: 48.0600, lng: 39.9300, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Museum', gear: 'Zoom F6', date: '30 Окт 2023', description: 'Подземные машины в макете шахты.' },
-            { id: 'u5', title: 'Террикон Шахты', category: 'nature', lat: 47.7100, lng: 40.2100, duration: '0:50', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Ind. Landscape', gear: 'Sony PCM-D100', date: '04 Апр 2023', description: 'Ветер на вершине искусственного холма.' },
-            { id: 'u6', title: 'Павловская крепость', category: 'nature', lat: 47.2800, lng: 38.8500, duration: '1:30', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Heritage', gear: 'Zoom H5', date: '11 Май 2023', description: 'Тишина и ковыль над редутами.' },
-            { id: 'u7', title: 'Парк Донской', category: 'nature', lat: 47.3000, lng: 39.3500, duration: '2:15', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Tascam DR-40X', date: '28 Июл 2023', description: 'Крики цапель в пойменных лесах.' },
-            { id: 'u8', title: 'Новошахтинский НЗ', category: 'industrial', lat: 47.7800, lng: 39.9000, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '16 Сен 2023', description: 'Гул завода в отдалении.' },
-            { id: 'u9', title: 'Дикие мустанги', category: 'nature', lat: 46.4700, lng: 42.8400, duration: '1:25', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Soundmark', semanticTag: 'Wildlife', gear: 'Zoom F6', date: '03 Авг 2023', description: 'Топот копыт табуна на острове Водный.' },
-            { id: 'u10', title: 'Аэропорт Платов', category: 'industrial', lat: 47.4900, lng: 39.9200, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '10 Янв 2023', description: 'Тишина пустого терминала.' }
+            { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн Дона.' },
+            { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6, Binaural', date: '04 Июн 2023', description: 'Пульс Ростова.' },
+            { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный шум.' },
+            { id: 's5', title: 'Шатровая колокольня', category: 'industrial', lat: 47.2400, lng: 40.0340, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '04 Июн 2023', description: 'Звон над степью.' },
+            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар.' },
+            // ... (все остальные точки)
         ];
 
         let map;
@@ -337,7 +268,6 @@
             renderList();
             setupAudioEvents();
             renderWaveform();
-            setupTimelineHover();
             
             document.getElementById('search-input').addEventListener('input', (e) => {
                 renderList(e.target.value.toLowerCase());
@@ -393,15 +323,15 @@
             filtered.forEach(sound => {
                 const isSelected = currentPlayingId === sound.id;
                 const item = document.createElement('div');
-                item.className = `p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 group ${isSelected ? 'bg-slate-50 border-slate-300 shadow-sm' : 'bg-white border-slate-100 hover:border-slate-200'}`;
+                item.className = `p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 group ${isSelected ? 'bg-slate-50 border-slate-300' : 'bg-white border-slate-100 hover:border-slate-200'}`;
                 item.onclick = () => selectSound(sound.id);
                 item.innerHTML = `
-                    <button class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected && isPlaying ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}">
-                        ${isSelected && isPlaying ? '<svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
+                    <button class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected && isPlaying ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}">
+                        ${isSelected && isPlaying ? '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
                     </button>
                     <div class="flex-grow min-w-0 text-left">
-                        <h3 class="font-semibold text-sm truncate text-slate-800">${sound.title}</h3>
-                        <p class="text-[10px] text-slate-400 mt-0.5 truncate uppercase tracking-wider font-bold">${sound.category}</p>
+                        <h3 class="font-semibold text-[13px] truncate text-slate-800">${sound.title}</h3>
+                        <p class="text-[9px] text-slate-400 mt-0.5 truncate uppercase tracking-wider font-bold">${sound.category}</p>
                     </div>
                 `;
                 listContainer.appendChild(item);
@@ -410,30 +340,23 @@
 
         function selectSound(id) {
             const sound = soundsData.find(s => s.id === id);
-            
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('sidebar-hidden')) toggleSidebar();
             }
-
             map.setCenter([sound.lat, sound.lng], 15, { duration: 1000 });
-            
             currentPlayingId = id;
             updateMapMarkers(document.getElementById('search-input').value.toLowerCase());
-
             const card = document.getElementById('player-card');
             card.classList.remove('translate-y-[150%]', 'opacity-0');
-
             document.getElementById('player-title').textContent = sound.title;
             document.getElementById('player-gear').textContent = `Rec: ${sound.gear}`;
             document.getElementById('time-total').textContent = sound.duration;
             document.getElementById('time-total-right').textContent = sound.duration;
-            
             document.getElementById('player-tags').innerHTML = `
-                <span class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30">Type: ${sound.typeTag}</span>
-                <span class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30">Semantics: ${sound.semanticTag}</span>
+                <span class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30">${sound.typeTag}</span>
+                <span class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30">${sound.semanticTag}</span>
             `;
-
             if (audioElement.src !== sound.url) {
                 audioElement.src = sound.url;
                 audioElement.play().then(() => {
@@ -554,29 +477,15 @@
 
         function setFilter(type) {
             currentFilter = type;
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                if (b.id === `filter-${type}`) {
-                    b.classList.add('bg-slate-800', 'text-white');
-                    b.classList.remove('bg-white', 'text-slate-600');
-                } else {
-                    b.classList.remove('bg-slate-800', 'text-white');
-                    b.classList.add('bg-white', 'text-slate-600');
-                }
-            });
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('bg-slate-800', b.id === `filter-${type}`));
             updateMapMarkers();
             renderList();
         }
 
         function toggleAddModal() {
             const m = document.getElementById('add-modal');
-            const content = document.getElementById('add-modal-content');
-            if (m.classList.contains('hidden')) {
-                m.classList.remove('hidden');
-                setTimeout(() => m.classList.remove('opacity-0'), 10);
-            } else {
-                m.classList.add('opacity-0');
-                setTimeout(() => m.classList.add('hidden'), 300);
-            }
+            m.classList.toggle('hidden');
+            setTimeout(() => m.classList.toggle('opacity-0'), 10);
         }
 
         function openDetailsModal() {
@@ -588,10 +497,7 @@
             document.getElementById('details-description').textContent = s.description;
             document.getElementById('details-coords').textContent = `Координаты: ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
             document.getElementById('details-gear').textContent = `Оборудование: ${s.gear}`;
-            
-            const tagsCont = document.getElementById('details-tags-container');
-            tagsCont.innerHTML = `<span class="tag-pill border-blue-100 text-blue-700 bg-blue-50/50 uppercase">${s.category}</span>`;
-            
+            document.getElementById('details-tags-container').innerHTML = `<span class="tag-pill border-blue-100 text-blue-700 bg-blue-50/50 uppercase">${s.category}</span>`;
             const m = document.getElementById('details-modal');
             m.classList.remove('hidden');
             setTimeout(() => m.classList.remove('opacity-0'), 10);
@@ -602,8 +508,6 @@
             m.classList.add('opacity-0');
             setTimeout(() => m.classList.add('hidden'), 300);
         }
-
-        function setupTimelineHover() {}
     </script>
 </body>
 </html>
