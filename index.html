@@ -14,6 +14,10 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
+        :root {
+            --gui-scale: 1;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             overflow: hidden;
@@ -68,15 +72,45 @@
         .marker-industrial { background-color: #3b82f6; }
         .marker-social { background-color: #f97316; }
 
+        /* Глобальная система масштабирования интерфейса */
+        #sidebar, #sidebar-toggle-btn {
+            transform: scale(var(--gui-scale));
+            transform-origin: left top;
+        }
+        
+        #player-card {
+            transform: translateY(150%) scale(var(--gui-scale));
+            transform-origin: bottom center;
+        }
+        
+        #player-card.active-card {
+            transform: translateY(0) scale(var(--gui-scale));
+        }
+
+        #add-audio-btn-container {
+            transform: scale(var(--gui-scale));
+            transform-origin: right bottom;
+        }
+        
+        @media (max-width: 767px) {
+            #add-audio-btn-container {
+                transform-origin: right top;
+            }
+        }
+
+        #add-modal-content, #settings-modal-content, #details-modal-content {
+            transform: scale(var(--gui-scale));
+            transform-origin: center center;
+        }
+
         /* Скрытие боковой панели */
         .sidebar-hidden {
-            transform: translateX(-110%) !important;
+            transform: translateX(-110%) scale(var(--gui-scale)) !important;
             opacity: 0 !important;
             pointer-events: none;
         }
 
         #sidebar {
-            transform-origin: left top;
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
         }
 
@@ -185,7 +219,7 @@
 
         <!-- Плеер -->
         <div class="flex-grow flex flex-col justify-end items-center pointer-events-none pb-2 md:pb-2 w-full h-full overflow-hidden">
-            <div id="player-card" class="pointer-events-auto bg-white rounded-[2rem] shadow-[0_-10px_50px_rgba(0,0,0,0.12)] p-5 md:p-6 w-[94%] md:w-full max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 relative z-40 mb-1 md:mb-2">
+            <div id="player-card" class="pointer-events-auto bg-white rounded-[2rem] shadow-[0_-10px_50px_rgba(0,0,0,0.12)] p-5 md:p-6 w-[94%] md:w-full max-w-md opacity-0 border border-slate-50 relative z-40 mb-1 md:mb-2">
                 <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-8 flex justify-center items-center cursor-pointer z-50">
                     <div class="drag-handle"></div>
                 </div>
@@ -226,7 +260,7 @@
         </div>
 
         <!-- Кнопки управления -->
-        <div class="absolute top-4 right-4 md:top-auto md:bottom-10 md:right-10 pointer-events-auto z-20 flex flex-col gap-3">
+        <div id="add-audio-btn-container" class="absolute top-4 right-4 md:top-auto md:bottom-10 md:right-10 pointer-events-auto z-20 flex flex-col gap-3">
             <button onclick="toggleAddModal()" class="w-12 h-12 bg-white text-slate-800 rounded-2xl flex items-center justify-center shadow-xl hover:shadow-2xl border border-slate-100 transition-all active:scale-95">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -239,7 +273,7 @@
 
     <!-- Модальное окно ADD AUDIO -->
     <div id="add-modal" class="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
-        <div id="add-modal-content" class="bg-[#fcfcfd] rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
+        <div id="add-modal-content" class="bg-[#fcfcfd] rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden transform pointer-events-auto">
             
             <div class="px-8 py-6 flex justify-between items-center bg-white border-b border-slate-50">
                 <h3 class="text-xl font-bold text-slate-800">Add Audio</h3>
@@ -340,7 +374,7 @@
 
     <!-- Модальное окно Настроек -->
     <div id="settings-modal" class="fixed inset-0 z-[110] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
-        <div id="settings-modal-content" class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
+        <div id="settings-modal-content" class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform pointer-events-auto">
             <div class="px-8 py-6 flex justify-between items-center border-b border-slate-50">
                 <h3 class="text-xl font-bold" data-lang="settings_title">Настройки</h3>
                 <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -348,9 +382,9 @@
             <div class="p-8 space-y-6">
                 <div>
                     <label class="modal-label" data-lang="gui_scale">Масштаб интерфейса</label>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-3 gap-2" id="scale-buttons">
                         <button onclick="changeGUISize('small')" class="p-2 text-xs font-bold bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Small</button>
-                        <button onclick="changeGUISize('medium')" id="btn-medium" class="p-2 text-xs font-bold bg-slate-800 text-white rounded-xl">Medium</button>
+                        <button onclick="changeGUISize('medium')" class="p-2 text-xs font-bold bg-slate-800 text-white rounded-xl">Medium</button>
                         <button onclick="changeGUISize('large')" class="p-2 text-xs font-bold bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Large</button>
                     </div>
                 </div>
@@ -375,6 +409,31 @@
         </div>
     </div>
 
+    <!-- Модальное окно деталей -->
+    <div id="details-modal" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div id="details-modal-content" class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden transform pointer-events-auto">
+            <div class="relative h-48 md:h-64 shrink-0 bg-slate-200">
+                <img id="details-image" src="" class="w-full h-full object-cover">
+                <button onclick="closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-black/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-black/40 transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="p-6 md:p-8 overflow-y-auto">
+                <div id="details-tags-container" class="flex flex-wrap gap-2 mb-4"></div>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 id="details-title" class="text-2xl md:text-3xl font-bold text-slate-800"></h2>
+                        <span id="details-date" class="text-sm text-slate-500 font-medium"></span>
+                    </div>
+                    <a id="details-download-btn" href="#" download class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                </div>
+                <p id="details-description" class="text-slate-600 leading-relaxed mb-6"></p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <p class="text-xs font-mono text-slate-500" id="details-coords"></p>
+                    <p class="text-xs text-slate-500" id="details-gear"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <audio id="global-audio"></audio>
 
     <script>
@@ -384,7 +443,7 @@
             { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6, Binaural', date: '04 Июн 2023', description: 'Пульс Ростова.' },
             { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный шум.' },
             { id: 's5', title: 'Шатровая колокольня', category: 'industrial', lat: 47.2400, lng: 40.0340, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '04 Июн 2023', description: 'Звон над степью.' },
-            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар.' },
+            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар на соленом озере.' },
             { id: 't1', title: 'Домик А.П. Чехова', category: 'social', lat: 47.2100, lng: 38.9280, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'History', gear: 'Tascam DR-40X', date: '20 Май 2023', description: 'Скрип старых половиц.' }
         ];
 
@@ -413,9 +472,9 @@
             const content = document.getElementById('add-modal-content');
             if (m.classList.contains('hidden')) {
                 m.classList.remove('hidden');
-                setTimeout(() => { m.classList.remove('opacity-0', 'pointer-events-none'); content.classList.remove('scale-95'); }, 10);
+                setTimeout(() => { m.classList.remove('opacity-0', 'pointer-events-none'); }, 10);
             } else {
-                m.classList.add('opacity-0', 'pointer-events-none'); content.classList.add('scale-95');
+                m.classList.add('opacity-0', 'pointer-events-none');
                 setTimeout(() => m.classList.add('hidden'), 300);
             }
         }
@@ -425,9 +484,9 @@
             const content = document.getElementById('settings-modal-content');
             if (m.classList.contains('hidden')) {
                 m.classList.remove('hidden');
-                setTimeout(() => { m.classList.remove('opacity-0', 'pointer-events-none'); content.classList.remove('scale-95'); }, 10);
+                setTimeout(() => { m.classList.remove('opacity-0', 'pointer-events-none'); }, 10);
             } else {
-                m.classList.add('opacity-0', 'pointer-events-none'); content.classList.add('scale-95');
+                m.classList.add('opacity-0', 'pointer-events-none');
                 setTimeout(() => m.classList.add('hidden'), 300);
             }
         }
@@ -441,9 +500,18 @@
         }
 
         function changeGUISize(size) {
-            const sidebar = document.getElementById('sidebar');
-            const scales = { small: '0.8', medium: '1', large: '1.1' };
-            sidebar.style.transform = `scale(${scales[size]})`;
+            const scales = { small: '0.8', medium: '1', large: '1.15' };
+            document.documentElement.style.setProperty('--gui-scale', scales[size]);
+            
+            // Подсветка кнопок
+            const buttons = document.querySelectorAll('#scale-buttons button');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase() === size) {
+                    btn.className = "p-2 text-xs font-bold bg-slate-800 text-white rounded-xl transition-all scale-105";
+                } else {
+                    btn.className = "p-2 text-xs font-bold bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors";
+                }
+            });
         }
 
         function setLanguage(lang) {
@@ -495,7 +563,8 @@
             map.setCenter([s.lat, s.lng], 15, { duration: 1000 });
             currentPlayingId = id; updateMapMarkers();
             const card = document.getElementById('player-card');
-            card.classList.remove('translate-y-[150%]', 'opacity-0');
+            card.classList.add('active-card');
+            card.classList.remove('opacity-0');
             document.getElementById('player-title').textContent = s.title;
             document.getElementById('player-gear').textContent = translations[currentLang].rec_prefix + s.gear;
             document.getElementById('player-tags').innerHTML = `<span class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30">${s.typeTag}</span><span class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30">${s.semanticTag}</span>`;
@@ -505,7 +574,9 @@
 
         function closePlayerCard() {
             if (isPlaying) { audioElement.pause(); isPlaying = false; cancelAnimationFrame(animationFrameId); }
-            document.getElementById('player-card').classList.add('translate-y-[150%]', 'opacity-0');
+            const card = document.getElementById('player-card');
+            card.classList.remove('active-card');
+            card.classList.add('opacity-0');
             currentPlayingId = null; updateMapMarkers(); renderList();
         }
 
