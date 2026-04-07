@@ -83,6 +83,39 @@
             display: inline-flex;
             align-items: center;
         }
+
+        /* Дизайн инпутов как на макете */
+        .modal-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .modal-input:focus {
+            border-color: #cbd5e1;
+        }
+        .modal-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+        .ucs-tag {
+            background: #f1f5f9;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -138,7 +171,7 @@
             <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3"></div>
         </div>
 
-        <!-- Плеер (Минимизированный и опущенный) -->
+        <!-- Плеер -->
         <div class="flex-grow flex flex-col justify-end items-center pointer-events-none pb-2 md:pb-4 w-full h-full overflow-hidden">
             
             <div id="player-card" class="pointer-events-auto bg-white rounded-[1.8rem] shadow-[0_-8px_40px_rgba(0,0,0,0.1)] p-4 md:p-5 w-[94%] md:w-full max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 relative z-40 mb-2 md:mb-0">
@@ -148,7 +181,7 @@
                     <div class="drag-handle"></div>
                 </div>
 
-                <!-- Waveform (Осциллограмма) - стала ниже -->
+                <!-- Waveform (Осциллограмма) -->
                 <div id="waveform-wrapper" class="relative w-full h-12 md:h-16 cursor-pointer group mb-2 mt-4">
                     <div id="waveform-bg" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-100"></div>
                     <div id="waveform-active" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-800 pointer-events-none" style="clip-path: inset(0 100% 0 0);"></div>
@@ -168,7 +201,7 @@
 
                 <!-- Нижний ряд: Управление -->
                 <div class="flex items-center gap-3">
-                    <!-- Кнопка Play (чуть меньше) -->
+                    <!-- Кнопка Play -->
                     <button id="main-play-btn" onclick="toggleMainPlay()" class="w-10 h-10 bg-[#2d3238] text-white rounded-full flex items-center justify-center hover:bg-slate-700 transition-colors shadow-md flex-shrink-0">
                         <svg id="main-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         <svg id="main-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
@@ -198,26 +231,125 @@
 
     </div>
 
-    <!-- Модальные окна -->
+    <!-- Обновленное Модальное окно "Add Audio" по макету -->
     <div id="add-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden" id="add-modal-content">
-            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="text-lg font-bold">Добавить аудио</h3>
-                <button onclick="toggleAddModal()" class="text-slate-400 hover:text-slate-600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <div class="bg-[#fcfcfd] rounded-[2rem] shadow-2xl w-full max-w-lg max-h-[95vh] flex flex-col overflow-hidden transform scale-95 transition-transform duration-300" id="add-modal-content">
+            
+            <!-- Заголовок -->
+            <div class="px-8 py-6 flex justify-between items-center bg-white">
+                <h3 class="text-xl font-bold text-slate-800">Add Audio</h3>
+                <button onclick="toggleAddModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
-            <div class="p-6 overflow-y-auto flex flex-col gap-4">
-                <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 text-center">
-                    <p class="text-sm font-medium text-slate-600">Перетащите файл сюда</p>
+
+            <!-- Контент формы -->
+            <div class="p-8 pt-2 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                
+                <!-- Drag and drop zone с волной -->
+                <div class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-2 text-slate-500 mb-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span class="text-sm font-semibold">Drag-and-drop zone.</span>
+                    </div>
+                    <!-- Имитация загруженной волны -->
+                    <div class="flex items-center gap-[2px] h-10 w-full px-8 mb-3 opacity-30">
+                        <div class="flex-1 bg-slate-400 rounded-full h-2"></div><div class="flex-1 bg-slate-400 rounded-full h-4"></div><div class="flex-1 bg-slate-400 rounded-full h-6"></div><div class="flex-1 bg-slate-400 rounded-full h-8"></div><div class="flex-1 bg-slate-400 rounded-full h-10"></div><div class="flex-1 bg-slate-400 rounded-full h-7"></div><div class="flex-1 bg-slate-400 rounded-full h-9"></div><div class="flex-1 bg-slate-400 rounded-full h-6"></div><div class="flex-1 bg-slate-400 rounded-full h-4"></div><div class="flex-1 bg-slate-400 rounded-full h-2"></div><div class="flex-1 bg-slate-400 rounded-full h-5"></div><div class="flex-1 bg-slate-400 rounded-full h-8"></div><div class="flex-1 bg-slate-400 rounded-full h-10"></div><div class="flex-1 bg-slate-400 rounded-full h-6"></div><div class="flex-1 bg-slate-400 rounded-full h-4"></div>
+                    </div>
+                    <p class="text-xs text-slate-400 font-mono">RND_Central_Market_AMB_001.wav</p>
                 </div>
-                <input type="text" placeholder="Название места" class="w-full border rounded-xl px-4 py-3 text-sm outline-none">
-                <textarea placeholder="Описание" class="w-full border rounded-xl px-4 py-3 text-sm outline-none h-24 resize-none"></textarea>
+
+                <!-- Display Title -->
+                <div>
+                    <label class="modal-label">Display Title</label>
+                    <input type="text" placeholder="Central Market Morning Ambience" class="modal-input">
+                </div>
+
+                <!-- Sound Description -->
+                <div>
+                    <label class="modal-label">Sound Description</label>
+                    <textarea rows="3" placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit..." class="modal-input h-24 resize-none"></textarea>
+                </div>
+
+                <!-- UCS Tags -->
+                <div class="space-y-4">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">UCS tags</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="modal-label text-slate-400">Category:</label>
+                            <select class="modal-input appearance-none">
+                                <option>AMB (Ambience)</option>
+                                <option>IND (Industrial)</option>
+                                <option>NAT (Nature)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400">SubCategory:</label>
+                            <select class="modal-input appearance-none">
+                                <option>MARKET</option>
+                                <option>STREET</option>
+                                <option>FACTORY</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <div class="ucs-tag">Crowd <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+                        <div class="ucs-tag">Exterior <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+                    </div>
+                </div>
+
+                <!-- Location, Date, Time Block -->
+                <div class="grid grid-cols-[140px_1fr] gap-6 items-start">
+                    <!-- Мини-карта (placeholder) -->
+                    <div class="w-full aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative group">
+                        <img src="https://api-maps.yandex.ru/services/constructor/1.0/static/?um=constructor%3Af7c90858850689b7b93f774e7978d389a69530f2526e8484f9382f164f9b8893&amp;width=140&amp;height=140&amp;lang=ru_RU" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="modal-label text-slate-400">Location</label>
+                            <input type="text" value="Rostov-on-Don" class="modal-input">
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400">Date</label>
+                            <div class="relative">
+                                <input type="text" value="01/10/2023" class="modal-input pr-10">
+                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400">Time</label>
+                            <input type="text" value="17:00" class="modal-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recorder & Mic -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="modal-label text-slate-400">Recorder Model</label>
+                        <input type="text" class="modal-input">
+                    </div>
+                    <div>
+                        <label class="modal-label text-slate-400">Microphone Type</label>
+                        <input type="text" class="modal-input">
+                    </div>
+                </div>
             </div>
-            <div class="p-4 border-t bg-slate-50">
-                <button onclick="toggleAddModal();" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl">Опубликовать</button>
+
+            <!-- Кнопка публикации -->
+            <div class="p-8 pt-4 bg-white border-t border-slate-50">
+                <button onclick="toggleAddModal();" class="w-full py-4 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold rounded-2xl border border-slate-200 transition-all shadow-sm active:scale-[0.98]">
+                    Publish Sound
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Модальное окно деталей (Детали) -->
     <div id="details-modal" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden" id="details-modal-content">
             <div class="relative h-48 md:h-64 shrink-0 bg-slate-200">
@@ -245,14 +377,15 @@
     <audio id="global-audio"></audio>
 
     <script>
-        // База данных
         const soundsData = [
             { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн Дона.' },
             { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6, Binaural', date: '04 Июн 2023', description: 'Пульс Ростова.' },
             { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный шум.' },
             { id: 's5', title: 'Шатровая колокольня', category: 'industrial', lat: 47.2400, lng: 40.0340, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '04 Июн 2023', description: 'Звон над степью.' },
             { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар.' },
-            // ... (все остальные точки)
+            { id: 't1', title: 'Домик А.П. Чехова', category: 'social', lat: 47.2100, lng: 38.9280, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'History', gear: 'Tascam DR-40X', date: '20 Май 2023', description: 'Скрип старых половиц и тихие голоса.' },
+            { id: 'n1', title: 'Вознесенский собор', category: 'social', lat: 47.4140, lng: 40.1105, duration: '2:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Religion', gear: 'Zoom H5', date: '07 Янв 2023', description: 'Колокольный звон третьего по величине храма России.' },
+            { id: 'v2', title: 'Набережная Вёшенской', category: 'nature', lat: 49.6250, lng: 41.7300, duration: '1:45', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '11 Июн 2023', description: 'Сильное течение Верхнего Дона.' }
         ];
 
         let map;
@@ -477,15 +610,37 @@
 
         function setFilter(type) {
             currentFilter = type;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('bg-slate-800', b.id === `filter-${type}`));
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                if (b.id === `filter-${type}`) {
+                    b.classList.add('bg-slate-800', 'text-white');
+                    b.classList.remove('bg-white', 'text-slate-600');
+                } else {
+                    b.classList.remove('bg-slate-800', 'text-white');
+                    b.classList.add('bg-white', 'text-slate-600');
+                }
+            });
             updateMapMarkers();
             renderList();
         }
 
         function toggleAddModal() {
             const m = document.getElementById('add-modal');
-            m.classList.toggle('hidden');
-            setTimeout(() => m.classList.toggle('opacity-0'), 10);
+            const content = document.getElementById('add-modal-content');
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden');
+                setTimeout(() => {
+                    m.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }, 10);
+            } else {
+                m.classList.add('opacity-0');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    m.classList.add('hidden');
+                }, 300);
+            }
         }
 
         function openDetailsModal() {
@@ -497,7 +652,10 @@
             document.getElementById('details-description').textContent = s.description;
             document.getElementById('details-coords').textContent = `Координаты: ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
             document.getElementById('details-gear').textContent = `Оборудование: ${s.gear}`;
-            document.getElementById('details-tags-container').innerHTML = `<span class="tag-pill border-blue-100 text-blue-700 bg-blue-50/50 uppercase">${s.category}</span>`;
+            
+            const tagsCont = document.getElementById('details-tags-container');
+            tagsCont.innerHTML = `<span class="tag-pill border-blue-100 text-blue-700 bg-blue-50/50 uppercase">${s.category}</span>`;
+            
             const m = document.getElementById('details-modal');
             m.classList.remove('hidden');
             setTimeout(() => m.classList.remove('opacity-0'), 10);
