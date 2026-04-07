@@ -90,7 +90,7 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
 
-        <!-- Левая панель - скрыта по умолчанию через атрибут class -->
+        <!-- Левая панель - скрыта по умолчанию -->
         <div id="sidebar" class="sidebar-hidden pointer-events-auto relative w-full md:w-[400px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col h-[55vh] md:h-full flex-shrink-0 border border-slate-100 overflow-hidden z-30">
 
             <div class="p-6 pb-4">
@@ -158,7 +158,7 @@
                         <svg id="main-pause-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                     </button>
                     
-                    <div class="flex-grow min-w-0">
+                    <div class="flex-grow min-w-0 text-left">
                         <div class="flex items-center mb-0.5">
                             <h2 id="player-title" onclick="openDetailsModal()" class="text-base md:text-xl font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors truncate pr-2">Название</h2>
                             <button onclick="openDetailsModal()" class="text-slate-400 hover:text-blue-600 flex-shrink-0">
@@ -172,10 +172,10 @@
             </div>
         </div>
 
-        <!-- Кнопка Плюс (мобильная версия - сверху справа) -->
+        <!-- Кнопка Плюс (адаптирована для мобильных) -->
         <div id="add-audio-btn" class="absolute top-4 right-4 md:top-auto md:bottom-10 md:right-10 pointer-events-auto z-20">
-            <button onclick="toggleAddModal()" class="w-12 h-12 md:w-14 md:h-14 bg-white text-slate-800 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl border border-slate-100 hover:scale-105 transition-transform active:scale-95">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <button onclick="toggleAddModal()" class="w-12 h-12 md:w-14 md:h-14 bg-white text-slate-800 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl border border-slate-100 transition-transform active:scale-95">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
         </div>
 
@@ -229,15 +229,78 @@
 
     <script>
         const soundsData = [
+            // РОСТОВ-НА-ДОНУ (10 точек)
             { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.' },
             { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6', date: '04 Июн 2023', description: 'Пульс и торговое сердце Ростова. Шумный Старый базар утром выходного дня.' },
             { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный звуковой ландшафт около гиганта отечественного машиностроения.' },
             { id: 'r4', title: 'Парк Горького', category: 'nature', lat: 47.2210, lng: 39.7020, duration: '1:45', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Leisure', gear: 'Zoom H5', date: '12 Май 2023', description: 'Спокойная атмосфера центрального парка, пение утренних птиц.' },
+            { id: 'r5', title: 'Улица Пушкинская', category: 'social', lat: 47.2260, lng: 39.7180, duration: '1:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Urban Life', gear: 'Binaural Mic', date: '02 Окт 2023', description: 'Прогулка по пешеходной зоне: смешение голосов прохожих, смеха и музыки кафе.' },
+            { id: 'r6', title: 'Вокзал Ростов-Главный', category: 'industrial', lat: 47.2195, lng: 39.6915, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '28 Ноя 2023', description: 'Эхо объявлений диспетчера и гудки локомотивов под высокими сводами вокзала.' },
+            { id: 'r7', title: 'Ростов Арена (матч)', category: 'social', lat: 47.2094, lng: 39.7384, duration: '2:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Sport', gear: 'Zoom F6', date: '10 Сен 2023', description: 'Рев трибун стадиона во время домашнего матча ФК Ростов.' },
+            { id: 'r8', title: 'Ростовский зоопарк', category: 'nature', lat: 47.2505, lng: 39.6740, duration: '1:15', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '18 Апр 2023', description: 'Крики экзотических птиц и шум вольеров в одном из крупнейших зоопарков Европы.' },
+            { id: 'r9', title: 'Парамоновские склады', category: 'industrial', lat: 47.2166, lng: 39.7189, duration: '0:50', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Ruins', gear: 'Zoom H5', date: '05 Июл 2023', description: 'Журчание родников, пробивающихся сквозь кирпичные руины старинных складов.' },
+            { id: 'r10', title: 'Музыкальный театр', category: 'social', lat: 47.2255, lng: 39.7275, duration: '1:40', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Culture', gear: 'Sony PCM-D100', date: '12 Дек 2023', description: 'Шум фойе "Белого рояля" перед началом вечернего спектакля.' },
+
+            // ТАГАНРОГ (5 точек)
             { id: 't1', title: 'Домик А.П. Чехова', category: 'social', lat: 47.2100, lng: 38.9280, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'History', gear: 'Tascam DR-40X', date: '20 Май 2023', description: 'Скрип старых половиц и тихие голоса экскурсоводов в мемориальном музее.' },
-            { id: 'n1', title: 'Вознесенский собор', category: 'social', lat: 47.4140, lng: 40.1105, duration: '2:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Religion', gear: 'Zoom H5', date: '07 Янв 2023', description: 'Мощный, раскатистый колокольный звон третьего по величине храма России.' },
-            { id: 'v2', title: 'Набережная Вёшенской', category: 'nature', lat: 49.6250, lng: 41.7300, duration: '1:45', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '11 Июн 2023', description: 'Сильное течение Верхнего Дона, омывающее песчаные косы.' },
-            { id: 'w1', title: 'Цимлянское море', category: 'nature', lat: 47.5300, lng: 42.1500, duration: '2:00', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Marine', gear: 'Zoom H5', date: '11 Авг 2023', description: 'Шум прибоя Цимлянского водохранилища.' },
-            { id: 'u3', title: 'Маяк в Мержаново', category: 'nature', lat: 47.2850, lng: 39.1550, duration: '1:40', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Landscape', gear: 'Rode NTG4+', date: '25 Сен 2023', description: 'Свист степного ветра на высоком обрыве над заливом.' }
+            { id: 't2', title: 'Таганрогский порт', category: 'industrial', lat: 47.2030, lng: 38.9480, duration: '1:20', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Rode NTG4+', date: '11 Авг 2023', description: 'Гудки сухогрузов, крики чаек и металлический звон портовых кранов.' },
+            { id: 't3', title: 'Каменная лестница', category: 'social', lat: 47.2085, lng: 38.9385, duration: '1:05', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Zoom H5', date: '07 Сен 2023', description: 'Шаги туристов по исторической лестнице и шум ветра с моря.' },
+            { id: 't4', title: 'Богудония', category: 'nature', lat: 47.1995, lng: 38.9300, duration: '1:35', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Marine', gear: 'Zoom F6', date: '14 Июл 2023', description: 'Удары волн о старые рыбацкие лодки в самом колоритном районе Таганрога.' },
+            { id: 't5', title: 'Таганрогский трамвай', category: 'industrial', lat: 47.2150, lng: 38.9150, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '22 Ноя 2023', description: 'Стук колес и характерный звонок нового трамвая на узких улочках.' },
+
+            // АЗОВ (5 точек)
+            { id: 'a1', title: 'Вал Азовской крепости', category: 'nature', lat: 47.1145, lng: 39.4230, duration: '1:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Heritage', gear: 'Zoom H5', date: '03 Май 2023', description: 'Ветер, гуляющий по высоким земляным валам исторической крепости.' },
+            { id: 'a2', title: 'Пороховой погреб', category: 'social', lat: 47.1120, lng: 39.4250, duration: '0:40', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '19 Июн 2023', description: 'Гукая акустика и шаги под кирпичными сводами памятника военного зодчества.' },
+            { id: 'a3', title: 'Дельта Дона', category: 'nature', lat: 47.1400, lng: 39.3800, duration: '2:05', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Rode NTG4+', date: '08 Июл 2023', description: 'Уникальная экосистема устья: кваканье лягушек, всплески рыбы.' },
+            { id: 'a4', title: 'Азовский морской порт', category: 'industrial', lat: 47.1180, lng: 39.4180, duration: '1:15', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Zoom F6', date: '25 Авг 2023', description: 'Шум погрузки зерна на суда класса река-море.' },
+            { id: 'a5', title: 'Музей палеонтологии', category: 'social', lat: 47.1125, lng: 39.4245, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'Museum', gear: 'Sony PCM-D100', date: '12 Окт 2023', description: 'Приглушенный гул посетителей в зале с уникальными скелетами мамонтов.' },
+
+            // НОВОЧЕРКАССК (5 точек)
+            { id: 'n1', title: 'Вознесенский собор', category: 'social', lat: 47.4140, lng: 40.1105, duration: '2:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Religion', gear: 'Zoom H5', date: '07 Янв 2023', description: 'Раскатистый колокольный звон третьего по величине храма России.' },
+            { id: 'n2', title: 'Атаманский дворец', category: 'social', lat: 47.4120, lng: 40.0950, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'History', gear: 'Tascam DR-40X', date: '15 Мар 2023', description: 'Тишина парадных залов резиденции донских атаманов.' },
+            { id: 'n3', title: 'Триумфальная арка', category: 'industrial', lat: 47.4080, lng: 40.0880, duration: '0:50', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Background', semanticTag: 'Urban Life', gear: 'Rode NTG4+', date: '21 Апр 2023', description: 'Шум городского трафика, огибающего историческую арку.' },
+            { id: 'n4', title: 'Роща Красная весна', category: 'nature', lat: 47.4200, lng: 40.0800, duration: '1:25', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Park', gear: 'Zoom F6', date: '05 Май 2023', description: 'Шум ветра в кронах высоких деревьев в лесопарке города.' },
+            { id: 'n5', title: 'Трамвай Новочеркасска', category: 'industrial', lat: 47.4180, lng: 40.0900, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '30 Окт 2023', description: 'Скрип рельсов на крутых поворотах трамвайной системы.' },
+
+            // СТАРОЧЕРКАССКАЯ (5 точек)
+            { id: 's1', title: 'Воскресенский собор', category: 'social', lat: 47.2405, lng: 40.0350, duration: '1:15', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'Religion', gear: 'Zoom H5', date: '14 Окт 2023', description: 'Пение хора во время службы в старейшем каменном храме на Дону.' },
+            { id: 's2', title: 'Атаманское подворье', category: 'social', lat: 47.2415, lng: 40.0320, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '02 Сен 2023', description: 'Шаги туристов по территории бывшей усадьбы Ефремовых.' },
+            { id: 's3', title: 'Берег Дона в станице', category: 'nature', lat: 47.2380, lng: 40.0380, duration: '1:30', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '22 Июл 2023', description: 'Плеск воды о песчаный берег станицы Старочеркасской.' },
+            { id: 's4', title: 'Казачий хор', category: 'social', lat: 47.2420, lng: 40.0360, duration: '2:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Folklore', gear: 'Zoom F6', date: '19 Авг 2023', description: 'Мощное многоголосое пение казаков на открытом воздухе.' },
+            { id: 's5', title: 'Шатровая колокольня', category: 'industrial', lat: 47.2400, lng: 40.0340, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '04 Июн 2023', description: 'Звон малых колоколов уникальной башни над донской степью.' },
+
+            // ВЁШЕНСКАЯ (5 точек)
+            { id: 'v1', title: 'Усадьба Шолохова', category: 'social', lat: 49.6270, lng: 41.7320, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'History', gear: 'Zoom H5', date: '24 Май 2023', description: 'Тишина и пение птиц в саду вокруг дома великого писателя.' },
+            { id: 'v2', title: 'Набережная Вёшенской', category: 'nature', lat: 49.6250, lng: 41.7300, duration: '1:45', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '11 Июн 2023', description: 'Течение Верхнего Дона у знаменитого изгиба реки.' },
+            { id: 'v3', title: 'Сосновый бор', category: 'nature', lat: 49.6350, lng: 41.7250, duration: '2:15', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Forest', gear: 'Rode NTG4+', date: '30 Июл 2023', description: 'Глухой шум ветра в кронах сосен, высаженных на песках.' },
+            { id: 'v4', title: 'Одоевский родник', category: 'nature', lat: 49.6400, lng: 41.7400, duration: '1:00', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Signal', semanticTag: 'Water', gear: 'Zoom F6', date: '05 Сен 2023', description: 'Звонкое журчание ледяного родника на песчаном склоне.' },
+            { id: 'v5', title: 'Лебяжий Яр', category: 'nature', lat: 49.6100, lng: 41.7500, duration: '1:20', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Landscape', gear: 'Sony PCM-D100', date: '18 Авг 2023', description: 'Степной ветер на 40-метровом обрыве над Доном.' },
+
+            // КАМЕНСК-ШАХТИНСКИЙ (5 точек)
+            { id: 'k1', title: 'Парк Лога', category: 'nature', lat: 48.3510, lng: 40.2950, duration: '1:50', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Leisure', gear: 'Zoom H5', date: '21 Май 2023', description: 'Шум водопадов и крики павлинов в сказочном ландшафтном парке.' },
+            { id: 'k2', title: 'Музей Легенды СССР', category: 'social', lat: 48.3300, lng: 40.2800, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '10 Мар 2023', description: 'Звуки старых патефонов в залах ретро-музея.' },
+            { id: 'k3', title: 'Северский Донец', category: 'nature', lat: 48.3200, lng: 40.2700, duration: '1:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '04 Июл 2023', description: 'Спокойное течение воды и кваканье лягушек на берегу.' },
+            { id: 'k4', title: 'Каменская ВЭС', category: 'industrial', lat: 48.3000, lng: 40.3000, duration: '1:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Energy', gear: 'Zoom F6', date: '17 Ноя 2023', description: 'Ритмичный гул лопастей гигантских ветрогенераторов.' },
+            { id: 'k5', title: 'Длинный каньон', category: 'nature', lat: 47.8800, lng: 40.0500, duration: '1:05', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Landscape', gear: 'Sony PCM-D100', date: '29 Июн 2023', description: 'Эхо в глубоком скалистом каньоне, заполненном водой.' },
+
+            // ВОЛГОДОНСК (5 точек)
+            { id: 'w1', title: 'Цимлянское море', category: 'nature', lat: 47.5300, lng: 42.1500, duration: '2:00', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Marine', gear: 'Zoom H5', date: '11 Авг 2023', description: 'Шум прибоя "Ростовского моря" — волны здесь как настоящие морские.' },
+            { id: 'w2', title: 'Речной порт Волгодонск', category: 'industrial', lat: 47.5200, lng: 42.1700, duration: '1:20', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Tascam DR-40X', date: '05 Сен 2023', description: 'Грохот металла и сирены буксиров в порту.' },
+            { id: 'w3', title: 'Шлюз №14', category: 'industrial', lat: 47.5500, lng: 42.1300, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Engineering', gear: 'Rode NTG4+', date: '14 Окт 2023', description: 'Мощный сброс воды и гул механизмов гигантских ворот шлюза.' },
+            { id: 'w4', title: 'Ростовская АЭС', category: 'industrial', lat: 47.5900, lng: 42.2000, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Background', semanticTag: 'Energy', gear: 'Zoom F6', date: '21 Ноя 2023', description: 'Технологический ровный гул градирен атомной станции.' },
+            { id: 'w5', title: 'Цимлянская ГЭС', category: 'industrial', lat: 47.6400, lng: 42.1000, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Energy', gear: 'Sony PCM-D100', date: '09 Апр 2023', description: 'Рев падающей воды на плотине гидроэлектростанции.' },
+
+            // УНИКАЛЬНЫЕ (10 точек)
+            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар: крики пеликанов и шум крыльев сотен птиц.' },
+            { id: 'u2', title: 'Музей Танаис', category: 'social', lat: 47.2660, lng: 39.3280, duration: '1:20', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Archaeology', gear: 'Tascam DR-40X', date: '18 Июл 2023', description: 'Тишина античных руин и стрекотание цикад на камнях.' },
+            { id: 'u3', title: 'Маяк в Мержаново', category: 'nature', lat: 47.2850, lng: 39.1550, duration: '1:40', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Landscape', gear: 'Rode NTG4+', date: '25 Сен 2023', description: 'Свист степного ветра на обрыве и шум волн залива.' },
+            { id: 'u4', title: 'Музей шахты (Гуково)', category: 'industrial', lat: 48.0600, lng: 39.9300, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Museum', gear: 'Zoom F6', date: '30 Окт 2023', description: 'Демонстрация работы подземных шахтных машин в макете шахты.' },
+            { id: 'u5', title: 'Террикон (г. Шахты)', category: 'nature', lat: 47.7100, lng: 40.2100, duration: '0:50', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Ind. Landscape', gear: 'Sony PCM-D100', date: '04 Апр 2023', description: 'Ветер на вершине огромного искусственного холма породы.' },
+            { id: 'u6', title: 'Павловская крепость', category: 'nature', lat: 47.2800, lng: 38.8500, duration: '1:30', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Ambiance', semanticTag: 'Heritage', gear: 'Zoom H5', date: '11 Май 2023', description: 'Тишина степи и ковыль над земляными редутами Петра I.' },
+            { id: 'u7', title: 'Парк Донской', category: 'nature', lat: 47.3000, lng: 39.3500, duration: '2:15', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Tascam DR-40X', date: '28 Июл 2023', description: 'Хор насекомых и крики цапель в пойменных лесах Дона.' },
+            { id: 'u8', title: 'Новошахтинский НЗ', category: 'industrial', lat: 47.7800, lng: 39.9000, duration: '1:10', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '16 Сен 2023', description: 'Ровный гул нефтеперерабатывающего завода в отдалении.' },
+            { id: 'u9', title: 'Дикие лошади (Маныч)', category: 'nature', lat: 46.4700, lng: 42.8400, duration: '1:25', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Soundmark', semanticTag: 'Wildlife', gear: 'Zoom F6', date: '03 Авг 2023', description: 'Фырканье и топот копыт дикого табуна на острове озера Маныч.' },
+            { id: 'u10', title: 'Аэропорт Платов', category: 'industrial', lat: 47.4900, lng: 39.9200, duration: '1:00', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '10 Янв 2023', description: 'Тишина гигантского пустого терминала и гул систем кондиционирования.' }
         ];
 
         let map;
@@ -309,13 +372,13 @@
             filtered.forEach(sound => {
                 const isSelected = currentPlayingId === sound.id;
                 const item = document.createElement('div');
-                item.className = `p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 group ${isSelected ? 'bg-slate-50 border-slate-300 shadow-sm' : 'bg-white border-slate-100 hover:border-slate-200'}`;
+                item.className = `p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 group ${isSelected ? 'bg-slate-50 border-slate-300' : 'bg-white border-slate-100 hover:border-slate-200'}`;
                 item.onclick = () => selectSound(sound.id);
                 item.innerHTML = `
                     <button class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected && isPlaying ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}">
                         ${isSelected && isPlaying ? '<svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
                     </button>
-                    <div class="flex-grow min-w-0">
+                    <div class="flex-grow min-w-0 text-left">
                         <h3 class="font-semibold text-sm truncate text-slate-800">${sound.title}</h3>
                         <p class="text-[10px] text-slate-400 mt-0.5 truncate uppercase tracking-wider font-bold">${sound.category}</p>
                     </div>
@@ -327,7 +390,7 @@
         function selectSound(id) {
             const sound = soundsData.find(s => s.id === id);
             
-            // Авто-скрытие панели на мобильных
+            // Авто-скрытие на мобильных
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('sidebar-hidden')) toggleSidebar();
