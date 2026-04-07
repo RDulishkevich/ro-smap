@@ -21,7 +21,34 @@
             height: 100dvh;
             width: 100vw;
             background-color: #f0f4f8;
+            transition: background-color 0.3s ease;
         }
+
+        /* Тёмная тема */
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+        body.dark-mode #sidebar, 
+        body.dark-mode #player-card, 
+        body.dark-mode .bg-white,
+        body.dark-mode #add-modal-content,
+        body.dark-mode #details-modal-content,
+        body.dark-mode #settings-modal-content {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+        body.dark-mode .text-slate-800 { color: #f1f5f9; }
+        body.dark-mode .text-slate-600 { color: #cbd5e1; }
+        body.dark-mode .text-slate-400 { color: #94a3b8; }
+        body.dark-mode .bg-slate-100 { background-color: #334155; }
+        body.dark-mode .bg-slate-50 { background-color: #0f172a; }
+        body.dark-mode .border-slate-100 { border-color: #334155; }
+        body.dark-mode .filter-btn.bg-white { background-color: #334155; border-color: #475569; color: #cbd5e1; }
+        body.dark-mode .tag-pill { border-color: #475569; color: #cbd5e1; background-color: rgba(51, 65, 85, 0.5); }
+        body.dark-mode .waveform-bar { background-color: #475569; }
+        body.dark-mode .modal-input { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
 
         /* Кастомный скроллбар */
         ::-webkit-scrollbar { width: 6px; }
@@ -65,26 +92,23 @@
             will-change: transform;
         }
 
-        /* Полоска-индикатор для скрытия */
         .drag-handle {
-            width: 32px;
+            width: 36px;
             height: 4px;
             background-color: #e2e8f0;
             border-radius: 2px;
         }
 
-        /* Улучшенные теги */
         .tag-pill {
-            padding: 1px 7px;
+            padding: 2px 8px;
             border-radius: 9999px;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 600;
             border-width: 1px;
             display: inline-flex;
             align-items: center;
         }
 
-        /* Дизайн инпутов как на макете */
         .modal-input {
             width: 100%;
             border: 1px solid #e2e8f0;
@@ -95,26 +119,13 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        .modal-input:focus {
-            border-color: #cbd5e1;
-        }
+        
         .modal-label {
             display: block;
             font-size: 12px;
             font-weight: 600;
             color: #475569;
             margin-bottom: 4px;
-        }
-        .ucs-tag {
-            background: #f1f5f9;
-            border-radius: 6px;
-            padding: 2px 8px;
-            font-size: 12px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: #475569;
         }
     </style>
 </head>
@@ -136,224 +147,137 @@
 
             <div class="p-6 pb-4">
                 <div class="flex justify-between items-start mb-1">
-                    <h1 class="text-2xl font-bold tracking-tight text-slate-800">Ростовская область</h1>
+                    <h1 class="text-2xl font-bold tracking-tight" data-lang="title">Ростовская область</h1>
                     
-                    <div class="flex items-center gap-3">
-                        <div class="hidden md:flex flex-col items-end">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">GUI Size</label>
-                            <select onchange="changeGUISize(this.value)" class="text-xs bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-600 focus:outline-none cursor-pointer hover:bg-slate-200 transition-colors">
-                                <option value="small">Small</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="large">Large</option>
-                            </select>
-                        </div>
-                        
+                    <div class="flex items-center gap-2">
+                        <!-- Кнопка настроек в шапке панели -->
+                        <button onclick="toggleSettingsModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors pointer-events-auto">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        </button>
                         <button onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors pointer-events-auto">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
                 </div>
-                <p class="text-slate-500 font-medium mb-5">Audio Map</p>
+                <p class="text-slate-500 font-medium mb-5" data-lang="subtitle">Audio Map</p>
                 
                 <div class="relative">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" id="search-input" placeholder="Поиск звуков..." class="w-full bg-slate-100 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-slate-300">
+                    <input type="text" id="search-input" data-lang-placeholder="search_placeholder" placeholder="Поиск звуков..." class="w-full bg-slate-100 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-slate-300">
                 </div>
             </div>
 
             <div class="px-6 pb-2 overflow-x-auto hide-scrollbar flex gap-2">
-                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active-filter px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-slate-800 text-white transition-colors">All</button>
-                <button onclick="setFilter('nature')" id="filter-nature" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600">Nature</button>
-                <button onclick="setFilter('industrial')" id="filter-industrial" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600">Industrial</button>
-                <button onclick="setFilter('social')" id="filter-social" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600">Social</button>
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active-filter px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-slate-800 text-white transition-colors" data-lang="filter_all">All</button>
+                <button onclick="setFilter('nature')" id="filter-nature" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600" data-lang="filter_nature">Nature</button>
+                <button onclick="setFilter('industrial')" id="filter-industrial" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600" data-lang="filter_industrial">Industrial</button>
+                <button onclick="setFilter('social')" id="filter-social" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600" data-lang="filter_social">Social</button>
             </div>
 
             <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3"></div>
         </div>
 
         <!-- Плеер -->
-        <div class="flex-grow flex flex-col justify-end items-center pointer-events-none pb-2 md:pb-4 w-full h-full overflow-hidden">
-            
-            <div id="player-card" class="pointer-events-auto bg-white rounded-[1.8rem] shadow-[0_-8px_40px_rgba(0,0,0,0.1)] p-4 md:p-5 w-[94%] md:w-full max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 relative z-40 mb-2 md:mb-0">
-                
-                <!-- Полоска для скрытия -->
-                <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-6 flex justify-center items-center cursor-pointer z-50">
+        <div class="flex-grow flex flex-col justify-end items-center pointer-events-none pb-8 md:pb-8 w-full h-full overflow-hidden">
+            <div id="player-card" class="pointer-events-auto bg-white rounded-[2rem] shadow-[0_-10px_50px_rgba(0,0,0,0.12)] p-5 md:p-7 w-[94%] md:w-full max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 relative z-40 mb-6 md:mb-0">
+                <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-8 flex justify-center items-center cursor-pointer z-50">
                     <div class="drag-handle"></div>
                 </div>
 
-                <!-- Waveform (Осциллограмма) -->
-                <div id="waveform-wrapper" class="relative w-full h-12 md:h-16 cursor-pointer group mb-2 mt-4">
+                <div id="waveform-wrapper" class="relative w-full h-16 md:h-20 cursor-pointer group mb-3 mt-4">
                     <div id="waveform-bg" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-100"></div>
                     <div id="waveform-active" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-800 pointer-events-none" style="clip-path: inset(0 100% 0 0);"></div>
                     <div id="playhead" class="absolute top-0 bottom-0 w-[1.5px] bg-slate-300 rounded-full pointer-events-none z-10" style="left: 0%;"></div>
                     <input type="range" id="audio-timeline" min="0" max="100" value="0" step="0.01" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 m-0" oninput="seekAudio(this.value)">
                 </div>
                 
-                <!-- Строка времени -->
-                <div class="flex justify-between text-[10px] font-semibold text-slate-900 mb-4 px-0.5">
+                <div class="flex justify-between text-[11px] font-semibold text-slate-900 mb-6 px-0.5">
                     <div>
                         <span id="time-current">0:00</span>
                         <span class="text-slate-300 mx-1">/</span>
                         <span id="time-total" class="text-slate-400">0:00</span>
                     </div>
-                    <span id="time-total-right" class="text-slate-300">0:00</span>
                 </div>
 
-                <!-- Нижний ряд: Управление -->
-                <div class="flex items-center gap-3">
-                    <!-- Кнопка Play -->
-                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-10 h-10 bg-[#2d3238] text-white rounded-full flex items-center justify-center hover:bg-slate-700 transition-colors shadow-md flex-shrink-0">
-                        <svg id="main-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        <svg id="main-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                <div class="flex items-center gap-4">
+                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-11 h-11 bg-[#2d3238] text-white rounded-full flex items-center justify-center hover:bg-slate-700 transition-colors shadow-lg flex-shrink-0">
+                        <svg id="main-play-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <svg id="main-pause-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                     </button>
                     
                     <div class="flex-grow min-w-0 text-left">
-                        <div class="flex items-center mb-0.5">
-                            <h2 id="player-title" onclick="openDetailsModal()" class="text-[13px] md:text-[15px] font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors truncate pr-1">Title</h2>
-                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-slate-500 flex-shrink-0">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <div class="flex items-center mb-1">
+                            <h2 id="player-title" onclick="openDetailsModal()" class="text-base font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors truncate pr-1">Title</h2>
+                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-slate-500 flex-shrink-0 ml-1">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                             </button>
                         </div>
-                        
-                        <div id="player-tags" class="flex flex-wrap gap-1.5 mb-0.5"></div>
-                        <p id="player-gear" class="text-[9px] text-slate-400 font-semibold truncate">Recorder</p>
+                        <div id="player-tags" class="flex flex-wrap gap-2 mb-1"></div>
+                        <p id="player-gear" class="text-[10px] text-slate-400 font-semibold truncate">Recorder Name</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Кнопка Плюс -->
-        <div id="add-audio-btn" class="absolute top-4 right-4 md:top-auto md:bottom-10 md:right-10 pointer-events-auto z-20">
+        <!-- Кнопки справа -->
+        <div class="absolute top-4 right-4 md:top-auto md:bottom-10 md:right-10 pointer-events-auto z-20 flex flex-col gap-3">
+            <!-- Плюс -->
             <button onclick="toggleAddModal()" class="w-12 h-12 bg-white text-slate-800 rounded-2xl flex items-center justify-center shadow-xl hover:shadow-2xl border border-slate-100 transition-transform active:scale-95">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <!-- Настройки (только мобильный вид, на десктопе они в сайдбаре) -->
+            <button onclick="toggleSettingsModal()" class="md:hidden w-12 h-12 bg-white text-slate-800 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 active:scale-95 transition-all">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
         </div>
 
     </div>
 
-    <!-- Обновленное Модальное окно "Add Audio" по макету -->
-    <div id="add-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-[#fcfcfd] rounded-[2rem] shadow-2xl w-full max-w-lg max-h-[95vh] flex flex-col overflow-hidden transform scale-95 transition-transform duration-300" id="add-modal-content">
-            
-            <!-- Заголовок -->
-            <div class="px-8 py-6 flex justify-between items-center bg-white">
-                <h3 class="text-xl font-bold text-slate-800">Add Audio</h3>
-                <button onclick="toggleAddModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+    <!-- Модальное окно Настроек -->
+    <div id="settings-modal" class="fixed inset-0 z-[70] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="settings-modal-content" class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all">
+            <div class="px-8 py-6 flex justify-between items-center border-b border-slate-50">
+                <h3 class="text-xl font-bold" data-lang="settings_title">Настройки</h3>
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
-
-            <!-- Контент формы -->
-            <div class="p-8 pt-2 overflow-y-auto custom-scrollbar flex flex-col gap-6">
-                
-                <!-- Drag and drop zone с волной -->
-                <div class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors">
-                    <div class="flex items-center gap-2 text-slate-500 mb-3">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span class="text-sm font-semibold">Drag-and-drop zone.</span>
-                    </div>
-                    <!-- Имитация загруженной волны -->
-                    <div class="flex items-center gap-[2px] h-10 w-full px-8 mb-3 opacity-30">
-                        <div class="flex-1 bg-slate-400 rounded-full h-2"></div><div class="flex-1 bg-slate-400 rounded-full h-4"></div><div class="flex-1 bg-slate-400 rounded-full h-6"></div><div class="flex-1 bg-slate-400 rounded-full h-8"></div><div class="flex-1 bg-slate-400 rounded-full h-10"></div><div class="flex-1 bg-slate-400 rounded-full h-7"></div><div class="flex-1 bg-slate-400 rounded-full h-9"></div><div class="flex-1 bg-slate-400 rounded-full h-6"></div><div class="flex-1 bg-slate-400 rounded-full h-4"></div><div class="flex-1 bg-slate-400 rounded-full h-2"></div><div class="flex-1 bg-slate-400 rounded-full h-5"></div><div class="flex-1 bg-slate-400 rounded-full h-8"></div><div class="flex-1 bg-slate-400 rounded-full h-10"></div><div class="flex-1 bg-slate-400 rounded-full h-6"></div><div class="flex-1 bg-slate-400 rounded-full h-4"></div>
-                    </div>
-                    <p class="text-xs text-slate-400 font-mono">RND_Central_Market_AMB_001.wav</p>
-                </div>
-
-                <!-- Display Title -->
+            <div class="p-8 space-y-6">
+                <!-- Scale -->
                 <div>
-                    <label class="modal-label">Display Title</label>
-                    <input type="text" placeholder="Central Market Morning Ambience" class="modal-input">
+                    <label class="modal-label" data-lang="gui_scale">Масштаб интерфейса</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="changeGUISize('small')" class="p-2 text-xs font-bold bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Small</button>
+                        <button onclick="changeGUISize('medium')" class="p-2 text-xs font-bold bg-slate-800 text-white rounded-xl">Medium</button>
+                        <button onclick="changeGUISize('large')" class="p-2 text-xs font-bold bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Large</button>
+                    </div>
                 </div>
-
-                <!-- Sound Description -->
+                <!-- Theme -->
                 <div>
-                    <label class="modal-label">Sound Description</label>
-                    <textarea rows="3" placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit..." class="modal-input h-24 resize-none"></textarea>
-                </div>
-
-                <!-- UCS Tags -->
-                <div class="space-y-4">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">UCS tags</p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="modal-label text-slate-400">Category:</label>
-                            <select class="modal-input appearance-none">
-                                <option>AMB (Ambience)</option>
-                                <option>IND (Industrial)</option>
-                                <option>NAT (Nature)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="modal-label text-slate-400">SubCategory:</label>
-                            <select class="modal-input appearance-none">
-                                <option>MARKET</option>
-                                <option>STREET</option>
-                                <option>FACTORY</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <div class="ucs-tag">Crowd <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
-                        <div class="ucs-tag">Exterior <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+                    <label class="modal-label" data-lang="theme">Тема оформления</label>
+                    <div class="flex items-center gap-3 p-1 bg-slate-100 rounded-xl">
+                        <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 py-2 text-xs font-bold bg-white shadow-sm rounded-lg">Light</button>
+                        <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 py-2 text-xs font-bold text-slate-500 rounded-lg">Dark</button>
                     </div>
                 </div>
-
-                <!-- Location, Date, Time Block -->
-                <div class="grid grid-cols-[140px_1fr] gap-6 items-start">
-                    <!-- Мини-карта (placeholder) -->
-                    <div class="w-full aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative group">
-                        <img src="https://api-maps.yandex.ru/services/constructor/1.0/static/?um=constructor%3Af7c90858850689b7b93f774e7978d389a69530f2526e8484f9382f164f9b8893&amp;width=140&amp;height=140&amp;lang=ru_RU" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg"></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="modal-label text-slate-400">Location</label>
-                            <input type="text" value="Rostov-on-Don" class="modal-input">
-                        </div>
-                        <div>
-                            <label class="modal-label text-slate-400">Date</label>
-                            <div class="relative">
-                                <input type="text" value="01/10/2023" class="modal-input pr-10">
-                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="modal-label text-slate-400">Time</label>
-                            <input type="text" value="17:00" class="modal-input">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recorder & Mic -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="modal-label text-slate-400">Recorder Model</label>
-                        <input type="text" class="modal-input">
-                    </div>
-                    <div>
-                        <label class="modal-label text-slate-400">Microphone Type</label>
-                        <input type="text" class="modal-input">
-                    </div>
+                <!-- Language -->
+                <div>
+                    <label class="modal-label" data-lang="language">Язык приложения</label>
+                    <select onchange="setLanguage(this.value)" id="lang-select" class="modal-input appearance-none bg-slate-50">
+                        <option value="ru">Русский</option>
+                        <option value="en">English</option>
+                    </select>
                 </div>
             </div>
-
-            <!-- Кнопка публикации -->
-            <div class="p-8 pt-4 bg-white border-t border-slate-50">
-                <button onclick="toggleAddModal();" class="w-full py-4 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold rounded-2xl border border-slate-200 transition-all shadow-sm active:scale-[0.98]">
-                    Publish Sound
-                </button>
+            <div class="p-6 pt-0">
+                <button onclick="toggleSettingsModal()" class="w-full py-4 bg-slate-100 hover:bg-slate-200 font-bold rounded-2xl transition-all" data-lang="close">Закрыть</button>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно деталей (Детали) -->
+    <!-- Модальное окно деталей -->
     <div id="details-modal" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden" id="details-modal-content">
+        <div id="details-modal-content" class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
             <div class="relative h-48 md:h-64 shrink-0 bg-slate-200">
-                <img id="details-image" src="" class="w-full h-full object-cover" onerror="this.src='https://picsum.photos/800/500?random=fallback'">
+                <img id="details-image" src="" class="w-full h-full object-cover">
                 <button onclick="closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-black/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-black/40 transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="p-6 md:p-8 overflow-y-auto">
@@ -363,7 +287,7 @@
                         <h2 id="details-title" class="text-2xl md:text-3xl font-bold text-slate-800"></h2>
                         <span id="details-date" class="text-sm text-slate-500 font-medium"></span>
                     </div>
-                    <a id="details-download-btn" href="#" download class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                    <a id="details-download-btn" href="#" download class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
                 </div>
                 <p id="details-description" class="text-slate-600 leading-relaxed mb-6"></p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
@@ -377,15 +301,53 @@
     <audio id="global-audio"></audio>
 
     <script>
+        // Переводы
+        const translations = {
+            ru: {
+                title: "Ростовская область",
+                subtitle: "Аудиокарта",
+                search_placeholder: "Поиск звуков...",
+                filter_all: "Все",
+                filter_nature: "Природа",
+                filter_industrial: "Индустрия",
+                filter_social: "Социум",
+                settings_title: "Настройки",
+                gui_scale: "Масштаб интерфейса",
+                theme: "Тема оформления",
+                language: "Язык приложения",
+                close: "Закрыть",
+                rec_prefix: "Rec: ",
+                coords_prefix: "Координаты: ",
+                gear_prefix: "Оборудование: "
+            },
+            en: {
+                title: "Rostov Region",
+                subtitle: "Audio Map",
+                search_placeholder: "Search sounds...",
+                filter_all: "All",
+                filter_nature: "Nature",
+                filter_industrial: "Industrial",
+                filter_social: "Social",
+                settings_title: "Settings",
+                gui_scale: "Interface Scale",
+                theme: "Visual Theme",
+                language: "Application Language",
+                close: "Close",
+                rec_prefix: "Rec: ",
+                coords_prefix: "Coordinates: ",
+                gear_prefix: "Gear: "
+            }
+        };
+
+        let currentLang = 'ru';
+        let currentTheme = 'light';
+
         const soundsData = [
             { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн Дона.' },
             { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6, Binaural', date: '04 Июн 2023', description: 'Пульс Ростова.' },
             { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный шум.' },
             { id: 's5', title: 'Шатровая колокольня', category: 'industrial', lat: 47.2400, lng: 40.0340, duration: '0:45', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '04 Июн 2023', description: 'Звон над степью.' },
-            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар.' },
-            { id: 't1', title: 'Домик А.П. Чехова', category: 'social', lat: 47.2100, lng: 38.9280, duration: '0:55', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Keynote', semanticTag: 'History', gear: 'Tascam DR-40X', date: '20 Май 2023', description: 'Скрип старых половиц и тихие голоса.' },
-            { id: 'n1', title: 'Вознесенский собор', category: 'social', lat: 47.4140, lng: 40.1105, duration: '2:30', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', typeTag: 'Soundmark', semanticTag: 'Religion', gear: 'Zoom H5', date: '07 Янв 2023', description: 'Колокольный звон третьего по величине храма России.' },
-            { id: 'v2', title: 'Набережная Вёшенской', category: 'nature', lat: 49.6250, lng: 41.7300, duration: '1:45', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '11 Июн 2023', description: 'Сильное течение Верхнего Дона.' }
+            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: 'https://cdn.freesound.org/previews/416/416529_5121236-lq.mp3', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар на соленом озере.' }
         ];
 
         let map;
@@ -418,30 +380,85 @@
             updateMapMarkers();
         }
 
+        function setLanguage(lang) {
+            currentLang = lang;
+            const dict = translations[lang];
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (dict[key]) el.textContent = dict[key];
+            });
+            document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-lang-placeholder');
+                if (dict[key]) el.placeholder = dict[key];
+            });
+            renderList();
+            if(currentPlayingId) selectSound(currentPlayingId, false);
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            const body = document.body;
+            const lightBtn = document.getElementById('theme-light-btn');
+            const darkBtn = document.getElementById('theme-dark-btn');
+            
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                darkBtn.className = "flex-1 py-2 text-xs font-bold bg-white text-slate-800 shadow-sm rounded-lg";
+                lightBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 rounded-lg";
+            } else {
+                body.classList.remove('dark-mode');
+                lightBtn.className = "flex-1 py-2 text-xs font-bold bg-white text-slate-800 shadow-sm rounded-lg";
+                darkBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 rounded-lg";
+            }
+        }
+
+        function changeGUISize(size) {
+            const sidebar = document.getElementById('sidebar');
+            const scales = { small: '0.8', medium: '1', large: '1.15' };
+            sidebar.style.transform = `scale(${scales[size]})`;
+            
+            // Визуальная подсветка кнопок
+            const buttons = document.querySelectorAll('#settings-modal-content .grid button');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase() === size) {
+                    btn.className = "p-2 text-xs font-bold bg-slate-800 text-white rounded-xl";
+                } else {
+                    btn.className = "p-2 text-xs font-bold bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors";
+                }
+            });
+        }
+
+        function toggleSettingsModal() {
+            const m = document.getElementById('settings-modal');
+            const content = document.getElementById('settings-modal-content');
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden');
+                setTimeout(() => { m.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+            } else {
+                m.classList.add('opacity-0'); content.classList.add('scale-95');
+                setTimeout(() => m.classList.add('hidden'), 300);
+            }
+        }
+
         function updateMapMarkers(searchQuery = '') {
             if (!map) return;
             map.geoObjects.removeAll();
             markers = {};
-
             const createMarkerLayout = (colorClass, id) => {
                 const isSel = currentPlayingId === id;
                 return ymaps.templateLayoutFactory.createClass(
                     `<div id="marker-${id}" class="w-4 h-4 md:w-5 md:h-5 custom-marker ${colorClass} ${isSel ? 'selected' : ''}"></div>`
                 );
             };
-
             soundsData.forEach(sound => {
                 if (currentFilter !== 'all' && sound.category !== currentFilter) return;
                 if (searchQuery && !sound.title.toLowerCase().includes(searchQuery)) return;
-
                 let colorClass = sound.category === 'nature' ? 'marker-nature' : sound.category === 'industrial' ? 'marker-industrial' : 'marker-social';
-
                 const placemark = new ymaps.Placemark([sound.lat, sound.lng], {}, {
                     iconLayout: createMarkerLayout(colorClass, sound.id),
                     iconShape: { type: 'Rectangle', coordinates: [[-10, -10], [10, 10]] },
                     iconOffset: [-10, -10]
                 });
-                
                 placemark.events.add('click', () => selectSound(sound.id));
                 map.geoObjects.add(placemark);
                 markers[sound.id] = placemark;
@@ -463,94 +480,64 @@
                         ${isSelected && isPlaying ? '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
                     </button>
                     <div class="flex-grow min-w-0 text-left">
-                        <h3 class="font-semibold text-[13px] truncate text-slate-800">${sound.title}</h3>
-                        <p class="text-[9px] text-slate-400 mt-0.5 truncate uppercase tracking-wider font-bold">${sound.category}</p>
+                        <h3 class="font-semibold text-[13px] truncate">${sound.title}</h3>
+                        <p class="text-[9px] text-slate-400 mt-0.5 truncate uppercase tracking-wider font-bold">${translations[currentLang][`filter_${sound.category}`]}</p>
                     </div>
                 `;
                 listContainer.appendChild(item);
             });
         }
 
-        function selectSound(id) {
+        function selectSound(id, updateAudio = true) {
             const sound = soundsData.find(s => s.id === id);
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('sidebar-hidden')) toggleSidebar();
             }
-            map.setCenter([sound.lat, sound.lng], 15, { duration: 1000 });
+            if (updateAudio) map.setCenter([sound.lat, sound.lng], 15, { duration: 1000 });
             currentPlayingId = id;
             updateMapMarkers(document.getElementById('search-input').value.toLowerCase());
             const card = document.getElementById('player-card');
             card.classList.remove('translate-y-[150%]', 'opacity-0');
             document.getElementById('player-title').textContent = sound.title;
-            document.getElementById('player-gear').textContent = `Rec: ${sound.gear}`;
-            document.getElementById('time-total').textContent = sound.duration;
-            document.getElementById('time-total-right').textContent = sound.duration;
+            document.getElementById('player-gear').textContent = translations[currentLang].rec_prefix + sound.gear;
             document.getElementById('player-tags').innerHTML = `
                 <span class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30">${sound.typeTag}</span>
                 <span class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30">${sound.semanticTag}</span>
             `;
-            if (audioElement.src !== sound.url) {
-                audioElement.src = sound.url;
-                audioElement.play().then(() => {
-                    isPlaying = true;
-                    startTimelineAnimation();
-                    updateUIState();
-                }).catch(() => {
-                    isPlaying = false;
-                    updateUIState();
-                });
-            } else {
-                toggleMainPlay();
+            if (updateAudio) {
+                if (audioElement.src !== sound.url) {
+                    audioElement.src = sound.url;
+                    audioElement.play().then(() => { isPlaying = true; startTimelineAnimation(); updateUIState(); }).catch(() => { isPlaying = false; updateUIState(); });
+                } else { toggleMainPlay(); }
             }
         }
 
         function closePlayerCard() {
-            if (isPlaying) {
-                audioElement.pause();
-                isPlaying = false;
-                cancelAnimationFrame(animationFrameId);
-            }
+            if (isPlaying) { audioElement.pause(); isPlaying = false; cancelAnimationFrame(animationFrameId); }
             document.getElementById('player-card').classList.add('translate-y-[150%]', 'opacity-0');
-            currentPlayingId = null;
-            updateMapMarkers();
-            renderList();
+            currentPlayingId = null; updateMapMarkers(); renderList();
         }
 
         function toggleMainPlay() {
             if (!currentPlayingId) return;
-            if (isPlaying) {
-                audioElement.pause();
-                isPlaying = false;
-                cancelAnimationFrame(animationFrameId);
-            } else {
-                audioElement.play().then(() => {
-                    isPlaying = true;
-                    startTimelineAnimation();
-                });
-            }
+            if (isPlaying) { audioElement.pause(); isPlaying = false; cancelAnimationFrame(animationFrameId); }
+            else { audioElement.play().then(() => { isPlaying = true; startTimelineAnimation(); }); }
             updateUIState();
         }
 
         function updateUIState() {
             const playIcon = document.getElementById('main-play-icon');
             const pauseIcon = document.getElementById('main-pause-icon');
-            if (isPlaying) {
-                playIcon.classList.add('hidden');
-                pauseIcon.classList.remove('hidden');
-            } else {
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-            }
+            if (isPlaying) { playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); }
+            else { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }
             renderList(document.getElementById('search-input').value.toLowerCase());
         }
 
         function renderWaveform() {
             const waveData = [15, 25, 45, 20, 60, 40, 80, 55, 30, 15, 40, 70, 90, 50, 35, 20, 25, 45, 65, 85, 55, 35, 20, 25, 45, 65, 10, 35, 55, 75, 15, 40, 60, 35, 15, 50, 70, 90, 55, 30, 25, 45, 75, 85];
-            let html = '';
-            waveData.forEach(h => html += `<div class="flex-1 bg-current rounded-full" style="height: ${h}%;"></div>`);
-            document.getElementById('waveform-bg').innerHTML = html;
-            document.getElementById('waveform-active').innerHTML = html;
+            let html = ''; waveData.forEach(h => html += `<div class="flex-1 bg-current rounded-full" style="height: ${h}%;"></div>`);
+            document.getElementById('waveform-bg').innerHTML = html; document.getElementById('waveform-active').innerHTML = html;
         }
 
         function startTimelineAnimation() {
@@ -578,21 +565,11 @@
             }
         }
 
-        function formatTime(s) {
-            const min = Math.floor(s / 60);
-            const sec = Math.floor(s % 60);
-            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-        }
+        function formatTime(s) { const min = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${min}:${sec < 10 ? '0' : ''}${sec}`; }
 
         function setupAudioEvents() {
-            audioElement.onended = () => {
-                isPlaying = false;
-                updateUIState();
-            };
-            audioElement.onloadedmetadata = () => {
-                document.getElementById('time-total').textContent = formatTime(audioElement.duration);
-                document.getElementById('time-total-right').textContent = formatTime(audioElement.duration);
-            };
+            audioElement.onended = () => { isPlaying = false; updateUIState(); };
+            audioElement.onloadedmetadata = () => { document.getElementById('time-total').textContent = formatTime(audioElement.duration); };
         }
 
         function toggleSidebar() {
@@ -602,45 +579,15 @@
             btn.classList.toggle('hidden', !sidebar.classList.contains('sidebar-hidden'));
         }
 
-        function changeGUISize(size) {
-            const sidebar = document.getElementById('sidebar');
-            const scales = { small: '0.8', medium: '1', large: '1.15' };
-            sidebar.style.transform = `scale(${scales[size]})`;
-        }
-
         function setFilter(type) {
             currentFilter = type;
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                if (b.id === `filter-${type}`) {
-                    b.classList.add('bg-slate-800', 'text-white');
-                    b.classList.remove('bg-white', 'text-slate-600');
-                } else {
-                    b.classList.remove('bg-slate-800', 'text-white');
-                    b.classList.add('bg-white', 'text-slate-600');
-                }
-            });
-            updateMapMarkers();
-            renderList();
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('bg-slate-800', b.id === `filter-${type}`));
+            updateMapMarkers(); renderList();
         }
 
         function toggleAddModal() {
             const m = document.getElementById('add-modal');
-            const content = document.getElementById('add-modal-content');
-            if (m.classList.contains('hidden')) {
-                m.classList.remove('hidden');
-                setTimeout(() => {
-                    m.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                    content.classList.add('scale-100');
-                }, 10);
-            } else {
-                m.classList.add('opacity-0');
-                content.classList.remove('scale-100');
-                content.classList.add('scale-95');
-                setTimeout(() => {
-                    m.classList.add('hidden');
-                }, 300);
-            }
+            m.classList.toggle('hidden'); setTimeout(() => m.classList.toggle('opacity-0'), 10);
         }
 
         function openDetailsModal() {
@@ -650,21 +597,16 @@
             document.getElementById('details-title').textContent = s.title;
             document.getElementById('details-date').textContent = s.date;
             document.getElementById('details-description').textContent = s.description;
-            document.getElementById('details-coords').textContent = `Координаты: ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
-            document.getElementById('details-gear').textContent = `Оборудование: ${s.gear}`;
-            
-            const tagsCont = document.getElementById('details-tags-container');
-            tagsCont.innerHTML = `<span class="tag-pill border-blue-100 text-blue-700 bg-blue-50/50 uppercase">${s.category}</span>`;
-            
+            document.getElementById('details-coords').textContent = translations[currentLang].coords_prefix + `${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
+            document.getElementById('details-gear').textContent = translations[currentLang].gear_prefix + s.gear;
+            document.getElementById('details-tags-container').innerHTML = `<span class="tag-pill border-blue-100 text-blue-700 bg-blue-50/50 uppercase">${translations[currentLang][`filter_${s.category}`]}</span>`;
             const m = document.getElementById('details-modal');
-            m.classList.remove('hidden');
-            setTimeout(() => m.classList.remove('opacity-0'), 10);
+            m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10);
         }
 
         function closeDetailsModal() {
             const m = document.getElementById('details-modal');
-            m.classList.add('opacity-0');
-            setTimeout(() => m.classList.add('hidden'), 300);
+            m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300);
         }
     </script>
 </body>
