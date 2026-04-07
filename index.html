@@ -176,19 +176,36 @@
     <div id="game-modal" class="fixed inset-0 z-[110] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
         <div id="game-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
             <div class="px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="game_title">Поймай волну</h3>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="game_title">Голосовой платформер</h3>
                 <button onclick="toggleGameModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             
-            <div class="p-6 flex flex-col items-center gap-6">
-                <p class="text-slate-500 dark:text-slate-400 text-sm text-center" data-lang="game_desc">Издавайте звуки в микрофон, чтобы ваша волна удерживалась внутри зеленой зоны.</p>
+            <div class="p-6 flex flex-col items-center gap-5">
+                <p class="text-slate-500 dark:text-slate-400 text-sm text-center" data-lang="game_desc">Крикните или хлопните в микрофон, чтобы перепрыгнуть препятствие!</p>
                 <p class="text-3xl font-black text-blue-600 dark:text-blue-400"><span data-lang="game_score">Счет: </span> <span id="game-score-val">0</span></p>
                 
-                <div class="relative w-16 h-48 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner border border-slate-200 dark:border-slate-600">
-                    <!-- Целевая зона -->
-                    <div id="game-target" class="absolute left-0 w-full h-12 bg-green-400/50 dark:bg-green-500/50 transition-all duration-[50ms] ease-linear" style="bottom: 50%; margin-bottom: -24px;"></div>
-                    <!-- Индикатор игрока -->
-                    <div id="game-player" class="absolute bottom-0 left-0 w-full bg-blue-500 dark:bg-blue-400 rounded-full transition-all duration-[50ms] ease-out" style="height: 0%;"></div>
+                <!-- Игровой холст -->
+                <div class="relative w-full h-40 bg-slate-100 dark:bg-slate-700 rounded-2xl overflow-hidden shadow-inner border border-slate-200 dark:border-slate-600">
+                    <canvas id="game-canvas" class="w-full h-full block"></canvas>
+                    
+                    <!-- Экран проигрыша -->
+                    <div id="game-over-screen" class="absolute inset-0 bg-slate-900/80 hidden flex-col items-center justify-center text-white z-10 backdrop-blur-sm">
+                        <p class="text-xl font-bold mb-3 uppercase tracking-widest text-red-400">Game Over</p>
+                        <button onclick="resetGame()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold shadow-md transition-colors" data-lang="game_restart">Рестарт</button>
+                    </div>
+                </div>
+
+                <!-- Индикатор громкости микрофона -->
+                <div class="w-full space-y-1">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
+                        <span>MIC LEVEL</span>
+                        <span>JUMP THRESHOLD</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden relative">
+                        <div id="mic-level-bar" class="h-full bg-blue-500 w-0 transition-all duration-75"></div>
+                        <!-- Риска порога прыжка -->
+                        <div class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10" style="left: 45%;"></div>
+                    </div>
                 </div>
 
                 <button id="game-start-btn" onclick="toggleGamePlaying()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]" data-lang="game_start">Начать игру</button>
@@ -435,7 +452,7 @@
                 add_audio_title: "Добавить аудио", drag_drop: "Перетащите файл сюда", display_title: "Название места", sound_desc: "Описание",
                 rec_model: "Модель рекордера", mic_type: "Тип микрофона", publish: "Опубликовать",
                 rec_prefix: "Rec: ", coords_prefix: "Координаты: ", gear_prefix: "Оборудование: ",
-                game_title: "Поймай волну", game_desc: "Издавайте звуки в микрофон, чтобы ваша волна удерживалась внутри зеленой зоны.", game_score: "Счет: ", game_start: "Начать игру", game_stop: "Остановить"
+                game_title: "Голосовой платформер", game_desc: "Крикните или хлопните в микрофон, чтобы прыгать!", game_score: "Счет: ", game_start: "Начать игру", game_stop: "Остановить", game_restart: "Рестарт"
             },
             en: {
                 title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search sounds...",
@@ -444,7 +461,7 @@
                 add_audio_title: "Add Audio", drag_drop: "Drag-and-drop zone", display_title: "Display Title", sound_desc: "Sound Description",
                 rec_model: "Recorder Model", mic_type: "Microphone Type", publish: "Publish Sound",
                 rec_prefix: "Rec: ", coords_prefix: "Coordinates: ", gear_prefix: "Gear: ",
-                game_title: "Catch the Wave", game_desc: "Make sounds into the microphone to keep your wave inside the green zone.", game_score: "Score: ", game_start: "Start Game", game_stop: "Stop"
+                game_title: "Voice Platformer", game_desc: "Shout or clap into the mic to jump over obstacles!", game_score: "Score: ", game_start: "Start Game", game_stop: "Stop", game_restart: "Restart"
             }
         };
 
@@ -457,9 +474,14 @@
         let analyser;
         let micStream;
         let gameScore = 0;
-        let targetPos = 50; 
-        let currentVol = 0; 
         let gameLoopId;
+        
+        // Переменные платформера
+        let gameCanvas, ctx;
+        let player = { x: 40, y: 0, w: 20, h: 20, vy: 0, gravity: 0.6, jumpPower: -9, isGrounded: true };
+        let obstacles = [];
+        let frames = 0;
+        let isGameOver = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             renderList();
@@ -564,7 +586,33 @@
             }
         }
 
-        // Логика игры "Поймай волну"
+        // Инициализация Canvas
+        function initGameContext() {
+            gameCanvas = document.getElementById('game-canvas');
+            // Устанавливаем внутреннее разрешение canvas равным его размеру на экране
+            gameCanvas.width = gameCanvas.offsetWidth;
+            gameCanvas.height = gameCanvas.offsetHeight;
+            ctx = gameCanvas.getContext('2d');
+            resetGameParams();
+        }
+
+        function resetGameParams() {
+            player.y = gameCanvas.height - player.h - 10;
+            player.vy = 0;
+            player.isGrounded = true;
+            obstacles = [];
+            frames = 0;
+            gameScore = 0;
+            isGameOver = false;
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('game-score-val').textContent = '0';
+        }
+
+        function resetGame() {
+            resetGameParams();
+        }
+
+        // Логика запуска игры платформера
         async function toggleGamePlaying() {
             if (gameActive) {
                 // Остановка игры
@@ -573,8 +621,7 @@
                 if (micStream) micStream.getTracks().forEach(t => t.stop());
                 if (audioCtx) audioCtx.close();
                 document.getElementById('game-start-btn').textContent = translations[currentLang].game_start;
-                document.getElementById('game-player').style.height = '0%';
-                document.getElementById('game-target').className = "absolute left-0 w-full h-12 bg-green-400/50 dark:bg-green-500/50 transition-all duration-[50ms] ease-linear";
+                document.getElementById('mic-level-bar').style.width = '0%';
             } else {
                 // Старт игры
                 try {
@@ -585,7 +632,7 @@
                     source.connect(analyser);
                     analyser.fftSize = 256;
                     
-                    gameScore = 0;
+                    initGameContext();
                     gameActive = true;
                     document.getElementById('game-start-btn').textContent = translations[currentLang].game_stop;
                     gameLoop();
@@ -607,26 +654,91 @@
             }
             let average = sum / dataArray.length;
             
-            // Конвертируем среднюю громкость (0-128) в проценты высоты столбика
-            currentVol = Math.min(100, (average / 128) * 150); 
+            // Визуальный индикатор микрофона (в процентах, максимум 100)
+            let micPercent = Math.min(100, (average / 100) * 100);
+            document.getElementById('mic-level-bar').style.width = micPercent + '%';
             
-            // Двигаем целевую зону по синусоиде
-            let time = Date.now() / 1000;
-            targetPos = 50 + Math.sin(time * 1.5) * 40; 
-            
-            // Обновляем интерфейс
-            document.getElementById('game-player').style.height = currentVol + '%';
-            document.getElementById('game-target').style.bottom = targetPos + '%';
-            
-            // Проверка: находится ли верхушка "игрока" внутри "цели" (+/- 10%)
-            if (currentVol >= targetPos - 12 && currentVol <= targetPos + 12) {
-                gameScore += 1;
-                document.getElementById('game-target').className = "absolute left-0 w-full h-12 bg-green-500 dark:bg-green-400 transition-all duration-[50ms] ease-linear shadow-[0_0_15px_rgba(34,197,94,0.5)]";
-            } else {
-                document.getElementById('game-target').className = "absolute left-0 w-full h-12 bg-green-400/50 dark:bg-green-500/50 transition-all duration-[50ms] ease-linear";
+            if (!isGameOver) {
+                // ПРЫЖОК: Если громкость выше порога (45) и игрок на земле
+                if (micPercent > 45 && player.isGrounded) {
+                    player.vy = player.jumpPower;
+                    player.isGrounded = false;
+                }
+
+                // Физика
+                player.vy += player.gravity;
+                player.y += player.vy;
+
+                // Столкновение с землей
+                const groundY = gameCanvas.height - 10;
+                if (player.y + player.h >= groundY) {
+                    player.y = groundY - player.h;
+                    player.vy = 0;
+                    player.isGrounded = true;
+                }
+
+                // Спавн препятствий (каждые ~1.5 секунды)
+                if (frames % 90 === 0) {
+                    let obsW = 15 + Math.random() * 10;
+                    let obsH = 20 + Math.random() * 15;
+                    obstacles.push({
+                        x: gameCanvas.width,
+                        y: groundY - obsH,
+                        w: obsW,
+                        h: obsH,
+                        speed: 3 + Math.random() * 2,
+                        passed: false
+                    });
+                }
+
+                // Обновление препятствий
+                for (let i = 0; i < obstacles.length; i++) {
+                    let obs = obstacles[i];
+                    obs.x -= obs.speed;
+
+                    // Проверка столкновений
+                    if (
+                        player.x < obs.x + obs.w &&
+                        player.x + player.w > obs.x &&
+                        player.y < obs.y + obs.h &&
+                        player.y + player.h > obs.y
+                    ) {
+                        isGameOver = true;
+                        document.getElementById('game-over-screen').classList.remove('hidden');
+                        document.getElementById('game-over-screen').classList.add('flex');
+                    }
+
+                    // Подсчет очков
+                    if (obs.x + obs.w < player.x && !obs.passed) {
+                        obs.passed = true;
+                        gameScore += 10;
+                        document.getElementById('game-score-val').textContent = gameScore;
+                    }
+                }
+
+                // Удаление ушедших за экран препятствий
+                obstacles = obstacles.filter(obs => obs.x + obs.w > 0);
+
+                frames++;
             }
             
-            document.getElementById('game-score-val').textContent = Math.floor(gameScore / 10);
+            // --- Отрисовка ---
+            ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            // Земля
+            ctx.fillStyle = currentTheme === 'dark' ? '#334155' : '#cbd5e1';
+            ctx.fillRect(0, gameCanvas.height - 10, gameCanvas.width, 10);
+
+            // Игрок
+            ctx.fillStyle = '#3b82f6'; // Синий
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+
+            // Препятствия
+            ctx.fillStyle = '#ef4444'; // Красный
+            for (let obs of obstacles) {
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+            }
+            
             gameLoopId = requestAnimationFrame(gameLoop);
         }
 
