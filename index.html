@@ -28,9 +28,25 @@
             height: 100vh;
             height: 100dvh;
             width: 100vw;
+            background-color: #f0f4f8;
+            transition: background-color 0.3s ease;
         }
 
-        /* Кастомный скроллбар с поддержкой тёмной темы */
+        /* Тёмная тема */
+        body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
+        body.dark-mode #sidebar, 
+        body.dark-mode #player-card, 
+        body.dark-mode #add-modal-content,
+        body.dark-mode #details-modal-content,
+        body.dark-mode #settings-modal-content { background-color: #1e293b; border-color: #334155; }
+        body.dark-mode .text-slate-800 { color: #f1f5f9; }
+        body.dark-mode .text-slate-600 { color: #cbd5e1; }
+        body.dark-mode .bg-white { background-color: #1e293b; }
+        body.dark-mode .bg-slate-100 { background-color: #334155; }
+        body.dark-mode .bg-slate-50 { background-color: #0f172a; }
+        body.dark-mode .modal-input { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
+
+        /* Кастомный скроллбар */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -39,146 +55,157 @@
         [class*="gototech"] { display: none !important; }
 
         /* Маркеры */
-        .custom-marker {
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
+        .custom-marker { border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.2s; cursor: pointer; }
         .dark .custom-marker { border-color: #1e293b; }
-        .custom-marker.selected {
-            transform: scale(1.3);
-            z-index: 1000 !important;
-            border-color: #0f172a;
-        }
+        .custom-marker.selected { transform: scale(1.3); z-index: 1000 !important; border-color: #0f172a; }
         .dark .custom-marker.selected { border-color: #f8fafc; }
-        
         .marker-nature { background-color: #22c55e; }
         .marker-industrial { background-color: #3b82f6; }
         .marker-social { background-color: #f97316; }
 
-        /* Кастомные стили для инпутов в модальных окнах */
-        .modal-input {
-            width: 100%;
-            border-radius: 0.75rem;
-            padding: 0.625rem 1rem;
-            font-size: 0.875rem;
-            outline: none;
-            transition: all 0.2s;
+        /* Логика боковой панели */
+        #sidebar {
+            position: absolute;
+            top: 1rem; left: 1rem; bottom: 1rem;
+            width: calc(100% - 2rem);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
         }
-        .modal-label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
+        @media (min-width: 768px) {
+            #sidebar { top: 1.5rem; left: 1.5rem; bottom: 1.5rem; width: 24rem; }
         }
+        .sidebar-hidden {
+            transform: translateX(calc(-100% - 2rem)) !important;
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+
+        /* Анимация плеера */
+        #player-card { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease; will-change: transform; }
+        .drag-handle { width: 36px; height: 4px; background-color: #e2e8f0; border-radius: 2px; }
+        .tag-pill { padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; border-width: 1px; display: inline-flex; align-items: center; gap: 4px; }
+        .modal-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 14px; background: #fff; outline: none; transition: border-color 0.2s; }
+        .modal-label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+        
+        .map-monochrome { filter: grayscale(100%) contrast(1.1) brightness(1.05); transition: filter 0.5s ease; }
+        .dark .map-monochrome { filter: grayscale(100%) invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.2); }
+
+        .meta-group { display: flex; flex-direction: column; gap: 2px; }
+        .meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
+        .meta-value { font-size: 0.8rem; font-weight: 500; color: #334155; }
+        .dark .meta-value { color: #cbd5e1; }
     </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased transition-colors duration-300">
+<body class="text-slate-800 antialiased relative">
+
+    <!-- Toast уведомления -->
+    <div id="toast-message" class="fixed top-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-5 py-3 rounded-full shadow-2xl z-[300] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 border border-slate-700">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="toast-text" class="text-[13px] font-semibold tracking-wide">Уведомление</span>
+    </div>
 
     <!-- Карта -->
-    <div id="map" class="absolute inset-0 z-0"></div>
+    <div id="map" class="absolute inset-0 z-0 transition-all duration-500"></div>
 
-    <!-- Кнопка вызова сайдбара (бургер) -->
-    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="absolute top-4 left-4 md:top-6 md:left-6 z-20 w-12 h-12 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 transition-all">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-
-    <!-- Плавающие кнопки справа -->
-    <div class="absolute top-4 right-4 md:top-auto md:bottom-6 md:right-6 z-20 flex flex-col gap-3 pointer-events-auto">
-        <button onclick="toggleAddModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 transition-all" title="Add Audio">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <button onclick="toggleSettingsModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 transition-all" title="Settings">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
-    </div>
-
-    <!-- Левая панель (Сайдбар) -->
-    <div id="sidebar" class="absolute top-4 left-4 bottom-4 w-[calc(100%-2rem)] md:w-[24rem] bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-[2rem] shadow-2xl flex flex-col z-30 border border-slate-100 dark:border-slate-700/50 transition-transform duration-400 ease-in-out -translate-x-[120%] pointer-events-auto">
-
-        <div class="p-6 pb-4 border-b border-slate-100 dark:border-slate-700/50">
-            <div class="flex justify-between items-start mb-1">
-                <h1 class="text-2xl font-bold tracking-tight text-slate-800 dark:text-white" data-lang="title">Ростовская область</h1>
-                <button onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-            <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-5" data-lang="subtitle">Audio Map</p>
-            
-            <div class="relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" id="search-input" data-lang-placeholder="search_placeholder" placeholder="Поиск звуков..." class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white">
-            </div>
-        </div>
-
-        <div class="px-6 py-3 border-b border-slate-100 dark:border-slate-700/50 overflow-x-auto hide-scrollbar flex gap-2 flex-shrink-0">
-            <button onclick="setFilter('all')" id="filter-all" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-800 dark:bg-blue-600 text-white transition-colors shadow-md" data-lang="filter_all">All</button>
-            <button onclick="setFilter('nature')" id="filter-nature" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_nature">Nature</button>
-            <button onclick="setFilter('industrial')" id="filter-industrial" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_industrial">Industrial</button>
-            <button onclick="setFilter('social')" id="filter-social" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_social">Social</button>
-        </div>
-
-        <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
-    </div>
-
-    <!-- Всплывающий Плеер -->
-    <div id="player-card" class="absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-[26rem] bg-white dark:bg-slate-800 rounded-[2rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_-10px_50px_rgba(0,0,0,0.5)] p-5 md:p-6 border border-slate-50 dark:border-slate-700 z-40 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-y-[200%] pointer-events-auto">
+    <!-- UI Слои -->
+    <div class="absolute inset-0 pointer-events-none z-10 w-full h-full overflow-hidden">
         
-        <!-- Drag Handle для закрытия -->
-        <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-8 flex justify-center items-center cursor-pointer z-50">
-            <div class="w-10 h-1 bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors mt-1"></div>
-        </div>
+        <!-- Кнопка бургер (для мобильных и закрытого сайдбара) -->
+        <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="absolute top-4 left-4 md:top-6 md:left-6 z-20 w-12 h-12 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
 
-        <!-- Осциллограмма (Waveform) -->
-        <div id="waveform-wrapper" class="relative w-full h-14 cursor-pointer group mb-2 mt-2">
-            <div id="waveform-bg" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-100 dark:text-slate-700"></div>
-            <div id="waveform-active" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-800 dark:text-blue-500 pointer-events-none" style="clip-path: inset(0 100% 0 0);"></div>
-            <div id="playhead" class="absolute top-0 bottom-0 w-[2px] bg-slate-400 dark:bg-blue-400 rounded-full pointer-events-none z-10 shadow-[0_0_4px_rgba(0,0,0,0.2)]" style="left: 0%;"></div>
-            <input type="range" id="audio-timeline" min="0" max="100" value="0" step="0.01" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 m-0" oninput="seekAudio(this.value)">
-        </div>
-        
-        <!-- Время -->
-        <div class="flex justify-between text-[11px] font-semibold text-slate-800 dark:text-slate-200 mb-4 px-1">
-            <div>
-                <span id="time-current">0:00</span>
-                <span class="text-slate-300 dark:text-slate-600 mx-1">/</span>
-                <span id="time-total" class="text-slate-400 dark:text-slate-500">0:00</span>
-            </div>
-            <span id="time-total-right" class="text-slate-400 dark:text-slate-500">0:00</span>
-        </div>
-
-        <!-- Блок управления и информации -->
-        <div class="flex items-center gap-4">
-            <button id="main-play-btn" onclick="toggleMainPlay()" class="w-12 h-12 bg-[#1e293b] dark:bg-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md flex-shrink-0">
-                <svg id="main-play-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                <svg id="main-pause-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-            </button>
-            
-            <div class="flex-grow min-w-0 text-left">
-                <div class="flex items-center mb-1 gap-1">
-                    <h2 id="player-title" onclick="openDetailsModal()" class="text-sm font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">Название трека</h2>
-                    <button onclick="openDetailsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex-shrink-0">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <!-- Левая панель (Сайдбар) -->
+        <div id="sidebar" class="sidebar-hidden pointer-events-auto bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col flex-shrink-0 border border-slate-100 dark:border-slate-700/50 z-30">
+            <div class="p-6 pb-4 border-b border-slate-100 dark:border-slate-700/50">
+                <div class="flex justify-between items-start mb-1">
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-800 dark:text-white" data-lang="title">Ростовская область</h1>
+                    <button onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors pointer-events-auto shrink-0 ml-2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                 </div>
-                <div id="player-tags" class="flex flex-wrap gap-1.5 mb-1"></div>
-                <p id="player-gear" class="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">Rec: ...</p>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-5" data-lang="subtitle">Audio Map</p>
+                <div class="relative">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="search-input" data-lang-placeholder="search_placeholder" placeholder="Поиск звуков..." class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white">
+                </div>
+            </div>
+
+            <div class="px-6 py-3 border-b border-slate-100 dark:border-slate-700/50 overflow-x-auto hide-scrollbar flex gap-2 flex-shrink-0">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active-filter px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-800 dark:bg-blue-600 text-white transition-colors shadow-md" data-lang="filter_all">All</button>
+                <button onclick="setFilter('nature')" id="filter-nature" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_nature">Nature</button>
+                <button onclick="setFilter('industrial')" id="filter-industrial" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_industrial">Industrial</button>
+                <button onclick="setFilter('social')" id="filter-social" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_social">Social</button>
+            </div>
+
+            <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
+        </div>
+
+        <!-- Плеер -->
+        <div class="absolute bottom-0 left-0 right-0 w-full pointer-events-none flex justify-center pb-4 md:pb-6 z-40">
+            <div id="player-card" class="pointer-events-auto bg-white dark:bg-slate-800 rounded-[1.8rem] md:rounded-[2rem] shadow-[0_-8px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_50px_rgba(0,0,0,0.5)] p-4 md:p-5 w-[94%] max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 dark:border-slate-700 relative">
+                
+                <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-6 md:h-8 flex justify-center items-center cursor-pointer z-50">
+                    <div class="drag-handle mt-1"></div>
+                </div>
+
+                <div id="waveform-wrapper" class="relative w-full h-12 md:h-16 cursor-pointer group mb-2 mt-4">
+                    <div id="waveform-bg" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-100 dark:text-slate-700"></div>
+                    <div id="waveform-active" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-800 dark:text-blue-500 pointer-events-none" style="clip-path: inset(0 100% 0 0);"></div>
+                    <div id="playhead" class="absolute top-0 bottom-0 w-[1.5px] bg-slate-400 dark:bg-blue-400 rounded-full pointer-events-none z-10 shadow-[0_0_4px_rgba(0,0,0,0.2)]" style="left: 0%;"></div>
+                    <input type="range" id="audio-timeline" min="0" max="100" value="0" step="0.01" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 m-0" oninput="seekAudio(this.value)">
+                </div>
+                
+                <div class="flex justify-between text-[10px] md:text-[11px] font-semibold text-slate-900 dark:text-slate-200 mb-4 px-0.5">
+                    <div>
+                        <span id="time-current">0:00</span>
+                        <span class="text-slate-300 dark:text-slate-600 mx-1">/</span>
+                        <span id="time-total" class="text-slate-400 dark:text-slate-500">0:00</span>
+                    </div>
+                    <span id="time-total-right" class="text-slate-400 dark:text-slate-500">0:00</span>
+                </div>
+
+                <div class="flex items-center gap-3 md:gap-4">
+                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-10 h-10 md:w-12 md:h-12 bg-[#2d3238] dark:bg-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md flex-shrink-0">
+                        <svg id="main-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5 pointer-events-none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <svg id="main-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="hidden pointer-events-none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    </button>
+                    
+                    <div class="flex-grow min-w-0 text-left">
+                        <div class="flex items-center mb-0.5 gap-1">
+                            <h2 id="player-title" onclick="openDetailsModal()" class="text-[13px] md:text-[15px] font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate pr-1">Title</h2>
+                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 flex-shrink-0">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            </button>
+                        </div>
+                        <div id="player-tags" class="flex flex-wrap gap-1.5 mb-0.5"></div>
+                        <p id="player-gear" class="text-[9px] text-slate-400 font-semibold truncate">Recorder Name</p>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Кнопки управления справа (Всегда видны и с максимальным приоритетом) -->
+        <div class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 pointer-events-auto z-50 flex flex-col gap-3">
+            <button onclick="toggleAddModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 transition-transform hover:scale-105 active:scale-95" title="Add Audio">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button onclick="toggleSettingsModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 transition-all" title="Settings">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </div>
+
     </div>
 
     <!-- Модальное окно Настроек -->
-    <div id="settings-modal" class="fixed inset-0 z-[100] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
-        <div id="settings-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
+    <div id="settings-modal" onclick="if(event.target === this) toggleSettingsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div id="settings-modal-content" class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
             <div class="px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="settings_title">Настройки</h3>
-                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
-            
             <div class="p-6 space-y-6">
-                <!-- Масштаб -->
                 <div>
                     <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="gui_scale">Масштаб интерфейса</label>
                     <div class="grid grid-cols-3 gap-2" id="scale-buttons">
@@ -187,17 +214,20 @@
                         <button data-scale="large" onclick="changeGUISize('large')" class="p-2.5 text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Large</button>
                     </div>
                 </div>
-
-                <!-- Тема -->
                 <div>
                     <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="theme">Тема оформления</label>
                     <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 py-2 text-xs font-bold bg-white dark:bg-transparent text-slate-800 dark:text-slate-400 shadow-sm dark:shadow-none rounded-lg transition-all">Light</button>
-                        <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 py-2 text-xs font-bold bg-transparent dark:bg-slate-700 text-slate-500 dark:text-white shadow-none dark:shadow-sm rounded-lg transition-all">Dark</button>
+                        <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 py-2 text-xs font-bold bg-white text-slate-800 shadow-sm rounded-lg transition-all">Light</button>
+                        <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all">Dark</button>
                     </div>
                 </div>
-
-                <!-- Язык -->
+                <div>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="map_style">Стиль карты (Фильтр)</label>
+                    <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <button onclick="setMapStyle('normal')" id="map-normal-btn" class="flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all" data-lang="map_normal">Стандарт</button>
+                        <button onclick="setMapStyle('monochrome')" id="map-mono-btn" class="flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all" data-lang="map_mono">Монохром</button>
+                    </div>
+                </div>
                 <div>
                     <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="language">Язык приложения</label>
                     <div class="relative">
@@ -209,7 +239,6 @@
                     </div>
                 </div>
             </div>
-            
             <div class="p-6 pt-0">
                 <button onclick="toggleSettingsModal()" class="w-full py-3.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold rounded-xl transition-all" data-lang="close">Закрыть</button>
             </div>
@@ -217,57 +246,74 @@
     </div>
 
     <!-- Модальное окно ADD AUDIO -->
-    <div id="add-modal" class="fixed inset-0 z-[100] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+    <div id="add-modal" onclick="if(event.target === this) toggleAddModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
         <div id="add-modal-content" class="bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden transform scale-95 transition-all border border-slate-100 dark:border-slate-800 pointer-events-auto">
             
             <div class="px-6 py-5 flex justify-between items-center bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
                 <h3 class="text-xl font-bold text-slate-800 dark:text-white" data-lang="add_audio_title">Add Audio</h3>
                 <button onclick="toggleAddModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
-            <div class="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-5">
-                <div class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-3">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span class="text-sm font-bold" data-lang="drag_drop">Drag-and-drop zone.</span>
+            <div class="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                <!-- Блок 1: Основная информация -->
+                <div class="space-y-4">
+                    <div class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span class="text-sm font-bold" data-lang="drag_drop">Drag-and-drop zone.</span>
+                        </div>
+                        <div class="flex items-center gap-[2px] h-8 w-full px-6 mb-3 opacity-30 dark:opacity-50">
+                            <div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-10"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-6"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-4"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-7"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-9"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-[2px] h-8 w-full px-6 mb-3 opacity-30 dark:opacity-50">
-                        <div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-10"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-6"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-4"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-7"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-9"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div>
+
+                    <div>
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="file_name">File Name (UCS)</label>
+                        <input type="text" value="RND_Central_Market_AMB_001.wav" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-mono text-xs">
                     </div>
-                    <p class="text-[11px] text-slate-400 font-mono">RND_Central_Market_AMB_001.wav</p>
+                    
+                    <div>
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="display_title">Display Title</label>
+                        <input type="text" value="Central Market Morning" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium">
+                    </div>
+
+                    <div>
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="sound_desc">Sound Description</label>
+                        <textarea rows="3" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 h-20 resize-none leading-relaxed text-sm">Describe the soundscape...</textarea>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="display_title">Display Title</label>
-                    <input type="text" value="Central Market Morning" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium">
-                </div>
-
-                <div>
-                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="sound_desc">Sound Description</label>
-                    <textarea rows="3" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 h-20 resize-none leading-relaxed text-sm">Describe the soundscape...</textarea>
-                </div>
-
-                <div class="space-y-3">
-                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">UCS tags</p>
+                <!-- Блок 2: UCS Tags -->
+                <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">UCS Classification</p>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="modal-label text-slate-400">Category:</label>
-                            <select class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
+                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
                                 <option>AMB (Ambience)</option>
+                                <option>NAT (Nature)</option>
+                                <option>IND (Industrial)</option>
                             </select>
                         </div>
                         <div>
                             <label class="modal-label text-slate-400">SubCategory:</label>
-                            <select class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
+                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
                                 <option>MARKET</option>
+                                <option>PARK</option>
+                                <option>STREET</option>
                             </select>
                         </div>
                     </div>
+                    <div>
+                        <label class="modal-label text-slate-400" data-lang="keywords">Tags / Keywords (comma separated)</label>
+                        <input type="text" value="Crowd, Exterior, Morning" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-[100px_1fr] gap-4">
+                <!-- Блок 3: Location, Date, Time, Weather -->
+                <div class="grid grid-cols-[100px_1fr] gap-4 items-start">
                     <div class="w-full aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 relative">
                         <img src="https://api-maps.yandex.ru/services/constructor/1.0/static/?um=constructor%3Af7c90858850689b7b93f774e7978d389a69530f2526e8484f9382f164f9b8893&amp;width=130&amp;height=130&amp;lang=ru_RU" class="w-full h-full object-cover grayscale opacity-70">
                         <div class="absolute inset-0 flex items-center justify-center">
@@ -275,26 +321,79 @@
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <input type="text" value="Rostov-on-Don" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
-                        <input type="text" value="01/10/2023" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
-                        <input type="text" value="17:00" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="location">Location</label>
+                                <input type="text" value="Rostov-on-Don" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                            </div>
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="coords">Coordinates</label>
+                                <input type="text" value="47.217, 39.708" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs font-mono">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="date">Date</label>
+                                <input type="date" value="2023-10-01" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                            </div>
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="time">Time</label>
+                                <input type="time" value="17:00" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="weather">Weather</label>
+                            <input type="text" placeholder="e.g. Clear, 22°C" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="modal-label text-slate-400" data-lang="rec_model">Recorder Model</label>
-                        <input type="text" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
-                    </div>
-                    <div>
-                        <label class="modal-label text-slate-400" data-lang="mic_type">Microphone</label>
-                        <input type="text" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                <!-- Блок 4: Technical & Legal -->
+                <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="rec_model">Recorder</label>
+                            <input type="text" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="mic_type">Microphone</label>
+                            <input type="text" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="format">Format</label>
+                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                                <option>WAV 96kHz / 24-bit</option>
+                                <option>WAV 48kHz / 24-bit</option>
+                                <option>MP3 320kbps</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="channels">Channels</label>
+                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                                <option>Stereo</option>
+                                <option>Mono</option>
+                                <option>Binaural</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="recordist">Recordist</label>
+                            <input type="text" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="license">License</label>
+                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                                <option>CC BY 4.0</option>
+                                <option>CC0 (Public Domain)</option>
+                                <option>Copyrighted</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
+                
             </div>
 
             <div class="p-6 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
-                <button onclick="toggleAddModal();" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]" data-lang="publish">
+                <button onclick="publishSound()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]" data-lang="publish">
                     Publish Sound
                 </button>
             </div>
@@ -302,46 +401,88 @@
     </div>
 
     <!-- Модальное окно Деталей звука -->
-    <div id="details-modal" class="fixed inset-0 z-[100] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
-        <div id="details-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
-            <div class="relative h-48 md:h-64 shrink-0 bg-slate-200 dark:bg-slate-700">
+    <div id="details-modal" onclick="if(event.target === this) closeDetailsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div id="details-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
+            <div class="relative h-40 md:h-56 shrink-0 bg-slate-200 dark:bg-slate-700">
                 <img id="details-image" src="" class="w-full h-full object-cover">
                 <!-- Градиент для кнопки закрытия -->
                 <div class="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent h-20"></div>
                 <button onclick="closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
             
-            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar">
-                <div id="details-tags-container" class="flex flex-wrap gap-2 mb-4"></div>
-                
-                <div class="flex justify-between items-start mb-4 gap-4">
-                    <div>
-                        <h2 id="details-title" class="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white leading-tight"></h2>
-                        <span id="details-date" class="text-sm text-slate-500 dark:text-slate-400 font-medium block mt-1"></span>
+            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                <!-- Шапка с тайтлом и скачиванием -->
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex-grow min-w-0">
+                        <div id="details-tags-container" class="flex flex-wrap gap-2 mb-3"></div>
+                        <h2 id="details-title" class="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white leading-tight mb-2"></h2>
+                        <p id="details-filename" class="text-xs font-mono text-slate-400 dark:text-slate-500 break-all"></p>
                     </div>
-                    <a id="details-download-btn" href="#" download class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-all flex-shrink-0 active:scale-95">
+                    <a id="details-download-btn" href="#" download class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-all flex-shrink-0 active:scale-95 hidden">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     </a>
                 </div>
                 
-                <p id="details-description" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base mb-6"></p>
+                <p id="details-description" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base"></p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                    <p class="text-xs font-mono text-slate-500 dark:text-slate-400" id="details-coords"></p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" id="details-gear"></p>
+                <!-- Сетка метаданных -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-4 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="location">Location</span>
+                        <span class="meta-value" id="det-location">Rostov</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="coords">Coordinates</span>
+                        <span class="meta-value font-mono text-[11px]" id="det-coords">0,0</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="datetime">Date & Time</span>
+                        <span class="meta-value" id="det-datetime">01.01.2023</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="weather">Weather</span>
+                        <span class="meta-value" id="det-weather">Clear</span>
+                    </div>
+                    <div class="meta-group md:col-span-2">
+                        <span class="meta-label" data-lang="keywords">Tags</span>
+                        <span class="meta-value" id="det-keywords">tag1, tag2</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="rec_model">Recorder</span>
+                        <span class="meta-value" id="det-recorder">Zoom</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="mic_type">Microphone</span>
+                        <span class="meta-value" id="det-mic">Binaural</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="format">Format</span>
+                        <span class="meta-value" id="det-format">WAV 96/24</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="channels">Channels</span>
+                        <span class="meta-value" id="det-channels">Stereo</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="recordist">Recordist</span>
+                        <span class="meta-value" id="det-recordist">John Doe</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="license">License</span>
+                        <span class="meta-value" id="det-license">CC0</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Скрытый аудиоплеер -->
     <audio id="global-audio"></audio>
 
     <script>
-        // База данных звуков
-        const soundsData = [
+        // База данных (50 объектов, звук пока отключен - url: '')
+        const rawSoundsData = [
             { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: '', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.' },
             { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: '', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6', date: '04 Июн 2023', description: 'Пульс Ростова. Шумный Старый базар утром.' },
             { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: '', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный звуковой ландшафт.' },
@@ -399,23 +540,40 @@
             { id: 'u10', title: 'Аэропорт Платов', category: 'industrial', lat: 47.4900, lng: 39.9200, duration: '1:00', url: '', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '10 Янв 2023', description: 'Тишина пустого терминала.' }
         ];
 
-        // Словарь переводов
+        // Добавление недостающих метаданных
+        const soundsData = rawSoundsData.map(s => ({
+            ...s,
+            time: s.time || '14:30',
+            weather: s.weather || 'Ясно, 22°C',
+            micType: s.micType || 'Stereo Pair',
+            format: s.format || 'WAV 96 kHz / 24-bit',
+            channels: s.channels || 'Stereo',
+            fileName: s.fileName || `RND_${s.category.substring(0,3).toUpperCase()}_00${Math.floor(Math.random()*90)+10}.wav`,
+            recordist: s.recordist || 'Иван Иванов',
+            license: s.license || 'CC BY 4.0',
+            keywords: s.keywords || `${s.category}, soundscape, rostov`
+        }));
+
         const translations = {
             ru: {
                 title: "Ростовская область", subtitle: "Аудиокарта", search_placeholder: "Поиск звуков...",
                 filter_all: "Все", filter_nature: "Природа", filter_industrial: "Индустрия", filter_social: "Социум",
-                settings_title: "Настройки", gui_scale: "Масштаб интерфейса", theme: "Тема оформления", language: "Язык приложения", close: "Закрыть",
-                add_audio_title: "Добавить аудио", drag_drop: "Перетащите файл сюда", display_title: "Название места", sound_desc: "Описание",
-                rec_model: "Модель рекордера", mic_type: "Тип микрофона", publish: "Опубликовать",
-                rec_prefix: "Rec: ", coords_prefix: "Координаты: ", gear_prefix: "Оборудование: "
+                settings_title: "Настройки", gui_scale: "Масштаб интерфейса", theme: "Тема оформления", map_style: "Стиль карты (Фильтр)", map_normal: "Стандарт", map_mono: "Монохром", language: "Язык приложения", close: "Закрыть",
+                add_audio_title: "Добавить аудио", drag_drop: "Перетащите файл сюда", display_title: "Название", sound_desc: "Описание", file_name: "Имя файла (UCS)", keywords: "Теги (через запятую)",
+                location: "Локация", coords: "Координаты", date: "Дата", time: "Время", weather: "Погода", datetime: "Дата и Время",
+                rec_model: "Рекордер", mic_type: "Микрофон", format: "Формат", channels: "Каналы", recordist: "Автор", license: "Лицензия", publish: "Опубликовать",
+                rec_prefix: "Rec: ", coords_prefix: "Координаты: ", gear_prefix: "Оборудование: ",
+                err_no_audio: "Файл звука временно отсутствует.", err_publish: "Функция загрузки будет доступна позже."
             },
             en: {
                 title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search sounds...",
                 filter_all: "All", filter_nature: "Nature", filter_industrial: "Industrial", filter_social: "Social",
-                settings_title: "Settings", gui_scale: "Interface Scale", theme: "Visual Theme", language: "Application Language", close: "Close",
-                add_audio_title: "Add Audio", drag_drop: "Drag-and-drop zone", display_title: "Display Title", sound_desc: "Sound Description",
-                rec_model: "Recorder Model", mic_type: "Microphone Type", publish: "Publish Sound",
-                rec_prefix: "Rec: ", coords_prefix: "Coordinates: ", gear_prefix: "Gear: "
+                settings_title: "Settings", gui_scale: "Interface Scale", theme: "Visual Theme", map_style: "Map Style (Filter)", map_normal: "Default", map_mono: "Monochrome", language: "Application Language", close: "Close",
+                add_audio_title: "Add Audio", drag_drop: "Drag-and-drop zone", display_title: "Display Title", sound_desc: "Sound Description", file_name: "File Name (UCS)", keywords: "Tags / Keywords",
+                location: "Location", coords: "Coordinates", date: "Date", time: "Time", weather: "Weather", datetime: "Date & Time",
+                rec_model: "Recorder Model", mic_type: "Microphone Type", format: "Format", channels: "Channels", recordist: "Recordist", license: "License", publish: "Publish Sound",
+                rec_prefix: "Rec: ", coords_prefix: "Coordinates: ", gear_prefix: "Gear: ",
+                err_no_audio: "Audio file is temporarily unavailable.", err_publish: "Upload feature will be available later."
             }
         };
 
@@ -430,18 +588,44 @@
             ymaps.ready(initMap);
         });
 
+        function showToast(message) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').textContent = message;
+            toast.classList.remove('-translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            if(window.toastTimeout) clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
         function initMap() {
             map = new ymaps.Map('map', { center: [47.5, 40.8], zoom: 7, controls: [] });
             updateMapMarkers();
         }
 
+        function setMapStyle(style) {
+            const mapContainer = document.getElementById('map');
+            const nBtn = document.getElementById('map-normal-btn');
+            const mBtn = document.getElementById('map-mono-btn');
+            if (style === 'monochrome') {
+                mapContainer.classList.add('map-monochrome');
+                mBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
+                nBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+            } else {
+                mapContainer.classList.remove('map-monochrome');
+                nBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
+                mBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+            }
+        }
+
         function changeGUISize(size) {
             const scales = { small: '14px', medium: '16px', large: '18px' };
             document.documentElement.style.fontSize = scales[size];
-            
             document.querySelectorAll('#scale-buttons button').forEach(btn => {
                 if (btn.dataset.scale === size) {
-                    btn.className = "p-2.5 text-xs font-bold bg-blue-600 text-white rounded-xl transition-all shadow-md";
+                    btn.className = "p-2.5 text-xs font-bold bg-blue-600 text-white rounded-xl transition-all shadow-md scale-105";
                 } else {
                     btn.className = "p-2.5 text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors";
                 }
@@ -463,18 +647,12 @@
         function setTheme(theme) {
             currentTheme = theme;
             const html = document.documentElement;
-            if (theme === 'dark') {
-                html.classList.add('dark');
-            } else {
-                html.classList.remove('dark');
-            }
-            
+            if (theme === 'dark') { html.classList.add('dark'); } else { html.classList.remove('dark'); }
             const lBtn = document.getElementById('theme-light-btn');
             const dBtn = document.getElementById('theme-dark-btn');
-            
             if(theme === 'dark') {
                 dBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
-                lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
             } else {
                 lBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
                 dBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
@@ -484,7 +662,16 @@
         function toggleSidebar() {
             const s = document.getElementById('sidebar');
             s.classList.toggle('sidebar-hidden');
-            s.classList.toggle('-translate-x-[120%]');
+            
+            // Сдвигаем плеер на десктопе, если сайдбар открыт
+            if(window.innerWidth >= 768) {
+                const playerCard = document.getElementById('player-card');
+                if (s.classList.contains('sidebar-hidden')) {
+                    playerCard.style.marginLeft = '0';
+                } else {
+                    playerCard.style.marginLeft = '25.5rem'; 
+                }
+            }
         }
 
         function toggleAddModal() {
@@ -492,11 +679,19 @@
             const c = document.getElementById('add-modal-content');
             if (m.classList.contains('hidden')) {
                 m.classList.remove('hidden');
-                setTimeout(() => { m.classList.remove('opacity-0', 'pointer-events-none'); }, 10);
+                void m.offsetWidth; // Принудительный ререндер
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
             } else {
-                m.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => m.classList.add('hidden'), 300);
+                m.classList.add('opacity-0', 'pointer-events-none'); 
+                c.classList.add('scale-95');
+                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
             }
+        }
+
+        function publishSound() {
+            showToast(translations[currentLang].err_publish);
+            toggleAddModal();
         }
 
         function toggleSettingsModal() {
@@ -504,10 +699,13 @@
             const c = document.getElementById('settings-modal-content');
             if (m.classList.contains('hidden')) {
                 m.classList.remove('hidden');
-                setTimeout(() => { m.classList.remove('opacity-0', 'pointer-events-none'); }, 10);
+                void m.offsetWidth; // Принудительный ререндер
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
             } else {
-                m.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => m.classList.add('hidden'), 300);
+                m.classList.add('opacity-0', 'pointer-events-none'); 
+                c.classList.add('scale-95');
+                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
             }
         }
 
@@ -536,7 +734,7 @@
                 item.onclick = () => selectSound(sound.id);
                 item.innerHTML = `
                     <button class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected && isPlaying ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
-                        ${isSelected && isPlaying ? '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
+                        ${isSelected && isPlaying ? '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" class="pointer-events-none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" class="pointer-events-none"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
                     </button>
                     <div class="flex-grow min-w-0 text-left">
                         <h3 class="font-semibold text-[13px] truncate text-slate-800 dark:text-white">${sound.title}</h3>
@@ -552,6 +750,11 @@
             if (window.innerWidth < 768) { 
                 const sb = document.getElementById('sidebar'); 
                 if (!sb.classList.contains('sidebar-hidden')) toggleSidebar(); 
+            } else {
+                const sb = document.getElementById('sidebar'); 
+                if (!sb.classList.contains('sidebar-hidden')) {
+                    document.getElementById('player-card').style.marginLeft = '25.5rem';
+                }
             }
             
             map.setCenter([s.lat, s.lng], 15, { duration: 1000 });
@@ -559,7 +762,7 @@
             updateMapMarkers(document.getElementById('search-input').value.toLowerCase());
             
             const card = document.getElementById('player-card');
-            card.classList.remove('translate-y-[200%]', 'opacity-0');
+            card.classList.remove('translate-y-[150%]', 'opacity-0');
             
             document.getElementById('player-title').textContent = s.title;
             document.getElementById('player-gear').textContent = translations[currentLang].rec_prefix + s.gear;
@@ -568,7 +771,6 @@
                 <span class="tag-pill border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30">${s.semanticTag}</span>
             `;
             
-            // Если звук есть - играем, если нет - ставим на паузу
             if (s.url) {
                 if (audioElement.src !== s.url) { 
                     audioElement.src = s.url; 
@@ -586,7 +788,7 @@
         function closePlayerCard() {
             if (isPlaying) { audioElement.pause(); isPlaying = false; cancelAnimationFrame(animationFrameId); }
             const card = document.getElementById('player-card');
-            card.classList.add('translate-y-[200%]', 'opacity-0');
+            card.classList.add('translate-y-[150%]', 'opacity-0');
             currentPlayingId = null; 
             updateMapMarkers(); 
             renderList(document.getElementById('search-input').value.toLowerCase());
@@ -595,8 +797,9 @@
         function toggleMainPlay() {
             if (!currentPlayingId) return;
             const s = soundsData.find(x => x.id === currentPlayingId);
+            
             if (!s || !s.url) {
-                alert(currentLang === 'ru' ? "Файл звука временно отсутствует." : "Audio file is temporarily unavailable.");
+                showToast(translations[currentLang].err_no_audio);
                 return;
             }
 
@@ -672,38 +875,54 @@
             const s = soundsData.find(x => x.id === currentPlayingId); if (!s) return;
             document.getElementById('details-image').src = `https://picsum.photos/seed/${s.id}/800/500`;
             document.getElementById('details-title').textContent = s.title; 
-            document.getElementById('details-date').textContent = s.date; 
+            document.getElementById('details-filename').textContent = s.fileName;
             document.getElementById('details-description').textContent = s.description;
-            document.getElementById('details-coords').textContent = translations[currentLang].coords_prefix + `${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
-            document.getElementById('details-gear').textContent = translations[currentLang].gear_prefix + s.gear;
             
-            // Если ссылки нет, убираем кнопку скачивания
+            const dict = translations[currentLang];
+            document.getElementById('det-location').textContent = "Ростовская область";
+            document.getElementById('det-coords').textContent = `${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
+            document.getElementById('det-datetime').textContent = `${s.date} / ${s.time}`;
+            document.getElementById('det-weather').textContent = s.weather;
+            document.getElementById('det-keywords').textContent = s.keywords;
+            document.getElementById('det-recorder').textContent = s.gear;
+            document.getElementById('det-mic').textContent = s.micType;
+            document.getElementById('det-format').textContent = s.format;
+            document.getElementById('det-channels').textContent = s.channels;
+            document.getElementById('det-recordist').textContent = s.recordist;
+            document.getElementById('det-license').textContent = s.license;
+            
             const downloadBtn = document.getElementById('details-download-btn');
             if (s.url) {
-                downloadBtn.style.display = 'flex';
+                downloadBtn.classList.remove('hidden');
                 downloadBtn.href = s.url;
             } else {
-                downloadBtn.style.display = 'none';
+                downloadBtn.classList.add('hidden');
             }
 
             let cColor = s.category === 'nature' ? 'text-green-700 border-green-200 bg-green-50' : s.category === 'industrial' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-orange-700 border-orange-200 bg-orange-50';
             
             document.getElementById('details-tags-container').innerHTML = `
-                <span class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300">${translations[currentLang][`filter_${s.category}`]}</span>
+                <span class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300">${dict[`filter_${s.category}`]}</span>
+                <span class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300">${s.typeTag}</span>
+                <span class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300">${s.semanticTag}</span>
             `;
             
             const m = document.getElementById('details-modal'); 
             const c = document.getElementById('details-modal-content');
-            m.classList.remove('hidden'); 
-            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden'); 
+                void m.offsetWidth;
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
+            }
         }
 
         function closeDetailsModal() { 
             const m = document.getElementById('details-modal'); 
             const c = document.getElementById('details-modal-content');
-            m.classList.add('opacity-0'); 
+            m.classList.add('opacity-0', 'pointer-events-none'); 
             c.classList.add('scale-95');
-            setTimeout(() => m.classList.add('hidden'), 300); 
+            setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300); 
         }
     </script>
 </body>
