@@ -86,8 +86,29 @@
         .modal-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 14px; background: #fff; outline: none; transition: border-color 0.2s; }
         .modal-label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
         
-        .map-monochrome { filter: grayscale(100%) contrast(1.1) brightness(1.05); transition: filter 0.5s ease; }
-        .dark .map-monochrome { filter: grayscale(100%) invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.2); }
+        /* Базовые тайлы карты: плавный переход для любых смен темы */
+        #map [class*="-ground-pane"],
+        #map [class*="-copyrights-pane"] {
+            transition: filter 0.5s ease;
+        }
+
+        /* Тёмная тема - Стандартная карта (Авто-инверсия с сохранением тонов) */
+        .dark #map:not(.map-monochrome) [class*="-ground-pane"],
+        .dark #map:not(.map-monochrome) [class*="-copyrights-pane"] {
+            filter: invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.1);
+        }
+
+        /* Светлая тема - Монохромная карта */
+        #map.map-monochrome [class*="-ground-pane"],
+        #map.map-monochrome [class*="-copyrights-pane"] {
+            filter: grayscale(100%) contrast(1.1) brightness(1.05);
+        }
+
+        /* Тёмная тема - Монохромная карта */
+        .dark #map.map-monochrome [class*="-ground-pane"],
+        .dark #map.map-monochrome [class*="-copyrights-pane"] {
+            filter: grayscale(100%) invert(90%) brightness(0.8) contrast(1.2);
+        }
 
         .meta-group { display: flex; flex-direction: column; gap: 2px; }
         .meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
@@ -109,14 +130,14 @@
     <!-- UI Слои -->
     <div class="absolute inset-0 pointer-events-none z-10 w-full h-full overflow-hidden">
         
-        <!-- Кнопка бургер (для мобильных и закрытого сайдбара) -->
+        <!-- Кнопка бургер -->
         <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="absolute top-4 left-4 md:top-6 md:left-6 z-20 w-12 h-12 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
 
-        <!-- Левая панель (Сайдбар) -->
-        <div id="sidebar" class="sidebar-hidden pointer-events-auto bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col flex-shrink-0 border border-slate-100 dark:border-slate-700/50 z-30">
-            <div class="p-6 pb-4 border-b border-slate-100 dark:border-slate-700/50">
+        <!-- Левая панель (Сайдбар) - z-[60] чтобы перекрывать кнопки на мобильных -->
+        <div id="sidebar" class="sidebar-hidden pointer-events-auto bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col flex-shrink-0 border border-slate-100 dark:border-slate-700/50 z-[60]">
+            <div class="p-6 pb-2 border-b border-slate-100 dark:border-slate-700/50">
                 <div class="flex justify-between items-start mb-1">
                     <h1 class="text-2xl font-bold tracking-tight text-slate-800 dark:text-white" data-lang="title">Ростовская область</h1>
                     <button onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors pointer-events-auto shrink-0 ml-2">
@@ -129,6 +150,9 @@
                     <input type="text" id="search-input" data-lang-placeholder="search_placeholder" placeholder="Поиск звуков..." class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white">
                 </div>
             </div>
+
+            <!-- Контейнер для активных тегов фильтрации -->
+            <div id="active-tags-container" class="px-6 py-2 flex flex-wrap gap-2 empty:hidden bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/50"></div>
 
             <div class="px-6 py-3 border-b border-slate-100 dark:border-slate-700/50 overflow-x-auto hide-scrollbar flex gap-2 flex-shrink-0">
                 <button onclick="setFilter('all')" id="filter-all" class="filter-btn active-filter px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-800 dark:bg-blue-600 text-white transition-colors shadow-md" data-lang="filter_all">All</button>
@@ -184,7 +208,7 @@
             </div>
         </div>
 
-        <!-- Кнопки управления справа (Всегда видны и с максимальным приоритетом) -->
+        <!-- Кнопки управления справа (Всегда видны и с приоритетом z-50) -->
         <div class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 pointer-events-auto z-50 flex flex-col gap-3">
             <button onclick="toggleAddModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 transition-transform hover:scale-105 active:scale-95" title="Add Audio">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -556,7 +580,7 @@
 
         const translations = {
             ru: {
-                title: "Ростовская область", subtitle: "Аудиокарта", search_placeholder: "Поиск звуков...",
+                title: "Ростовская область", subtitle: "Аудиокарта", search_placeholder: "Поиск и фильтры...",
                 filter_all: "Все", filter_nature: "Природа", filter_industrial: "Индустрия", filter_social: "Социум",
                 settings_title: "Настройки", gui_scale: "Масштаб интерфейса", theme: "Тема оформления", map_style: "Стиль карты (Фильтр)", map_normal: "Стандарт", map_mono: "Монохром", language: "Язык приложения", close: "Закрыть",
                 add_audio_title: "Добавить аудио", drag_drop: "Перетащите файл сюда", display_title: "Название", sound_desc: "Описание", file_name: "Имя файла (UCS)", keywords: "Теги (через запятую)",
@@ -566,7 +590,7 @@
                 err_no_audio: "Файл звука временно отсутствует.", err_publish: "Функция загрузки будет доступна позже."
             },
             en: {
-                title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search sounds...",
+                title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search & filters...",
                 filter_all: "All", filter_nature: "Nature", filter_industrial: "Industrial", filter_social: "Social",
                 settings_title: "Settings", gui_scale: "Interface Scale", theme: "Visual Theme", map_style: "Map Style (Filter)", map_normal: "Default", map_mono: "Monochrome", language: "Application Language", close: "Close",
                 add_audio_title: "Add Audio", drag_drop: "Drag-and-drop zone", display_title: "Display Title", sound_desc: "Sound Description", file_name: "File Name (UCS)", keywords: "Tags / Keywords",
@@ -577,14 +601,21 @@
             }
         };
 
-        let map, currentFilter = 'all', currentPlayingId = null, isPlaying = false, animationFrameId = null, currentLang = 'ru', currentTheme = 'light';
+        let map, currentPlayingId = null, isPlaying = false, animationFrameId = null, currentLang = 'ru', currentTheme = 'light';
         const audioElement = document.getElementById('global-audio');
+        
+        // Система фильтров (Мульти-выбор категорий и тегов)
+        let activeCategories = new Set();
+        let activeTags = new Set();
 
         document.addEventListener('DOMContentLoaded', () => {
             renderList();
             renderWaveform();
             setupAudioEvents();
-            document.getElementById('search-input').addEventListener('input', (e) => renderList(e.target.value.toLowerCase()));
+            document.getElementById('search-input').addEventListener('input', () => {
+                updateMapMarkers();
+                renderList();
+            });
             ymaps.ready(initMap);
         });
 
@@ -637,7 +668,7 @@
             const dict = translations[lang];
             document.querySelectorAll('[data-lang]').forEach(el => el.textContent = dict[el.getAttribute('data-lang')]);
             document.querySelectorAll('[data-lang-placeholder]').forEach(el => el.placeholder = dict[el.getAttribute('data-lang-placeholder')]);
-            renderList(document.getElementById('search-input').value.toLowerCase());
+            renderList();
             if(currentPlayingId) {
                 const s = soundsData.find(x => x.id === currentPlayingId);
                 document.getElementById('player-gear').textContent = dict.rec_prefix + s.gear;
@@ -652,7 +683,7 @@
             const dBtn = document.getElementById('theme-dark-btn');
             if(theme === 'dark') {
                 dBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
-                lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
             } else {
                 lBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
                 dBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
@@ -663,7 +694,6 @@
             const s = document.getElementById('sidebar');
             s.classList.toggle('sidebar-hidden');
             
-            // Сдвигаем плеер на десктопе, если сайдбар открыт
             if(window.innerWidth >= 768) {
                 const playerCard = document.getElementById('player-card');
                 if (s.classList.contains('sidebar-hidden')) {
@@ -679,7 +709,7 @@
             const c = document.getElementById('add-modal-content');
             if (m.classList.contains('hidden')) {
                 m.classList.remove('hidden');
-                void m.offsetWidth; // Принудительный ререндер
+                void m.offsetWidth; 
                 m.classList.remove('opacity-0', 'pointer-events-none'); 
                 c.classList.remove('scale-95');
             } else {
@@ -699,7 +729,7 @@
             const c = document.getElementById('settings-modal-content');
             if (m.classList.contains('hidden')) {
                 m.classList.remove('hidden');
-                void m.offsetWidth; // Принудительный ререндер
+                void m.offsetWidth; 
                 m.classList.remove('opacity-0', 'pointer-events-none'); 
                 c.classList.remove('scale-95');
             } else {
@@ -709,13 +739,102 @@
             }
         }
 
-        function updateMapMarkers(searchQuery = '') {
+        // --- СИСТЕМА ФИЛЬТРАЦИИ И ТЕГОВ ---
+
+        function setFilter(type) {
+            if (type === 'all') {
+                activeCategories.clear();
+            } else {
+                if (activeCategories.has(type)) {
+                    activeCategories.delete(type);
+                } else {
+                    activeCategories.add(type);
+                }
+            }
+            updateCategoryButtonsUI();
+            updateMapMarkers(); 
+            renderList(); 
+        }
+
+        function updateCategoryButtonsUI() {
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                const btnType = b.id.replace('filter-', '');
+                const isActive = (activeCategories.size === 0 && btnType === 'all') || activeCategories.has(btnType);
+                
+                if (isActive) {
+                    b.classList.add('bg-slate-800', 'dark:bg-blue-600', 'text-white', 'shadow-md');
+                    b.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
+                } else {
+                    b.classList.remove('bg-slate-800', 'dark:bg-blue-600', 'text-white', 'shadow-md');
+                    b.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
+                }
+            });
+        }
+
+        function addTagFilter(tag) {
+            if (!tag) return;
+            activeTags.add(tag);
+            renderActiveTags();
+            updateMapMarkers();
+            renderList();
+            
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('sidebar-hidden')) {
+                toggleSidebar();
+            }
+            closeDetailsModal();
+        }
+
+        function removeTagFilter(tag) {
+            activeTags.delete(tag);
+            renderActiveTags();
+            updateMapMarkers();
+            renderList();
+        }
+
+        function renderActiveTags() {
+            const container = document.getElementById('active-tags-container');
+            if (activeTags.size === 0) {
+                container.innerHTML = '';
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+            container.innerHTML = Array.from(activeTags).map(tag => `
+                <span onclick="removeTagFilter('${tag}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[11px] font-bold rounded-lg cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors shadow-sm">
+                    ${tag} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </span>
+            `).join('');
+        }
+
+        // Фильтрация данных для карты и списка
+        function getFilteredSounds() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            return soundsData.filter(s => {
+                const matchCategory = activeCategories.size === 0 || activeCategories.has(s.category);
+                
+                // Ищем по всем текстовым полям, категориям, субкатегориям и тегам
+                const searchTarget = `${s.title} ${s.description} ${s.keywords || ''} ${s.typeTag || ''} ${s.semanticTag || ''} ${translations[currentLang][`filter_${s.category}`] || ''}`.toLowerCase();
+                const matchSearch = !searchQuery || searchTarget.includes(searchQuery);
+                
+                const matchTags = activeTags.size === 0 || Array.from(activeTags).every(tag => {
+                    const t = tag.toLowerCase();
+                    return s.category.toLowerCase() === t ||
+                           s.typeTag.toLowerCase() === t ||
+                           s.semanticTag.toLowerCase() === t ||
+                           (s.keywords && s.keywords.toLowerCase().includes(t));
+                });
+                return matchCategory && matchSearch && matchTags;
+            });
+        }
+
+        function updateMapMarkers() {
             if (!map) return;
             map.geoObjects.removeAll();
             const createMarkerLayout = (colorClass, id) => ymaps.templateLayoutFactory.createClass(`<div id="marker-${id}" class="w-4 h-4 md:w-5 md:h-5 custom-marker ${colorClass} ${currentPlayingId === id ? 'selected' : ''}"></div>`);
-            soundsData.forEach(sound => {
-                if (currentFilter !== 'all' && sound.category !== currentFilter) return;
-                if (searchQuery && !sound.title.toLowerCase().includes(searchQuery)) return;
+            
+            const filtered = getFilteredSounds();
+            filtered.forEach(sound => {
                 let colorClass = sound.category === 'nature' ? 'marker-nature' : sound.category === 'industrial' ? 'marker-industrial' : 'marker-social';
                 const p = new ymaps.Placemark([sound.lat, sound.lng], {}, { iconLayout: createMarkerLayout(colorClass, sound.id), iconShape: { type: 'Rectangle', coordinates: [[-10, -10], [10, 10]] }, iconOffset: [-10, -10] });
                 p.events.add('click', () => selectSound(sound.id));
@@ -723,10 +842,16 @@
             });
         }
 
-        function renderList(searchQuery = '') {
+        function renderList() {
             const listContainer = document.getElementById('sounds-list');
             listContainer.innerHTML = '';
-            const filtered = soundsData.filter(s => (currentFilter === 'all' || s.category === currentFilter) && (!searchQuery || s.title.toLowerCase().includes(searchQuery)));
+            const filtered = getFilteredSounds();
+            
+            if(filtered.length === 0) {
+                listContainer.innerHTML = `<p class="text-center text-sm text-slate-400 mt-4">Ничего не найдено</p>`;
+                return;
+            }
+
             filtered.forEach(sound => {
                 const item = document.createElement('div');
                 const isSelected = currentPlayingId === sound.id;
@@ -738,11 +863,17 @@
                     </button>
                     <div class="flex-grow min-w-0 text-left">
                         <h3 class="font-semibold text-[13px] truncate text-slate-800 dark:text-white">${sound.title}</h3>
-                        <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 truncate uppercase tracking-wider font-bold">${translations[currentLang][`filter_${sound.category}`]}</p>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider">${translations[currentLang][`filter_${sound.category}`]}</span>
+                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">${sound.typeTag}</span>
+                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider">${sound.semanticTag}</span>
+                        </div>
                     </div>`;
                 listContainer.appendChild(item);
             });
         }
+
+        // --- УПРАВЛЕНИЕ ЗВУКОМ И ОКНАМИ ---
 
         function selectSound(id) {
             const s = soundsData.find(x => x.id === id);
@@ -759,16 +890,20 @@
             
             map.setCenter([s.lat, s.lng], 15, { duration: 1000 });
             currentPlayingId = id; 
-            updateMapMarkers(document.getElementById('search-input').value.toLowerCase());
+            updateMapMarkers();
             
             const card = document.getElementById('player-card');
             card.classList.remove('translate-y-[150%]', 'opacity-0');
             
             document.getElementById('player-title').textContent = s.title;
             document.getElementById('player-gear').textContent = translations[currentLang].rec_prefix + s.gear;
+            
+            let cColor = s.category === 'nature' ? 'text-green-700 border-green-200 bg-green-50' : s.category === 'industrial' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-orange-700 border-orange-200 bg-orange-50';
+            
             document.getElementById('player-tags').innerHTML = `
-                <span class="tag-pill border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30">${s.typeTag}</span>
-                <span class="tag-pill border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30">${s.semanticTag}</span>
+                <span onclick="event.stopPropagation(); addTagFilter('${s.category}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${translations[currentLang][`filter_${s.category}`]}</span>
+                <span onclick="event.stopPropagation(); addTagFilter('${s.typeTag}')" class="tag-pill border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 cursor-pointer hover:scale-105 transition-transform">${s.typeTag}</span>
+                <span onclick="event.stopPropagation(); addTagFilter('${s.semanticTag}')" class="tag-pill border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30 cursor-pointer hover:scale-105 transition-transform">${s.semanticTag}</span>
             `;
             
             if (s.url) {
@@ -791,7 +926,7 @@
             card.classList.add('translate-y-[150%]', 'opacity-0');
             currentPlayingId = null; 
             updateMapMarkers(); 
-            renderList(document.getElementById('search-input').value.toLowerCase());
+            renderList();
         }
 
         function toggleMainPlay() {
@@ -812,7 +947,7 @@
             const p = document.getElementById('main-play-icon'), s = document.getElementById('main-pause-icon');
             if (isPlaying) { p.classList.add('hidden'); s.classList.remove('hidden'); }
             else { p.classList.remove('hidden'); s.classList.add('hidden'); }
-            renderList(document.getElementById('search-input').value.toLowerCase());
+            renderList();
         }
 
         function renderWaveform() {
@@ -856,21 +991,6 @@
             }; 
         }
 
-        function setFilter(t) { 
-            currentFilter = t; 
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                if (b.id === `filter-${t}`) {
-                    b.classList.add('bg-slate-800', 'dark:bg-blue-600', 'text-white', 'shadow-md');
-                    b.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
-                } else {
-                    b.classList.remove('bg-slate-800', 'dark:bg-blue-600', 'text-white', 'shadow-md');
-                    b.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
-                }
-            }); 
-            updateMapMarkers(document.getElementById('search-input').value.toLowerCase()); 
-            renderList(document.getElementById('search-input').value.toLowerCase()); 
-        }
-
         function openDetailsModal() {
             const s = soundsData.find(x => x.id === currentPlayingId); if (!s) return;
             document.getElementById('details-image').src = `https://picsum.photos/seed/${s.id}/800/500`;
@@ -902,9 +1022,9 @@
             let cColor = s.category === 'nature' ? 'text-green-700 border-green-200 bg-green-50' : s.category === 'industrial' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-orange-700 border-orange-200 bg-orange-50';
             
             document.getElementById('details-tags-container').innerHTML = `
-                <span class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300">${dict[`filter_${s.category}`]}</span>
-                <span class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300">${s.typeTag}</span>
-                <span class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300">${s.semanticTag}</span>
+                <span onclick="addTagFilter('${s.category}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${dict[`filter_${s.category}`]}</span>
+                <span onclick="addTagFilter('${s.typeTag}')" class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${s.typeTag}</span>
+                <span onclick="addTagFilter('${s.semanticTag}')" class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${s.semanticTag}</span>
             `;
             
             const m = document.getElementById('details-modal'); 
