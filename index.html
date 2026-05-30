@@ -92,7 +92,7 @@
             transition: filter 0.5s ease;
         }
 
-        /* Тёмная тема - Стандартная карта (Авто-инверсия с сохранением тонов) */
+        /* Тёмная тема - Стандартная карта */
         .dark #map:not(.map-monochrome) [class*="-ground-pane"],
         .dark #map:not(.map-monochrome) [class*="-copyrights-pane"] {
             filter: invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.1);
@@ -135,7 +135,7 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
 
-        <!-- Левая панель (Сайдбар) - z-[60] чтобы перекрывать кнопки на мобильных -->
+        <!-- Левая панель (Сайдбар) -->
         <div id="sidebar" class="sidebar-hidden pointer-events-auto bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col flex-shrink-0 border border-slate-100 dark:border-slate-700/50 z-[60]">
             <div class="p-6 pb-2 border-b border-slate-100 dark:border-slate-700/50">
                 <div class="flex justify-between items-start mb-1">
@@ -208,7 +208,7 @@
             </div>
         </div>
 
-        <!-- Кнопки управления справа (Всегда видны и с приоритетом z-50) -->
+        <!-- Кнопки управления справа -->
         <div class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 pointer-events-auto z-50 flex flex-col gap-3">
             <button onclick="toggleAddModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 transition-transform hover:scale-105 active:scale-95" title="Add Audio">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -281,93 +281,93 @@
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
-                <!-- Блок 1: Основная информация -->
+                <!-- Блок 1: Основная информация (Загрузка файла) -->
                 <div class="space-y-4">
-                    <div class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-3">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            <span class="text-sm font-bold" data-lang="drag_drop">Drag-and-drop zone.</span>
-                        </div>
-                        <div class="flex items-center gap-[2px] h-8 w-full px-6 mb-3 opacity-30 dark:opacity-50">
-                            <div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-10"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-6"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-4"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-7"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-9"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div>
+                    <div id="drop-zone" class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors relative">
+                        <input type="file" id="audio-file-input" accept="audio/*" class="hidden">
+                        <div id="drop-zone-content" class="pointer-events-none w-full">
+                            <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-3">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <span class="text-sm font-bold" data-lang="drag_drop">Нажмите или перетащите аудиофайл</span>
+                            </div>
+                            <div class="flex items-center justify-center gap-[2px] h-8 w-full px-6 mb-3 opacity-30 dark:opacity-50">
+                                <div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-10"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-6"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-4"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-7"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-9"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div>
+                            </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="file_name">File Name (UCS)</label>
-                        <input type="text" value="RND_Central_Market_AMB_001.wav" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-mono text-xs">
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="file_name">Имя файла (UCS)</label>
+                        <input id="add-file-name" type="text" value="New_Audio_Record.wav" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-mono text-xs">
                     </div>
                     
                     <div>
-                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="display_title">Display Title</label>
-                        <input type="text" value="Central Market Morning" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium">
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="display_title">Отображаемое название</label>
+                        <input id="add-display-title" type="text" value="Новая запись" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium">
                     </div>
 
                     <div>
-                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="sound_desc">Sound Description</label>
-                        <textarea rows="3" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 h-20 resize-none leading-relaxed text-sm">Describe the soundscape...</textarea>
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="sound_desc">Описание звука</label>
+                        <textarea id="add-desc" rows="3" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 h-20 resize-none leading-relaxed text-sm">Опишите звуковое окружение...</textarea>
                     </div>
                 </div>
 
                 <!-- Блок 2: UCS Tags -->
                 <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
-                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">UCS Classification</p>
+                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Классификация</p>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="modal-label text-slate-400">Category:</label>
-                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
-                                <option>AMB (Ambience)</option>
-                                <option>NAT (Nature)</option>
-                                <option>IND (Industrial)</option>
+                            <label class="modal-label text-slate-400">Категория:</label>
+                            <select id="add-category" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
+                                <option>AMB (Ambience / Социум)</option>
+                                <option>NAT (Nature / Природа)</option>
+                                <option>IND (Industrial / Индустрия)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="modal-label text-slate-400">SubCategory:</label>
-                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
-                                <option>MARKET</option>
+                            <label class="modal-label text-slate-400">Субкатегория:</label>
+                            <select id="add-subcat" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
+                                <option>CITY</option>
                                 <option>PARK</option>
                                 <option>STREET</option>
                             </select>
                         </div>
                     </div>
                     <div>
-                        <label class="modal-label text-slate-400" data-lang="keywords">Tags / Keywords (comma separated)</label>
-                        <input type="text" value="Crowd, Exterior, Morning" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                        <label class="modal-label text-slate-400" data-lang="keywords">Теги (через запятую)</label>
+                        <input id="add-tags" type="text" value="City, Field recording" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
                     </div>
                 </div>
 
-                <!-- Блок 3: Location, Date, Time, Weather -->
+                <!-- Блок 3: Location (Интерактивная карта), Date, Time, Weather -->
                 <div class="grid grid-cols-[100px_1fr] gap-4 items-start">
-                    <div class="w-full aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 relative">
-                        <img src="https://api-maps.yandex.ru/services/constructor/1.0/static/?um=constructor%3Af7c90858850689b7b93f774e7978d389a69530f2526e8484f9382f164f9b8893&amp;width=130&amp;height=130&amp;lang=ru_RU" class="w-full h-full object-cover grayscale opacity-70">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-xl"></div>
-                        </div>
+                    <div id="add-map-container" class="w-full aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 relative cursor-crosshair">
+                        <!-- Сюда будет загружена Яндекс.Карта для выбора точки -->
                     </div>
                     <div class="space-y-2">
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="modal-label text-slate-400" data-lang="location">Location</label>
-                                <input type="text" value="Rostov-on-Don" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                                <label class="modal-label text-slate-400" data-lang="location">Локация</label>
+                                <input id="add-loc" type="text" value="Ростов-на-Дону" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
                             </div>
                             <div>
-                                <label class="modal-label text-slate-400" data-lang="coords">Coordinates</label>
-                                <input type="text" value="47.217, 39.708" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs font-mono">
+                                <label class="modal-label text-slate-400" data-lang="coords">Координаты</label>
+                                <input id="add-coords" type="text" value="47.222, 39.718" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs font-mono" readonly>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="modal-label text-slate-400" data-lang="date">Date</label>
-                                <input type="date" value="2023-10-01" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                                <label class="modal-label text-slate-400" data-lang="date">Дата</label>
+                                <input id="add-date" type="date" value="2023-10-01" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
                             </div>
                             <div>
-                                <label class="modal-label text-slate-400" data-lang="time">Time</label>
-                                <input type="time" value="17:00" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                                <label class="modal-label text-slate-400" data-lang="time">Время</label>
+                                <input id="add-time" type="time" value="12:00" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
                             </div>
                         </div>
                         <div>
-                            <label class="modal-label text-slate-400" data-lang="weather">Weather</label>
-                            <input type="text" placeholder="e.g. Clear, 22°C" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                            <label class="modal-label text-slate-400" data-lang="weather">Погода</label>
+                            <input id="add-weather" type="text" placeholder="Напр. Ясно, 22°C" value="Ясно, 22°C" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
                         </div>
                     </div>
                 </div>
@@ -376,36 +376,36 @@
                 <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="modal-label text-slate-400" data-lang="rec_model">Recorder</label>
-                            <input type="text" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                            <label class="modal-label text-slate-400" data-lang="rec_model">Рекордер</label>
+                            <input id="add-recorder" type="text" value="Zoom H6" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
                         </div>
                         <div>
-                            <label class="modal-label text-slate-400" data-lang="mic_type">Microphone</label>
-                            <input type="text" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                            <label class="modal-label text-slate-400" data-lang="mic_type">Микрофон</label>
+                            <input id="add-mic" type="text" value="Stereo Pair" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
                         </div>
                         <div>
-                            <label class="modal-label text-slate-400" data-lang="format">Format</label>
-                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                            <label class="modal-label text-slate-400" data-lang="format">Формат</label>
+                            <select id="add-format" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
                                 <option>WAV 96kHz / 24-bit</option>
                                 <option>WAV 48kHz / 24-bit</option>
                                 <option>MP3 320kbps</option>
                             </select>
                         </div>
                         <div>
-                            <label class="modal-label text-slate-400" data-lang="channels">Channels</label>
-                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                            <label class="modal-label text-slate-400" data-lang="channels">Каналы</label>
+                            <select id="add-channels" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
                                 <option>Stereo</option>
                                 <option>Mono</option>
                                 <option>Binaural</option>
                             </select>
                         </div>
                         <div>
-                            <label class="modal-label text-slate-400" data-lang="recordist">Recordist</label>
-                            <input type="text" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                            <label class="modal-label text-slate-400" data-lang="recordist">Автор</label>
+                            <input id="add-recordist" type="text" value="Иван Иванов" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
                         </div>
                         <div>
-                            <label class="modal-label text-slate-400" data-lang="license">License</label>
-                            <select class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                            <label class="modal-label text-slate-400" data-lang="license">Лицензия</label>
+                            <select id="add-license" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
                                 <option>CC BY 4.0</option>
                                 <option>CC0 (Public Domain)</option>
                                 <option>Copyrighted</option>
@@ -418,7 +418,7 @@
 
             <div class="p-6 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
                 <button onclick="publishSound()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]" data-lang="publish">
-                    Publish Sound
+                    Опубликовать звук
                 </button>
             </div>
         </div>
@@ -444,9 +444,18 @@
                         <h2 id="details-title" class="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white leading-tight mb-2"></h2>
                         <p id="details-filename" class="text-xs font-mono text-slate-400 dark:text-slate-500 break-all"></p>
                     </div>
-                    <a id="details-download-btn" href="#" download class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-all flex-shrink-0 active:scale-95 hidden">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    </a>
+                    
+                    <!-- Кнопки скачивания WAV / MP3 -->
+                    <div id="details-download-group" class="flex flex-col sm:flex-row gap-2 hidden flex-shrink-0">
+                        <a id="btn-download-wav" href="#" download class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            WAV
+                        </a>
+                        <a id="btn-download-mp3" href="#" download class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            MP3
+                        </a>
+                    </div>
                 </div>
                 
                 <p id="details-description" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base"></p>
@@ -498,6 +507,16 @@
                         <span class="meta-value" id="det-license">CC0</span>
                     </div>
                 </div>
+                
+                <!-- Секция комментариев -->
+                <div class="mt-2 border-t border-slate-100 dark:border-slate-700/50 pt-6">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-lang="comments">Комментарии</h3>
+                    <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-comment-input" data-lang-placeholder="comment_placeholder" placeholder="Оставьте комментарий..." class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm flex-1">
+                        <button onclick="addComment()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95" data-lang="send">Отправить</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -505,9 +524,9 @@
     <audio id="global-audio"></audio>
 
     <script>
-        // База данных (50 объектов, звук пока отключен - url: '')
+        // База данных 
         const rawSoundsData = [
-            { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: '', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.' },
+            { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: '', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.', comments: [{author: 'Анна', text: 'Очень успокаивает, спасибо!', date: '12.10.2023'}] },
             { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: '', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6', date: '04 Июн 2023', description: 'Пульс Ростова. Шумный Старый базар утром.' },
             { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: '', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный звуковой ландшафт.' },
             { id: 'r4', title: 'Парк Горького', category: 'nature', lat: 47.2210, lng: 39.7020, duration: '1:45', url: '', typeTag: 'Keynote', semanticTag: 'Leisure', gear: 'Zoom H5', date: '12 Май 2023', description: 'Спокойная атмосфера центрального парка.' },
@@ -516,52 +535,7 @@
             { id: 'r7', title: 'Ростов Арена (матч)', category: 'social', lat: 47.2094, lng: 39.7384, duration: '2:10', url: '', typeTag: 'Signal', semanticTag: 'Sport', gear: 'Zoom F6', date: '10 Сен 2023', description: 'Рев трибун стадиона.' },
             { id: 'r8', title: 'Ростовский зоопарк', category: 'nature', lat: 47.2505, lng: 39.6740, duration: '1:15', url: '', typeTag: 'Ambiance', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '18 Апр 2023', description: 'Крики экзотических птиц.' },
             { id: 'r9', title: 'Парамоновские склады', category: 'industrial', lat: 47.2166, lng: 39.7189, duration: '0:50', url: '', typeTag: 'Keynote', semanticTag: 'Ruins', gear: 'Zoom H5', date: '05 Июл 2023', description: 'Журчание родников в руинах складов.' },
-            { id: 'r10', title: 'Музыкальный театр', category: 'social', lat: 47.2255, lng: 39.7275, duration: '1:40', url: '', typeTag: 'Signal', semanticTag: 'Culture', gear: 'Sony PCM-D100', date: '12 Дек 2023', description: 'Шум фойе перед спектаклем.' },
-            { id: 't1', title: 'Домик А.П. Чехова', category: 'social', lat: 47.2100, lng: 38.9280, duration: '0:55', url: '', typeTag: 'Keynote', semanticTag: 'History', gear: 'Tascam DR-40X', date: '20 Май 2023', description: 'Скрип старых половиц музея.' },
-            { id: 't2', title: 'Таганрогский порт', category: 'industrial', lat: 47.2030, lng: 38.9480, duration: '1:20', url: '', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Rode NTG4+', date: '11 Авг 2023', description: 'Гудки сухогрузов и крики чаек.' },
-            { id: 't3', title: 'Каменная лестница', category: 'social', lat: 47.2085, lng: 38.9385, duration: '1:05', url: '', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Zoom H5', date: '07 Сен 2023', description: 'Шаги по исторической лестнице.' },
-            { id: 't4', title: 'Богудония', category: 'nature', lat: 47.1995, lng: 38.9300, duration: '1:35', url: '', typeTag: 'Keynote', semanticTag: 'Marine', gear: 'Zoom F6', date: '14 Июл 2023', description: 'Удары волн о лодки.' },
-            { id: 't5', title: 'Трамвай', category: 'industrial', lat: 47.2150, lng: 38.9150, duration: '0:45', url: '', typeTag: 'Signal', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '22 Ноя 2023', description: 'Стук колес старого трамвая.' },
-            { id: 'a1', title: 'Вал Азовской крепости', category: 'nature', lat: 47.1145, lng: 39.4230, duration: '1:10', url: '', typeTag: 'Background', semanticTag: 'Heritage', gear: 'Zoom H5', date: '03 Май 2023', description: 'Ветер над валами крепости.' },
-            { id: 'a2', title: 'Пороховой погреб', category: 'social', lat: 47.1120, lng: 39.4250, duration: '0:40', url: '', typeTag: 'Ambiance', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '19 Июн 2023', description: 'Акустика кирпичных сводов.' },
-            { id: 'a3', title: 'Дельта Дона', category: 'nature', lat: 47.1400, lng: 39.3800, duration: '2:05', url: '', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Rode NTG4+', date: '08 Июл 2023', description: 'Экосистема устья Дона.' },
-            { id: 'a4', title: 'Азовский порт', category: 'industrial', lat: 47.1180, lng: 39.4180, duration: '1:15', url: '', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Zoom F6', date: '25 Авг 2023', description: 'Шум погрузки зерна.' },
-            { id: 'a5', title: 'Скелет мамонта', category: 'social', lat: 47.1125, lng: 39.4245, duration: '0:55', url: '', typeTag: 'Keynote', semanticTag: 'Museum', gear: 'Sony PCM-D100', date: '12 Окт 2023', description: 'Музей палеонтологии.' },
-            { id: 'n1', title: 'Вознесенский собор', category: 'social', lat: 47.4140, lng: 40.1105, duration: '2:30', url: '', typeTag: 'Soundmark', semanticTag: 'Religion', gear: 'Zoom H5', date: '07 Янв 2023', description: 'Мощный колокольный звон.' },
-            { id: 'n2', title: 'Атаманский дворец', category: 'social', lat: 47.4120, lng: 40.0950, duration: '1:00', url: '', typeTag: 'Ambiance', semanticTag: 'History', gear: 'Tascam DR-40X', date: '15 Мар 2023', description: 'Тишина резиденции атаманов.' },
-            { id: 'n3', title: 'Триумфальная арка', category: 'industrial', lat: 47.4080, lng: 40.0880, duration: '0:50', url: '', typeTag: 'Background', semanticTag: 'Urban Life', gear: 'Rode NTG4+', date: '21 Апр 2023', description: 'Трафик у исторической арки.' },
-            { id: 'n4', title: 'Роща Красная весна', category: 'nature', lat: 47.4200, lng: 40.0800, duration: '1:25', url: '', typeTag: 'Keynote', semanticTag: 'Park', gear: 'Zoom F6', date: '05 Май 2023', description: 'Шум ветра в кронах.' },
-            { id: 'n5', title: 'Трамвай', category: 'industrial', lat: 47.4180, lng: 40.0900, duration: '1:10', url: '', typeTag: 'Signal', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '30 Окт 2023', description: 'Скрип рельсов трамвая.' },
-            { id: 's1', title: 'Воскресенский собор', category: 'social', lat: 47.2405, lng: 40.0350, duration: '1:15', url: '', typeTag: 'Keynote', semanticTag: 'Religion', gear: 'Zoom H5', date: '14 Окт 2023', description: 'Служба в старейшем каменном храме.' },
-            { id: 's2', title: 'Атаманское подворье', category: 'social', lat: 47.2415, lng: 40.0320, duration: '0:55', url: '', typeTag: 'Ambiance', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '02 Сен 2023', description: 'Шаги по усадьбе.' },
-            { id: 's3', title: 'Берег Дона', category: 'nature', lat: 47.2380, lng: 40.0380, duration: '1:30', url: '', typeTag: 'Background', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '22 Июл 2023', description: 'Плеск воды о песчаный берег.' },
-            { id: 's4', title: 'Казачий хор', category: 'social', lat: 47.2420, lng: 40.0360, duration: '2:00', url: '', typeTag: 'Signal', semanticTag: 'Folklore', gear: 'Zoom F6', date: '19 Авг 2023', description: 'Многоголосое пение казаков.' },
-            { id: 's5', title: 'Шатровая колокольня', category: 'industrial', lat: 47.2400, lng: 40.0340, duration: '0:45', url: '', typeTag: 'Soundmark', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '04 Июн 2023', description: 'Звон малых колоколов.' },
-            { id: 'v1', title: 'Усадьба Шолохова', category: 'social', lat: 49.6270, lng: 41.7320, duration: '1:10', url: '', typeTag: 'Ambiance', semanticTag: 'History', gear: 'Zoom H5', date: '24 Май 2023', description: 'Тишина и птицы в саду.' },
-            { id: 'v2', title: 'Набережная', category: 'nature', lat: 49.6250, lng: 41.7300, duration: '1:45', url: '', typeTag: 'Keynote', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '11 Июн 2023', description: 'Течение Верхнего Дона.' },
-            { id: 'v3', title: 'Сосновый бор', category: 'nature', lat: 49.6350, lng: 41.7250, duration: '2:15', url: '', typeTag: 'Background', semanticTag: 'Forest', gear: 'Rode NTG4+', date: '30 Июл 2023', description: 'Шум ветра в соснах.' },
-            { id: 'v4', title: 'Одоевский родник', category: 'nature', lat: 49.6400, lng: 41.7400, duration: '1:00', url: '', typeTag: 'Signal', semanticTag: 'Water', gear: 'Zoom F6', date: '05 Сен 2023', description: 'Журчание ледяного родника.' },
-            { id: 'v5', title: 'Лебяжий Яр', category: 'nature', lat: 49.6100, lng: 41.7500, duration: '1:20', url: '', typeTag: 'Keynote', semanticTag: 'Landscape', gear: 'Sony PCM-D100', date: '18 Авг 2023', description: 'Степной ветер на обрыве.' },
-            { id: 'k1', title: 'Парк Лога', category: 'nature', lat: 48.3510, lng: 40.2950, duration: '1:50', url: '', typeTag: 'Ambiance', semanticTag: 'Leisure', gear: 'Zoom H5', date: '21 Май 2023', description: 'Водопады и крики павлинов.' },
-            { id: 'k2', title: 'Легенды СССР', category: 'social', lat: 48.3300, lng: 40.2800, duration: '0:55', url: '', typeTag: 'Keynote', semanticTag: 'Museum', gear: 'Tascam DR-40X', date: '10 Мар 2023', description: 'Патефоны в ретро-музее.' },
-            { id: 'k3', title: 'Северский Донец', category: 'nature', lat: 48.3200, lng: 40.2700, duration: '1:10', url: '', typeTag: 'Background', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '04 Июл 2023', description: 'Течение воды и лягушки.' },
-            { id: 'k4', title: 'Каменская ВЭС', category: 'industrial', lat: 48.3000, lng: 40.3000, duration: '1:30', url: '', typeTag: 'Signal', semanticTag: 'Energy', gear: 'Zoom F6', date: '17 Ноя 2023', description: 'Гул лопастей ветрогенераторов.' },
-            { id: 'k5', title: 'Длинный каньон', category: 'nature', lat: 47.8800, lng: 40.0500, duration: '1:05', url: '', typeTag: 'Ambiance', semanticTag: 'Landscape', gear: 'Sony PCM-D100', date: '29 Июн 2023', description: 'Эхо в скалистом каньоне.' },
-            { id: 'w1', title: 'Цимлянское море', category: 'nature', lat: 47.5300, lng: 42.1500, duration: '2:00', url: '', typeTag: 'Keynote', semanticTag: 'Marine', gear: 'Zoom H5', date: '11 Авг 2023', description: 'Шум прибоя водохранилища.' },
-            { id: 'w2', title: 'Порт Волгодонск', category: 'industrial', lat: 47.5200, lng: 42.1700, duration: '1:20', url: '', typeTag: 'Soundmark', semanticTag: 'Port', gear: 'Tascam DR-40X', date: '05 Сен 2023', description: 'Грохот металла и сирены.' },
-            { id: 'w3', title: 'Шлюз №14', category: 'industrial', lat: 47.5500, lng: 42.1300, duration: '0:55', url: '', typeTag: 'Signal', semanticTag: 'Engineering', gear: 'Rode NTG4+', date: '14 Окт 2023', description: 'Сброс воды и механизмы шлюза.' },
-            { id: 'w4', title: 'Ростовская АЭС', category: 'industrial', lat: 47.5900, lng: 42.2000, duration: '1:00', url: '', typeTag: 'Background', semanticTag: 'Energy', gear: 'Zoom F6', date: '21 Ноя 2023', description: 'Гул градирен АЭС.' },
-            { id: 'w5', title: 'Цимлянская ГЭС', category: 'industrial', lat: 47.6400, lng: 42.1000, duration: '1:10', url: '', typeTag: 'Signal', semanticTag: 'Energy', gear: 'Sony PCM-D100', date: '09 Апр 2023', description: 'Рев падающей воды на плотине.' },
-            { id: 'u1', title: 'Озеро Маныч-Гудило', category: 'nature', lat: 46.4600, lng: 42.8600, duration: '2:10', url: '', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Zoom H5', date: '12 Апр 2023', description: 'Птичий базар на соленом озере.' },
-            { id: 'u2', title: 'Музей Танаис', category: 'social', lat: 47.2660, lng: 39.3280, duration: '1:20', url: '', typeTag: 'Ambiance', semanticTag: 'Archaeology', gear: 'Tascam DR-40X', date: '18 Июл 2023', description: 'Тишина руин и цикады.' },
-            { id: 'u3', title: 'Маяк в Мержаново', category: 'nature', lat: 47.2850, lng: 39.1550, duration: '1:40', url: '', typeTag: 'Keynote', semanticTag: 'Landscape', gear: 'Rode NTG4+', date: '25 Сен 2023', description: 'Свист ветра на обрыве.' },
-            { id: 'u4', title: 'Шахта Гуково', category: 'industrial', lat: 48.0600, lng: 39.9300, duration: '1:00', url: '', typeTag: 'Signal', semanticTag: 'Museum', gear: 'Zoom F6', date: '30 Окт 2023', description: 'Подземные машины в макете шахты.' },
-            { id: 'u5', title: 'Террикон', category: 'nature', lat: 47.7100, lng: 40.2100, duration: '0:50', url: '', typeTag: 'Background', semanticTag: 'Ind. Landscape', gear: 'Sony PCM-D100', date: '04 Апр 2023', description: 'Ветер на вершине холма.' },
-            { id: 'u6', title: 'Павловская крепость', category: 'nature', lat: 47.2800, lng: 38.8500, duration: '1:30', url: '', typeTag: 'Ambiance', semanticTag: 'Heritage', gear: 'Zoom H5', date: '11 Май 2023', description: 'Тишина и ковыль над редутами.' },
-            { id: 'u7', title: 'Парк Донской', category: 'nature', lat: 47.3000, lng: 39.3500, duration: '2:15', url: '', typeTag: 'Keynote', semanticTag: 'Wildlife', gear: 'Tascam DR-40X', date: '28 Июл 2023', description: 'Крики цапель в пойменных лесах.' },
-            { id: 'u8', title: 'Новошахтинский НЗ', category: 'industrial', lat: 47.7800, lng: 39.9000, duration: '1:10', url: '', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '16 Сен 2023', description: 'Гул завода в отдалении.' },
-            { id: 'u9', title: 'Дикие мустанги', category: 'nature', lat: 46.4700, lng: 42.8400, duration: '1:25', url: '', typeTag: 'Soundmark', semanticTag: 'Wildlife', gear: 'Zoom F6', date: '03 Авг 2023', description: 'Топот копыт табуна на острове.' },
-            { id: 'u10', title: 'Аэропорт Платов', category: 'industrial', lat: 47.4900, lng: 39.9200, duration: '1:00', url: '', typeTag: 'Ambiance', semanticTag: 'Architecture', gear: 'Sony PCM-D100', date: '10 Янв 2023', description: 'Тишина пустого терминала.' }
+            { id: 'r10', title: 'Музыкальный театр', category: 'social', lat: 47.2255, lng: 39.7275, duration: '1:40', url: '', typeTag: 'Signal', semanticTag: 'Culture', gear: 'Sony PCM-D100', date: '12 Дек 2023', description: 'Шум фойе перед спектаклем.' }
         ];
 
         // Добавление недостающих метаданных
@@ -575,7 +549,8 @@
             fileName: s.fileName || `RND_${s.category.substring(0,3).toUpperCase()}_00${Math.floor(Math.random()*90)+10}.wav`,
             recordist: s.recordist || 'Иван Иванов',
             license: s.license || 'CC BY 4.0',
-            keywords: s.keywords || `${s.category}, soundscape, rostov`
+            keywords: s.keywords || `${s.category}, soundscape, rostov`,
+            comments: s.comments || []
         }));
 
         const translations = {
@@ -583,41 +558,96 @@
                 title: "Ростовская область", subtitle: "Аудиокарта", search_placeholder: "Поиск и фильтры...",
                 filter_all: "Все", filter_nature: "Природа", filter_industrial: "Индустрия", filter_social: "Социум",
                 settings_title: "Настройки", gui_scale: "Масштаб интерфейса", theme: "Тема оформления", map_style: "Стиль карты (Фильтр)", map_normal: "Стандарт", map_mono: "Монохром", language: "Язык приложения", close: "Закрыть",
-                add_audio_title: "Добавить аудио", drag_drop: "Перетащите файл сюда", display_title: "Название", sound_desc: "Описание", file_name: "Имя файла (UCS)", keywords: "Теги (через запятую)",
+                add_audio_title: "Добавить аудио", drag_drop: "Нажмите или перетащите аудиофайл", display_title: "Название", sound_desc: "Описание", file_name: "Имя файла (UCS)", keywords: "Теги (через запятую)",
                 location: "Локация", coords: "Координаты", date: "Дата", time: "Время", weather: "Погода", datetime: "Дата и Время",
                 rec_model: "Рекордер", mic_type: "Микрофон", format: "Формат", channels: "Каналы", recordist: "Автор", license: "Лицензия", publish: "Опубликовать",
                 rec_prefix: "Rec: ", coords_prefix: "Координаты: ", gear_prefix: "Оборудование: ",
-                err_no_audio: "Файл звука временно отсутствует.", err_publish: "Функция загрузки будет доступна позже."
+                err_no_audio: "Режим симуляции (аудиофайл отсутствует)", err_publish: "Функция загрузки будет доступна позже.",
+                success_publish: "Аудио успешно добавлено на карту!", audio_loaded: "Аудиофайл загружен", select_audio: "Пожалуйста, выберите аудиофайл",
+                comments: "Комментарии", comment_placeholder: "Оставьте комментарий...", send: "Отправить", no_comments: "Пока нет комментариев. Будьте первым!"
             },
             en: {
                 title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search & filters...",
                 filter_all: "All", filter_nature: "Nature", filter_industrial: "Industrial", filter_social: "Social",
                 settings_title: "Settings", gui_scale: "Interface Scale", theme: "Visual Theme", map_style: "Map Style (Filter)", map_normal: "Default", map_mono: "Monochrome", language: "Application Language", close: "Close",
-                add_audio_title: "Add Audio", drag_drop: "Drag-and-drop zone", display_title: "Display Title", sound_desc: "Sound Description", file_name: "File Name (UCS)", keywords: "Tags / Keywords",
+                add_audio_title: "Add Audio", drag_drop: "Click or drag audio file here", display_title: "Display Title", sound_desc: "Sound Description", file_name: "File Name (UCS)", keywords: "Tags / Keywords",
                 location: "Location", coords: "Coordinates", date: "Date", time: "Time", weather: "Weather", datetime: "Date & Time",
                 rec_model: "Recorder Model", mic_type: "Microphone Type", format: "Format", channels: "Channels", recordist: "Recordist", license: "License", publish: "Publish Sound",
                 rec_prefix: "Rec: ", coords_prefix: "Coordinates: ", gear_prefix: "Gear: ",
-                err_no_audio: "Audio file is temporarily unavailable.", err_publish: "Upload feature will be available later."
+                err_no_audio: "Simulation mode (audio file missing)", err_publish: "Upload feature will be available later.",
+                success_publish: "Sound added to map successfully!", audio_loaded: "Audio file loaded", select_audio: "Please select an audio file",
+                comments: "Comments", comment_placeholder: "Leave a comment...", send: "Send", no_comments: "No comments yet. Be the first!"
             }
         };
 
         let map, currentPlayingId = null, isPlaying = false, animationFrameId = null, currentLang = 'ru', currentTheme = 'light';
+        let mockInterval = null, simulatedTime = 0, simulatedDuration = 120;
         const audioElement = document.getElementById('global-audio');
         
-        // Система фильтров (Мульти-выбор категорий и тегов)
         let activeCategories = new Set();
         let activeTags = new Set();
+        
+        // Переменные для загрузки файлов и карты
+        let currentUploadedFileUrl = '';
+        let addModalMap = null;
+        let addModalPlacemark = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             renderList();
             renderWaveform();
             setupAudioEvents();
+            
             document.getElementById('search-input').addEventListener('input', () => {
                 updateMapMarkers();
                 renderList();
             });
+            
+            // Логика Drag-and-Drop и выбора файла
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('audio-file-input');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => handleAudioFiles(e.target.files));
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700');
+            });
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700');
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700');
+                handleAudioFiles(e.dataTransfer.files);
+            });
+
             ymaps.ready(initMap);
         });
+        
+        function handleAudioFiles(files) {
+            if(files && files.length > 0) {
+                const file = files[0];
+                if(file.type.startsWith('audio/')) {
+                    document.getElementById('add-file-name').value = file.name;
+                    currentUploadedFileUrl = URL.createObjectURL(file);
+                    
+                    const dropZoneContent = document.getElementById('drop-zone-content');
+                    dropZoneContent.innerHTML = `
+                        <div class="flex flex-col items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                            <span class="text-sm font-bold truncate w-full max-w-[250px]">${file.name}</span>
+                            <span class="text-xs text-slate-500">Готов к загрузке</span>
+                        </div>
+                    `;
+                    showToast(translations[currentLang].audio_loaded);
+                } else {
+                    showToast(translations[currentLang].select_audio);
+                }
+            }
+        }
 
         function showToast(message) {
             const toast = document.getElementById('toast-message');
@@ -632,7 +662,7 @@
         }
 
         function initMap() {
-            map = new ymaps.Map('map', { center: [47.5, 40.8], zoom: 7, controls: [] });
+            map = new ymaps.Map('map', { center: [47.217, 39.708], zoom: 10, controls: [] });
             updateMapMarkers();
         }
 
@@ -683,24 +713,20 @@
             const dBtn = document.getElementById('theme-dark-btn');
             if(theme === 'dark') {
                 dBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
-                lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
             } else {
                 lBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
-                dBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                dBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
             }
         }
 
         function toggleSidebar() {
             const s = document.getElementById('sidebar');
             s.classList.toggle('sidebar-hidden');
-            
             if(window.innerWidth >= 768) {
                 const playerCard = document.getElementById('player-card');
-                if (s.classList.contains('sidebar-hidden')) {
-                    playerCard.style.marginLeft = '0';
-                } else {
-                    playerCard.style.marginLeft = '25.5rem'; 
-                }
+                if (s.classList.contains('sidebar-hidden')) { playerCard.style.marginLeft = '0'; } 
+                else { playerCard.style.marginLeft = '25.5rem'; }
             }
         }
 
@@ -712,6 +738,28 @@
                 void m.offsetWidth; 
                 m.classList.remove('opacity-0', 'pointer-events-none'); 
                 c.classList.remove('scale-95');
+                
+                // Инициализация карты в модалке
+                if (!addModalMap && ymaps) {
+                    ymaps.ready(() => {
+                        addModalMap = new ymaps.Map('add-map-container', {
+                            center: [47.222, 39.718],
+                            zoom: 11,
+                            controls: ['zoomControl']
+                        });
+                        addModalPlacemark = new ymaps.Placemark([47.222, 39.718], {}, { preset: 'islands#blueDotIcon' });
+                        addModalMap.geoObjects.add(addModalPlacemark);
+                        
+                        addModalMap.events.add('click', function (e) {
+                            var coords = e.get('coords');
+                            addModalPlacemark.geometry.setCoordinates(coords);
+                            document.getElementById('add-coords').value = coords[0].toFixed(5) + ", " + coords[1].toFixed(5);
+                        });
+                    });
+                } else if (addModalMap) {
+                    addModalMap.container.fitToViewport();
+                }
+
             } else {
                 m.classList.add('opacity-0', 'pointer-events-none'); 
                 c.classList.add('scale-95');
@@ -719,9 +767,71 @@
             }
         }
 
+        // --- ПУБЛИКАЦИЯ ЗВУКА ---
         function publishSound() {
-            showToast(translations[currentLang].err_publish);
+            const title = document.getElementById('add-display-title').value || 'New Sound';
+            const desc = document.getElementById('add-desc').value;
+            const coordsStr = document.getElementById('add-coords').value;
+            
+            let lat = 47.222, lng = 39.718;
+            if(coordsStr.includes(',')) {
+                const parts = coordsStr.split(',');
+                lat = parseFloat(parts[0]) || lat;
+                lng = parseFloat(parts[1]) || lng;
+            }
+            
+            const catSelect = document.getElementById('add-category').value;
+            let cat = 'social';
+            if(catSelect.includes('NAT')) cat = 'nature';
+            if(catSelect.includes('IND')) cat = 'industrial';
+            
+            const newSound = {
+                id: 'new_' + Date.now(),
+                title: title,
+                category: cat,
+                lat: lat,
+                lng: lng,
+                duration: '0:00', // Будет обновлено при загрузке аудио
+                url: currentUploadedFileUrl, // Используем локальный URL
+                typeTag: document.getElementById('add-subcat').value || 'CUSTOM',
+                semanticTag: 'Upload',
+                gear: document.getElementById('add-recorder').value || 'Unknown Gear',
+                date: document.getElementById('add-date').value || '2023-10-01',
+                time: document.getElementById('add-time').value || '12:00',
+                weather: document.getElementById('add-weather').value || 'Clear',
+                description: desc,
+                micType: document.getElementById('add-mic').value || 'Unknown',
+                format: document.getElementById('add-format').value || 'WAV',
+                channels: document.getElementById('add-channels').value || 'Stereo',
+                recordist: document.getElementById('add-recordist').value || 'Anonymous',
+                license: document.getElementById('add-license').value || 'CC BY',
+                fileName: document.getElementById('add-file-name').value || 'new_audio.wav',
+                keywords: document.getElementById('add-tags').value || ''
+            };
+
+            soundsData.unshift(newSound); 
+            updateMapMarkers();
+            renderList();
+            
+            showToast(translations[currentLang].success_publish);
             toggleAddModal();
+            
+            // Сбрасываем форму файла
+            currentUploadedFileUrl = '';
+            document.getElementById('audio-file-input').value = '';
+            document.getElementById('drop-zone-content').innerHTML = `
+                <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span class="text-sm font-bold" data-lang="drag_drop">${translations[currentLang].drag_drop}</span>
+                </div>
+                <div class="flex items-center justify-center gap-[2px] h-8 w-full px-6 mb-3 opacity-30 dark:opacity-50">
+                    <div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-10"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-6"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-4"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-7"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-9"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div>
+                </div>
+            `;
+            
+            // Включаем звук
+            selectSound(newSound.id);
+            setTimeout(() => toggleMainPlay(), 500);
         }
 
         function toggleSettingsModal() {
@@ -740,27 +850,19 @@
         }
 
         // --- СИСТЕМА ФИЛЬТРАЦИИ И ТЕГОВ ---
-
         function setFilter(type) {
-            if (type === 'all') {
-                activeCategories.clear();
-            } else {
-                if (activeCategories.has(type)) {
-                    activeCategories.delete(type);
-                } else {
-                    activeCategories.add(type);
-                }
+            if (type === 'all') { activeCategories.clear(); } 
+            else {
+                if (activeCategories.has(type)) { activeCategories.delete(type); } 
+                else { activeCategories.add(type); }
             }
-            updateCategoryButtonsUI();
-            updateMapMarkers(); 
-            renderList(); 
+            updateCategoryButtonsUI(); updateMapMarkers(); renderList(); 
         }
 
         function updateCategoryButtonsUI() {
             document.querySelectorAll('.filter-btn').forEach(b => {
                 const btnType = b.id.replace('filter-', '');
                 const isActive = (activeCategories.size === 0 && btnType === 'all') || activeCategories.has(btnType);
-                
                 if (isActive) {
                     b.classList.add('bg-slate-800', 'dark:bg-blue-600', 'text-white', 'shadow-md');
                     b.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
@@ -772,33 +874,17 @@
         }
 
         function addTagFilter(tag) {
-            if (!tag) return;
-            activeTags.add(tag);
-            renderActiveTags();
-            updateMapMarkers();
-            renderList();
-            
+            if (!tag) return; activeTags.add(tag); renderActiveTags(); updateMapMarkers(); renderList();
             const sidebar = document.getElementById('sidebar');
-            if (sidebar.classList.contains('sidebar-hidden')) {
-                toggleSidebar();
-            }
+            if (sidebar.classList.contains('sidebar-hidden')) toggleSidebar();
             closeDetailsModal();
         }
 
-        function removeTagFilter(tag) {
-            activeTags.delete(tag);
-            renderActiveTags();
-            updateMapMarkers();
-            renderList();
-        }
+        function removeTagFilter(tag) { activeTags.delete(tag); renderActiveTags(); updateMapMarkers(); renderList(); }
 
         function renderActiveTags() {
             const container = document.getElementById('active-tags-container');
-            if (activeTags.size === 0) {
-                container.innerHTML = '';
-                container.classList.add('hidden');
-                return;
-            }
+            if (activeTags.size === 0) { container.innerHTML = ''; container.classList.add('hidden'); return; }
             container.classList.remove('hidden');
             container.innerHTML = Array.from(activeTags).map(tag => `
                 <span onclick="removeTagFilter('${tag}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[11px] font-bold rounded-lg cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors shadow-sm">
@@ -807,22 +893,15 @@
             `).join('');
         }
 
-        // Фильтрация данных для карты и списка
         function getFilteredSounds() {
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
             return soundsData.filter(s => {
                 const matchCategory = activeCategories.size === 0 || activeCategories.has(s.category);
-                
-                // Ищем по всем текстовым полям, категориям, субкатегориям и тегам
                 const searchTarget = `${s.title} ${s.description} ${s.keywords || ''} ${s.typeTag || ''} ${s.semanticTag || ''} ${translations[currentLang][`filter_${s.category}`] || ''}`.toLowerCase();
                 const matchSearch = !searchQuery || searchTarget.includes(searchQuery);
-                
                 const matchTags = activeTags.size === 0 || Array.from(activeTags).every(tag => {
                     const t = tag.toLowerCase();
-                    return s.category.toLowerCase() === t ||
-                           s.typeTag.toLowerCase() === t ||
-                           s.semanticTag.toLowerCase() === t ||
-                           (s.keywords && s.keywords.toLowerCase().includes(t));
+                    return s.category.toLowerCase() === t || s.typeTag.toLowerCase() === t || s.semanticTag.toLowerCase() === t || (s.keywords && s.keywords.toLowerCase().includes(t));
                 });
                 return matchCategory && matchSearch && matchTags;
             });
@@ -847,10 +926,7 @@
             listContainer.innerHTML = '';
             const filtered = getFilteredSounds();
             
-            if(filtered.length === 0) {
-                listContainer.innerHTML = `<p class="text-center text-sm text-slate-400 mt-4">Ничего не найдено</p>`;
-                return;
-            }
+            if(filtered.length === 0) { listContainer.innerHTML = `<p class="text-center text-sm text-slate-400 mt-4">Ничего не найдено</p>`; return; }
 
             filtered.forEach(sound => {
                 const item = document.createElement('div');
@@ -873,22 +949,25 @@
             });
         }
 
-        // --- УПРАВЛЕНИЕ ЗВУКОМ И ОКНАМИ ---
-
+        // --- УПРАВЛЕНИЕ ЗВУКОМ (С симуляцией для пустых URL) ---
         function selectSound(id) {
             const s = soundsData.find(x => x.id === id);
-            
             if (window.innerWidth < 768) { 
                 const sb = document.getElementById('sidebar'); 
                 if (!sb.classList.contains('sidebar-hidden')) toggleSidebar(); 
             } else {
                 const sb = document.getElementById('sidebar'); 
-                if (!sb.classList.contains('sidebar-hidden')) {
-                    document.getElementById('player-card').style.marginLeft = '25.5rem';
-                }
+                if (!sb.classList.contains('sidebar-hidden')) document.getElementById('player-card').style.marginLeft = '25.5rem';
             }
             
-            map.setCenter([s.lat, s.lng], 15, { duration: 1000 });
+            map.setCenter([s.lat, s.lng], 14, { duration: 1000 });
+            
+            if(currentPlayingId !== id && isPlaying) {
+                 audioElement.pause();
+                 isPlaying = false;
+                 if (mockInterval) clearInterval(mockInterval);
+            }
+            
             currentPlayingId = id; 
             updateMapMarkers();
             
@@ -899,7 +978,6 @@
             document.getElementById('player-gear').textContent = translations[currentLang].rec_prefix + s.gear;
             
             let cColor = s.category === 'nature' ? 'text-green-700 border-green-200 bg-green-50' : s.category === 'industrial' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-orange-700 border-orange-200 bg-orange-50';
-            
             document.getElementById('player-tags').innerHTML = `
                 <span onclick="event.stopPropagation(); addTagFilter('${s.category}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${translations[currentLang][`filter_${s.category}`]}</span>
                 <span onclick="event.stopPropagation(); addTagFilter('${s.typeTag}')" class="tag-pill border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 cursor-pointer hover:scale-105 transition-transform">${s.typeTag}</span>
@@ -909,19 +987,22 @@
             if (s.url) {
                 if (audioElement.src !== s.url) { 
                     audioElement.src = s.url; 
-                    audioElement.play().then(() => { isPlaying = true; startTimelineAnimation(); updateUIState(); }).catch(() => { isPlaying = false; updateUIState(); }); 
-                } else { 
-                    toggleMainPlay(); 
-                }
+                    audioElement.play().then(() => { isPlaying = true; startTimelineAnimation(); updateUIState(); })
+                    .catch(() => { isPlaying = false; prepareMockPlayback(s); }); 
+                } else { toggleMainPlay(); }
             } else {
                 audioElement.pause();
-                isPlaying = false;
-                updateUIState();
+                audioElement.removeAttribute('src'); 
+                prepareMockPlayback(s);
             }
         }
 
         function closePlayerCard() {
-            if (isPlaying) { audioElement.pause(); isPlaying = false; cancelAnimationFrame(animationFrameId); }
+            isPlaying = false;
+            audioElement.pause(); 
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (mockInterval) clearInterval(mockInterval);
+            
             const card = document.getElementById('player-card');
             card.classList.add('translate-y-[150%]', 'opacity-0');
             currentPlayingId = null; 
@@ -933,14 +1014,50 @@
             if (!currentPlayingId) return;
             const s = soundsData.find(x => x.id === currentPlayingId);
             
-            if (!s || !s.url) {
-                showToast(translations[currentLang].err_no_audio);
-                return;
+            if (isPlaying) { 
+                isPlaying = false;
+                audioElement.pause(); 
+                if (mockInterval) clearInterval(mockInterval);
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            } else { 
+                isPlaying = true;
+                if (s.url && audioElement.src) {
+                    audioElement.play().then(() => startTimelineAnimation()).catch(() => { startMockPlayback(s); });
+                } else {
+                    showToast(translations[currentLang].err_no_audio);
+                    startMockPlayback(s);
+                }
             }
-
-            if (isPlaying) { audioElement.pause(); isPlaying = false; cancelAnimationFrame(animationFrameId); }
-            else { audioElement.play().then(() => { isPlaying = true; startTimelineAnimation(); }); }
             updateUIState();
+        }
+
+        // --- ЛОГИКА СИМУЛЯЦИИ ПЛЕЕРА ---
+        function prepareMockPlayback(s) {
+            isPlaying = false;
+            simulatedTime = 0;
+            const parts = (s.duration || "1:00").split(':');
+            simulatedDuration = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            
+            document.getElementById('time-total').textContent = s.duration;
+            document.getElementById('time-total-right').textContent = s.duration;
+            updatePlayerVisuals(0, simulatedDuration);
+            updateUIState();
+        }
+
+        function startMockPlayback(s) {
+            if (mockInterval) clearInterval(mockInterval);
+            mockInterval = setInterval(() => {
+                if (!isPlaying) return;
+                simulatedTime += 0.25; 
+                if (simulatedTime >= simulatedDuration) {
+                    isPlaying = false;
+                    simulatedTime = 0;
+                    clearInterval(mockInterval);
+                    updateUIState();
+                    return;
+                }
+                updatePlayerVisuals(simulatedTime, simulatedDuration);
+            }, 250);
         }
 
         function updateUIState() {
@@ -959,26 +1076,33 @@
         function startTimelineAnimation() {
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             const a = () => { 
-                if (!isPlaying) return; 
-                const r = audioElement.currentTime / (audioElement.duration || 1); 
-                document.getElementById('time-current').textContent = formatTime(audioElement.currentTime); 
-                document.getElementById('waveform-active').style.clipPath = `inset(0 ${100 - r * 100}% 0 0)`; 
-                document.getElementById('playhead').style.left = `${r * 100}%`; 
+                if (!isPlaying || !audioElement.src) return; 
+                updatePlayerVisuals(audioElement.currentTime, audioElement.duration || 1);
                 animationFrameId = requestAnimationFrame(a); 
             };
             a();
         }
+        
+        function updatePlayerVisuals(current, total) {
+            if(isNaN(total) || total === 0) return;
+            const r = current / total;
+            document.getElementById('time-current').textContent = formatTime(current); 
+            document.getElementById('waveform-active').style.clipPath = `inset(0 ${100 - r * 100}% 0 0)`; 
+            document.getElementById('playhead').style.left = `${r * 100}%`;
+            document.getElementById('audio-timeline').value = r * 100;
+        }
 
         function seekAudio(v) { 
-            if (audioElement.duration) { 
-                audioElement.currentTime = (v / 100) * audioElement.duration; 
-                if (!isPlaying) {
-                    const ratio = v / 100;
-                    document.getElementById('waveform-active').style.clipPath = `inset(0 ${100 - ratio * 100}% 0 0)`;
-                    document.getElementById('playhead').style.left = `${ratio * 100}%`;
-                    document.getElementById('time-current').textContent = formatTime(audioElement.currentTime);
-                }
-            } 
+            const ratio = v / 100;
+            if (audioElement.src && audioElement.src.startsWith('blob:')) { 
+                if (audioElement.duration) { 
+                    audioElement.currentTime = ratio * audioElement.duration; 
+                    if (!isPlaying) updatePlayerVisuals(audioElement.currentTime, audioElement.duration);
+                } 
+            } else {
+                simulatedTime = ratio * simulatedDuration;
+                if (!isPlaying) updatePlayerVisuals(simulatedTime, simulatedDuration);
+            }
         }
         
         function formatTime(s) { const m = Math.floor(s / 60), sec = Math.floor(s % 60); return `${m}:${sec < 10 ? '0' : ''}${sec}`; }
@@ -1011,13 +1135,21 @@
             document.getElementById('det-recordist').textContent = s.recordist;
             document.getElementById('det-license').textContent = s.license;
             
-            const downloadBtn = document.getElementById('details-download-btn');
-            if (s.url) {
-                downloadBtn.classList.remove('hidden');
-                downloadBtn.href = s.url;
-            } else {
-                downloadBtn.classList.add('hidden');
-            }
+            const downloadGroup = document.getElementById('details-download-group');
+            downloadGroup.classList.remove('hidden'); // Теперь кнопки всегда видны
+            
+            const baseName = s.fileName.replace(/\.[^/.]+$/, "");
+            const btnWav = document.getElementById('btn-download-wav');
+            const btnMp3 = document.getElementById('btn-download-mp3');
+            
+            // Если есть реальный URL - используем его, иначе создаем пустой файл для симуляции
+            const downloadUrl = s.url ? s.url : URL.createObjectURL(new Blob(["Демонстрационный аудиофайл отсутствует в симуляции"], {type: "text/plain"}));
+            
+            btnWav.href = downloadUrl;
+            btnWav.download = baseName + '.wav';
+            
+            btnMp3.href = downloadUrl;
+            btnMp3.download = baseName + '.mp3';
 
             let cColor = s.category === 'nature' ? 'text-green-700 border-green-200 bg-green-50' : s.category === 'industrial' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-orange-700 border-orange-200 bg-orange-50';
             
@@ -1026,6 +1158,8 @@
                 <span onclick="addTagFilter('${s.typeTag}')" class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${s.typeTag}</span>
                 <span onclick="addTagFilter('${s.semanticTag}')" class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${s.semanticTag}</span>
             `;
+            
+            renderComments(s);
             
             const m = document.getElementById('details-modal'); 
             const c = document.getElementById('details-modal-content');
@@ -1043,6 +1177,38 @@
             m.classList.add('opacity-0', 'pointer-events-none'); 
             c.classList.add('scale-95');
             setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300); 
+        }
+
+        function renderComments(sound) {
+            const container = document.getElementById('comments-list');
+            if(!sound.comments || sound.comments.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400 dark:text-slate-500 italic px-2">${translations[currentLang].no_comments}</p>`;
+                return;
+            }
+            container.innerHTML = sound.comments.map(c => `
+                <div class="bg-slate-100/60 dark:bg-slate-900/60 p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+                    <div class="flex justify-between items-baseline mb-1.5">
+                        <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200">${c.author}</span>
+                        <span class="text-[10px] text-slate-400 font-medium">${c.date}</span>
+                    </div>
+                    <p class="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed">${c.text}</p>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addComment() {
+            const input = document.getElementById('new-comment-input');
+            const text = input.value.trim();
+            if (!text || !currentPlayingId) return; 
+            
+            const s = soundsData.find(x => x.id === currentPlayingId);
+            if(s) {
+                const dateStr = new Date().toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-US');
+                s.comments.push({ author: currentLang === 'ru' ? 'Вы (Гость)' : 'You (Guest)', text: text, date: dateStr });
+                input.value = '';
+                renderComments(s);
+            }
         }
     </script>
 </body>
