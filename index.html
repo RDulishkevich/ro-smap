@@ -18,7 +18,8 @@
         }
     </script>
     
-    <!-- API Яндекс Карт -->
+    <!-- FontAwesome & API Яндекс Карт -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_api_ключ_яндекс&lang=ru_RU" type="text/javascript"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -82,37 +83,22 @@
         /* Анимация плеера */
         #player-card { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease; will-change: transform; }
         .drag-handle { width: 36px; height: 4px; background-color: #e2e8f0; border-radius: 2px; }
-        .tag-pill { padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; border-width: 1px; display: inline-flex; align-items: center; gap: 4px; }
+        .tag-pill { padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; border-width: 1px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+        .tag-pill:hover { transform: scale(1.05); }
+        .tag-pill:active { transform: scale(0.95); }
         .modal-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 14px; background: #fff; outline: none; transition: border-color 0.2s; }
         .modal-label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
         
-        /* Базовые тайлы карты: плавный переход для любых смен темы */
-        #map [class*="-ground-pane"],
-        #map [class*="-copyrights-pane"] {
-            transition: filter 0.5s ease;
-        }
+        /* Базовые тайлы карты */
+        #map [class*="-ground-pane"], #map [class*="-copyrights-pane"] { transition: filter 0.5s ease; }
+        .dark #map:not(.map-monochrome) [class*="-ground-pane"], .dark #map:not(.map-monochrome) [class*="-copyrights-pane"] { filter: invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.1); }
+        #map.map-monochrome [class*="-ground-pane"], #map.map-monochrome [class*="-copyrights-pane"] { filter: grayscale(100%) contrast(1.1) brightness(1.05); }
+        .dark #map.map-monochrome [class*="-ground-pane"], .dark #map.map-monochrome [class*="-copyrights-pane"] { filter: grayscale(100%) invert(90%) brightness(0.8) contrast(1.2); }
 
-        /* Тёмная тема - Стандартная карта */
-        .dark #map:not(.map-monochrome) [class*="-ground-pane"],
-        .dark #map:not(.map-monochrome) [class*="-copyrights-pane"] {
-            filter: invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.1);
-        }
-
-        /* Светлая тема - Монохромная карта */
-        #map.map-monochrome [class*="-ground-pane"],
-        #map.map-monochrome [class*="-copyrights-pane"] {
-            filter: grayscale(100%) contrast(1.1) brightness(1.05);
-        }
-
-        /* Тёмная тема - Монохромная карта */
-        .dark #map.map-monochrome [class*="-ground-pane"],
-        .dark #map.map-monochrome [class*="-copyrights-pane"] {
-            filter: grayscale(100%) invert(90%) brightness(0.8) contrast(1.2);
-        }
-
-        .meta-group { display: flex; flex-direction: column; gap: 2px; }
-        .meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
-        .meta-value { font-size: 0.8rem; font-weight: 500; color: #334155; }
+        .meta-group { display: flex; flex-direction: column; gap: 4px; }
+        .meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; display: flex; align-items: center; }
+        .meta-label i { margin-right: 6px; font-size: 0.75rem; opacity: 0.8; }
+        .meta-value { font-size: 0.85rem; font-weight: 500; color: #334155; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
         .dark .meta-value { color: #cbd5e1; }
     </style>
 </head>
@@ -120,7 +106,7 @@
 
     <!-- Toast уведомления -->
     <div id="toast-message" class="fixed top-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-5 py-3 rounded-full shadow-2xl z-[300] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 border border-slate-700">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <i class="fa-solid fa-circle-check text-green-400 text-lg"></i>
         <span id="toast-text" class="text-[13px] font-semibold tracking-wide">Уведомление</span>
     </div>
 
@@ -132,7 +118,7 @@
         
         <!-- Кнопка бургер -->
         <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="absolute top-4 left-4 md:top-6 md:left-6 z-20 w-12 h-12 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <i class="fa-solid fa-bars text-xl pointer-events-none"></i>
         </button>
 
         <!-- Левая панель (Сайдбар) -->
@@ -141,24 +127,52 @@
                 <div class="flex justify-between items-start mb-1">
                     <h1 class="text-2xl font-bold tracking-tight text-slate-800 dark:text-white" data-lang="title">Ростовская область</h1>
                     <button onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors pointer-events-auto shrink-0 ml-2">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <i class="fa-solid fa-xmark text-lg pointer-events-none"></i>
                     </button>
                 </div>
-                <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-5" data-lang="subtitle">Audio Map</p>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-5 flex items-center gap-2" data-lang="subtitle"><i class="fa-solid fa-map-location-dot"></i> Audio Map</p>
                 <div class="relative">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     <input type="text" id="search-input" data-lang-placeholder="search_placeholder" placeholder="Поиск звуков..." class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white">
                 </div>
             </div>
 
-            <!-- Контейнер для активных тегов фильтрации -->
-            <div id="active-tags-container" class="px-6 py-2 flex flex-wrap gap-2 empty:hidden bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/50"></div>
+            <!-- Вкладки фильтров -->
+            <div class="flex border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0">
+                <button onclick="switchFilterTab('ucs')" id="tab-ucs" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-blue-600 border-b-2 border-blue-600 transition-colors" data-lang="filter_tab_ucs"><i class="fa-solid fa-layer-group mr-1"></i>UCS</button>
+                <button onclick="switchFilterTab('tags')" id="tab-tags" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-800 dark:hover:text-slate-200 transition-colors" data-lang="filter_tab_tags"><i class="fa-solid fa-hashtag mr-1"></i>Теги</button>
+                <button onclick="switchFilterTab('meta')" id="tab-meta" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-800 dark:hover:text-slate-200 transition-colors" data-lang="filter_tab_meta"><i class="fa-solid fa-sliders mr-1"></i>Параметры</button>
+            </div>
 
-            <div class="px-6 py-3 border-b border-slate-100 dark:border-slate-700/50 overflow-x-auto hide-scrollbar flex gap-2 flex-shrink-0">
-                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active-filter px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-800 dark:bg-blue-600 text-white transition-colors shadow-md" data-lang="filter_all">All</button>
-                <button onclick="setFilter('nature')" id="filter-nature" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_nature">Nature</button>
-                <button onclick="setFilter('industrial')" id="filter-industrial" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_industrial">Industrial</button>
-                <button onclick="setFilter('social')" id="filter-social" class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-lang="filter_social">Social</button>
+            <!-- Контейнер для активных тегов фильтрации -->
+            <div id="active-tags-container" class="px-6 py-2.5 flex flex-wrap gap-2 empty:hidden bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0"></div>
+
+            <!-- Панель UCS фильтров -->
+            <div id="panel-ucs" class="px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-col gap-3 flex-shrink-0">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="ucs_category">Категория</p>
+                    <div class="flex flex-wrap gap-1.5" id="filter-ucs-categories"></div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="ucs_sub">Субкатегория / Семантика</p>
+                    <div class="flex flex-wrap gap-1.5" id="filter-ucs-subcategories"></div>
+                </div>
+            </div>
+
+            <!-- Панель Общих тегов -->
+            <div id="panel-tags" class="hidden px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-wrap gap-1.5 flex-shrink-0">
+                <!-- Заполняется JS -->
+            </div>
+
+            <!-- Панель Метаданных -->
+            <div id="panel-meta" class="hidden px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-col gap-4 flex-shrink-0">
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_gear">Рекордер</p><div class="flex flex-wrap gap-1.5" id="filter-meta-gear"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="mic_type">Микрофон</p><div class="flex flex-wrap gap-1.5" id="filter-meta-mic"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_channels">Каналы</p><div class="flex flex-wrap gap-1.5" id="filter-meta-channels"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_recordist">Автор</p><div class="flex flex-wrap gap-1.5" id="filter-meta-recordist"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_weather">Погода</p><div class="flex flex-wrap gap-1.5" id="filter-meta-weather"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_date">Дата</p><div class="flex flex-wrap gap-1.5" id="filter-meta-date"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_license">Лицензия</p><div class="flex flex-wrap gap-1.5" id="filter-meta-license"></div></div>
             </div>
 
             <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
@@ -190,19 +204,19 @@
 
                 <div class="flex items-center gap-3 md:gap-4">
                     <button id="main-play-btn" onclick="toggleMainPlay()" class="w-10 h-10 md:w-12 md:h-12 bg-[#2d3238] dark:bg-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md flex-shrink-0">
-                        <svg id="main-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="translate-x-0.5 pointer-events-none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        <svg id="main-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="hidden pointer-events-none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                        <i id="main-play-icon" class="fa-solid fa-play text-sm md:text-base translate-x-0.5 pointer-events-none"></i>
+                        <i id="main-pause-icon" class="fa-solid fa-pause text-sm md:text-base hidden pointer-events-none"></i>
                     </button>
                     
                     <div class="flex-grow min-w-0 text-left">
-                        <div class="flex items-center mb-0.5 gap-1">
-                            <h2 id="player-title" onclick="openDetailsModal()" class="text-[13px] md:text-[15px] font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate pr-1">Title</h2>
-                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 flex-shrink-0">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <div class="flex items-center mb-0.5 gap-2">
+                            <h2 id="player-title" onclick="openDetailsModal()" class="text-[13px] md:text-[15px] font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">Title</h2>
+                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-blue-500 dark:hover:text-blue-400 flex-shrink-0 transition-colors">
+                                <i class="fa-solid fa-circle-info text-sm pointer-events-none"></i>
                             </button>
                         </div>
-                        <div id="player-tags" class="flex flex-wrap gap-1.5 mb-0.5"></div>
-                        <p id="player-gear" class="text-[9px] text-slate-400 font-semibold truncate">Recorder Name</p>
+                        <div id="player-tags" class="flex flex-wrap gap-1.5 mb-1 mt-0.5"></div>
+                        <p id="player-gear" class="text-[9px] text-slate-400 font-semibold truncate"><i class="fa-solid fa-walkie-talkie mr-1"></i>Recorder Name</p>
                     </div>
                 </div>
             </div>
@@ -210,11 +224,11 @@
 
         <!-- Кнопки управления справа -->
         <div class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 pointer-events-auto z-50 flex flex-col gap-3">
-            <button onclick="toggleAddModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 transition-transform hover:scale-105 active:scale-95" title="Add Audio">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <button onclick="toggleAddModal()" class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-xl border border-blue-500 transition-transform hover:scale-105 active:scale-95" title="Add Audio">
+                <i class="fa-solid fa-plus text-xl pointer-events-none"></i>
             </button>
             <button onclick="toggleSettingsModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 transition-all" title="Settings">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <i class="fa-solid fa-sliders text-lg pointer-events-none"></i>
             </button>
         </div>
 
@@ -224,14 +238,14 @@
     <div id="settings-modal" onclick="if(event.target === this) toggleSettingsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
         <div id="settings-modal-content" class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
             <div class="px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="settings_title">Настройки</h3>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="settings_title"><i class="fa-solid fa-gear mr-2 text-slate-400"></i>Настройки</h3>
                 <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
                 </button>
             </div>
             <div class="p-6 space-y-6">
                 <div>
-                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="gui_scale">Масштаб интерфейса</label>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="gui_scale"><i class="fa-solid fa-text-height mr-1"></i> Масштаб интерфейса</label>
                     <div class="grid grid-cols-3 gap-2" id="scale-buttons">
                         <button data-scale="small" onclick="changeGUISize('small')" class="p-2.5 text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Small</button>
                         <button data-scale="medium" onclick="changeGUISize('medium')" class="p-2.5 text-xs font-bold bg-blue-600 text-white rounded-xl transition-all shadow-md">Medium</button>
@@ -239,27 +253,27 @@
                     </div>
                 </div>
                 <div>
-                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="theme">Тема оформления</label>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="theme"><i class="fa-solid fa-circle-half-stroke mr-1"></i> Тема оформления</label>
                     <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 py-2 text-xs font-bold bg-white text-slate-800 shadow-sm rounded-lg transition-all">Light</button>
-                        <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all">Dark</button>
+                        <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 py-2 text-xs font-bold bg-white text-slate-800 shadow-sm rounded-lg transition-all"><i class="fa-solid fa-sun mr-1 text-amber-500"></i>Light</button>
+                        <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all"><i class="fa-solid fa-moon mr-1 text-indigo-400"></i>Dark</button>
                     </div>
                 </div>
                 <div>
-                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="map_style">Стиль карты (Фильтр)</label>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="map_style"><i class="fa-solid fa-map mr-1"></i> Стиль карты (Фильтр)</label>
                     <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
                         <button onclick="setMapStyle('normal')" id="map-normal-btn" class="flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all" data-lang="map_normal">Стандарт</button>
                         <button onclick="setMapStyle('monochrome')" id="map-mono-btn" class="flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all" data-lang="map_mono">Монохром</button>
                     </div>
                 </div>
                 <div>
-                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="language">Язык приложения</label>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="language"><i class="fa-solid fa-language mr-1"></i> Язык приложения</label>
                     <div class="relative">
                         <select onchange="setLanguage(this.value)" id="lang-select" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-semibold appearance-none cursor-pointer">
                             <option value="ru">🇷🇺 Русский</option>
                             <option value="en">🇬🇧 English</option>
                         </select>
-                        <svg class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
                 </div>
             </div>
@@ -274,9 +288,9 @@
         <div id="add-modal-content" class="bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden transform scale-95 transition-all border border-slate-100 dark:border-slate-800 pointer-events-auto">
             
             <div class="px-6 py-5 flex justify-between items-center bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-xl font-bold text-slate-800 dark:text-white" data-lang="add_audio_title">Add Audio</h3>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white" data-lang="add_audio_title"><i class="fa-solid fa-file-audio mr-2 text-blue-600"></i>Добавить аудио</h3>
                 <button onclick="toggleAddModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
                 </button>
             </div>
 
@@ -285,13 +299,10 @@
                 <div class="space-y-4">
                     <div id="drop-zone" class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors relative">
                         <input type="file" id="audio-file-input" accept="audio/*" class="hidden">
-                        <div id="drop-zone-content" class="pointer-events-none w-full">
-                            <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-3">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div id="drop-zone-content" class="pointer-events-none w-full flex flex-col items-center">
+                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-300 dark:text-slate-500 mb-3"></i>
+                            <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-2">
                                 <span class="text-sm font-bold" data-lang="drag_drop">Нажмите или перетащите аудиофайл</span>
-                            </div>
-                            <div class="flex items-center justify-center gap-[2px] h-8 w-full px-6 mb-3 opacity-30 dark:opacity-50">
-                                <div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-10"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-6"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-4"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-7"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-9"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div>
                             </div>
                         </div>
                     </div>
@@ -314,8 +325,8 @@
 
                 <!-- Блок 2: UCS Tags -->
                 <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
-                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Классификация</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-layer-group mr-1"></i>Классификация</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="modal-label text-slate-400">Категория:</label>
                             <select id="add-category" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
@@ -340,12 +351,12 @@
                 </div>
 
                 <!-- Блок 3: Location (Интерактивная карта), Date, Time, Weather -->
-                <div class="grid grid-cols-[100px_1fr] gap-4 items-start">
-                    <div id="add-map-container" class="w-full aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 relative cursor-crosshair">
+                <div class="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 items-start">
+                    <div id="add-map-container" class="w-full h-40 sm:h-auto sm:aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 relative cursor-crosshair shrink-0">
                         <!-- Сюда будет загружена Яндекс.Карта для выбора точки -->
                     </div>
-                    <div class="space-y-2">
-                        <div class="grid grid-cols-2 gap-2">
+                    <div class="space-y-3 w-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
                                 <label class="modal-label text-slate-400" data-lang="location">Локация</label>
                                 <input id="add-loc" type="text" value="Ростов-на-Дону" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
@@ -355,7 +366,7 @@
                                 <input id="add-coords" type="text" value="47.222, 39.718" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs font-mono" readonly>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
                                 <label class="modal-label text-slate-400" data-lang="date">Дата</label>
                                 <input id="add-date" type="date" value="2023-10-01" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
@@ -374,7 +385,7 @@
 
                 <!-- Блок 4: Technical & Legal -->
                 <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="modal-label text-slate-400" data-lang="rec_model">Рекордер</label>
                             <input id="add-recorder" type="text" value="Zoom H6" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
@@ -417,8 +428,11 @@
             </div>
 
             <div class="p-6 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
+                <p class="text-xs text-slate-500 dark:text-slate-400 text-center mb-3 flex items-center justify-center gap-1.5" data-lang="moderation_notice">
+                    <i class="fa-solid fa-shield-halved"></i> Файл будет направлен на модерацию
+                </p>
                 <button onclick="publishSound()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]" data-lang="publish">
-                    Опубликовать звук
+                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Опубликовать звук
                 </button>
             </div>
         </div>
@@ -431,8 +445,8 @@
                 <img id="details-image" src="" class="w-full h-full object-cover">
                 <!-- Градиент для кнопки закрытия -->
                 <div class="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent h-20"></div>
-                <button onclick="closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button onclick="closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors shadow-lg">
+                    <i class="fa-solid fa-xmark text-lg pointer-events-none"></i>
                 </button>
             </div>
             
@@ -446,75 +460,75 @@
                     </div>
                     
                     <!-- Кнопки скачивания WAV / MP3 -->
-                    <div id="details-download-group" class="flex flex-col sm:flex-row gap-2 hidden flex-shrink-0">
+                    <div id="details-download-group" class="flex flex-col sm:flex-row gap-2 flex-shrink-0">
                         <a id="btn-download-wav" href="#" download class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            WAV
+                            <i class="fa-solid fa-file-waveform text-sm"></i> WAV
                         </a>
                         <a id="btn-download-mp3" href="#" download class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            MP3
+                            <i class="fa-solid fa-file-audio text-sm"></i> MP3
                         </a>
                     </div>
                 </div>
                 
-                <p id="details-description" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base"></p>
+                <p id="details-description" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base border-l-4 border-blue-500 pl-4 py-1"></p>
                 
                 <!-- Сетка метаданных -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-4 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="location">Location</span>
+                        <span class="meta-label" data-lang="location"><i class="fa-solid fa-location-dot"></i> Location</span>
                         <span class="meta-value" id="det-location">Rostov</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="coords">Coordinates</span>
+                        <span class="meta-label" data-lang="coords"><i class="fa-solid fa-location-crosshairs"></i> Coordinates</span>
                         <span class="meta-value font-mono text-[11px]" id="det-coords">0,0</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="datetime">Date & Time</span>
+                        <span class="meta-label" data-lang="datetime"><i class="fa-regular fa-clock"></i> Date & Time</span>
                         <span class="meta-value" id="det-datetime">01.01.2023</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="weather">Weather</span>
+                        <span class="meta-label" data-lang="weather"><i class="fa-solid fa-cloud-sun"></i> Weather</span>
                         <span class="meta-value" id="det-weather">Clear</span>
                     </div>
                     <div class="meta-group md:col-span-2">
-                        <span class="meta-label" data-lang="keywords">Tags</span>
-                        <span class="meta-value" id="det-keywords">tag1, tag2</span>
+                        <span class="meta-label" data-lang="keywords"><i class="fa-solid fa-tags"></i> Tags</span>
+                        <div class="flex flex-wrap gap-1.5 mt-1" id="det-keywords"></div>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="rec_model">Recorder</span>
+                        <span class="meta-label" data-lang="rec_model"><i class="fa-solid fa-walkie-talkie"></i> Recorder</span>
                         <span class="meta-value" id="det-recorder">Zoom</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="mic_type">Microphone</span>
+                        <span class="meta-label" data-lang="mic_type"><i class="fa-solid fa-microphone-lines"></i> Microphone</span>
                         <span class="meta-value" id="det-mic">Binaural</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="format">Format</span>
+                        <span class="meta-label" data-lang="format"><i class="fa-solid fa-file-waveform"></i> Format</span>
                         <span class="meta-value" id="det-format">WAV 96/24</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="channels">Channels</span>
+                        <span class="meta-label" data-lang="channels"><i class="fa-solid fa-headphones"></i> Channels</span>
                         <span class="meta-value" id="det-channels">Stereo</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="recordist">Recordist</span>
+                        <span class="meta-label" data-lang="recordist"><i class="fa-solid fa-user-astronaut"></i> Recordist</span>
                         <span class="meta-value" id="det-recordist">John Doe</span>
                     </div>
                     <div class="meta-group">
-                        <span class="meta-label" data-lang="license">License</span>
+                        <span class="meta-label" data-lang="license"><i class="fa-solid fa-scale-balanced"></i> License</span>
                         <span class="meta-value" id="det-license">CC0</span>
                     </div>
                 </div>
                 
                 <!-- Секция комментариев -->
                 <div class="mt-2 border-t border-slate-100 dark:border-slate-700/50 pt-6">
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-lang="comments">Комментарии</h3>
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-lang="comments"><i class="fa-regular fa-comments mr-2 opacity-70"></i>Комментарии</h3>
                     <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
                     <div class="flex gap-2">
                         <input type="text" id="new-comment-input" data-lang-placeholder="comment_placeholder" placeholder="Оставьте комментарий..." class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm flex-1">
-                        <button onclick="addComment()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95" data-lang="send">Отправить</button>
+                        <button onclick="addComment()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95" data-lang="send">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -526,57 +540,70 @@
     <script>
         // База данных 
         const rawSoundsData = [
-            { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: '', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 Авг 2023', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.', comments: [{author: 'Анна', text: 'Очень успокаивает, спасибо!', date: '12.10.2023'}] },
-            { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: '', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6', date: '04 Июн 2023', description: 'Пульс Ростова. Шумный Старый базар утром.' },
-            { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: '', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 Сен 2023', description: 'Индустриальный звуковой ландшафт.' },
-            { id: 'r4', title: 'Парк Горького', category: 'nature', lat: 47.2210, lng: 39.7020, duration: '1:45', url: '', typeTag: 'Keynote', semanticTag: 'Leisure', gear: 'Zoom H5', date: '12 Май 2023', description: 'Спокойная атмосфера центрального парка.' },
-            { id: 'r5', title: 'Улица Пушкинская', category: 'social', lat: 47.2260, lng: 39.7180, duration: '1:30', url: '', typeTag: 'Ambiance', semanticTag: 'Urban Life', gear: 'Binaural Mic', date: '02 Окт 2023', description: 'Прогулка по пешеходной зоне.' },
-            { id: 'r6', title: 'Вокзал Ростов-Главный', category: 'industrial', lat: 47.2195, lng: 39.6915, duration: '0:55', url: '', typeTag: 'Soundmark', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '28 Ноя 2023', description: 'Эхо объявлений и гудки локомотивов.' },
-            { id: 'r7', title: 'Ростов Арена (матч)', category: 'social', lat: 47.2094, lng: 39.7384, duration: '2:10', url: '', typeTag: 'Signal', semanticTag: 'Sport', gear: 'Zoom F6', date: '10 Сен 2023', description: 'Рев трибун стадиона.' },
-            { id: 'r8', title: 'Ростовский зоопарк', category: 'nature', lat: 47.2505, lng: 39.6740, duration: '1:15', url: '', typeTag: 'Ambiance', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '18 Апр 2023', description: 'Крики экзотических птиц.' },
-            { id: 'r9', title: 'Парамоновские склады', category: 'industrial', lat: 47.2166, lng: 39.7189, duration: '0:50', url: '', typeTag: 'Keynote', semanticTag: 'Ruins', gear: 'Zoom H5', date: '05 Июл 2023', description: 'Журчание родников в руинах складов.' },
-            { id: 'r10', title: 'Музыкальный театр', category: 'social', lat: 47.2255, lng: 39.7275, duration: '1:40', url: '', typeTag: 'Signal', semanticTag: 'Culture', gear: 'Sony PCM-D100', date: '12 Дек 2023', description: 'Шум фойе перед спектаклем.' }
+            { id: 'r1', title: 'Набережная Дона', category: 'nature', lat: 47.2130, lng: 39.7150, duration: '1:08', url: '', typeTag: 'Background', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 авг. 2023 г.', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.', comments: [{author: 'Анна', text: 'Очень успокаивает, спасибо!', date: '12.10.2023'}], keywords: 'Water, River, Waves, Night', micType: 'Stereo Pair' },
+            { id: 'r2', title: 'Центральный рынок', category: 'social', lat: 47.2173, lng: 39.7083, duration: '2:12', url: '', typeTag: 'Soundmark', semanticTag: 'Trade Identity', gear: 'Zoom F6', date: '04 июн. 2023 г.', description: 'Пульс Ростова. Шумный Старый базар утром.', keywords: 'Crowd, Voices, Morning, Market', micType: 'Lavalier' },
+            { id: 'r3', title: 'Завод Ростсельмаш', category: 'industrial', lat: 47.2600, lng: 39.7600, duration: '0:45', url: '', typeTag: 'Signal', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 сен. 2023 г.', description: 'Индустриальный звуковой ландшафт.', keywords: 'Machines, Metal, Factory, Heavy', micType: 'Shotgun' },
+            { id: 'r4', title: 'Парк Горького', category: 'nature', lat: 47.2210, lng: 39.7020, duration: '1:45', url: '', typeTag: 'Keynote', semanticTag: 'Leisure', gear: 'Zoom H5', date: '12 мая 2023 г.', description: 'Спокойная атмосфера центрального парка.', keywords: 'Park, Birds, Wind, Children', micType: 'Stereo Pair' },
+            { id: 'r5', title: 'Улица Пушкинская', category: 'social', lat: 47.2260, lng: 39.7180, duration: '1:30', url: '', typeTag: 'Ambiance', semanticTag: 'Urban Life', gear: 'Binaural Mic', date: '02 окт. 2023 г.', description: 'Прогулка по пешеходной зоне.', keywords: 'Steps, Street, Leaves, Walk', micType: 'Binaural' },
+            { id: 'r6', title: 'Вокзал Ростов-Главный', category: 'industrial', lat: 47.2195, lng: 39.6915, duration: '0:55', url: '', typeTag: 'Soundmark', semanticTag: 'Transport', gear: 'Sony PCM-D100', date: '28 нояб. 2023 г.', description: 'Эхо объявлений и гудки локомотивов.', keywords: 'Trains, Echo, Announcements, Station', micType: 'Built-in XY' },
+            { id: 'r7', title: 'Ростов Арена (матч)', category: 'social', lat: 47.2094, lng: 39.7384, duration: '2:10', url: '', typeTag: 'Signal', semanticTag: 'Sport', gear: 'Zoom F6', date: '10 сен. 2023 г.', description: 'Рев трибун стадиона.', keywords: 'Crowd, Sport, Stadium, Cheers', micType: 'Omnidirectional' },
+            { id: 'r8', title: 'Ростовский зоопарк', category: 'nature', lat: 47.2505, lng: 39.6740, duration: '1:15', url: '', typeTag: 'Ambiance', semanticTag: 'Nature', gear: 'Rode NTG4+', date: '18 апр. 2023 г.', description: 'Крики экзотических птиц.', keywords: 'Animals, Birds, Zoo, Exotic', micType: 'Shotgun' },
+            { id: 'r9', title: 'Парамоновские склады', category: 'industrial', lat: 47.2166, lng: 39.7189, duration: '0:50', url: '', typeTag: 'Keynote', semanticTag: 'Ruins', gear: 'Zoom H5', date: '05 июл. 2023 г.', description: 'Журчание родников в руинах складов.', keywords: 'Water, Ruins, Echo, Underground', micType: 'Stereo Pair' },
+            { id: 'r10', title: 'Музыкальный театр', category: 'social', lat: 47.2255, lng: 39.7275, duration: '1:40', url: '', typeTag: 'Signal', semanticTag: 'Culture', gear: 'Sony PCM-D100', date: '12 дек. 2023 г.', description: 'Шум фойе перед спектаклем.', keywords: 'Voices, Hall, Culture, Indoor', micType: 'Built-in XY' }
         ];
 
-        // Добавление недостающих метаданных
-        const soundsData = rawSoundsData.map(s => ({
-            ...s,
-            time: s.time || '14:30',
-            weather: s.weather || 'Ясно, 22°C',
-            micType: s.micType || 'Stereo Pair',
-            format: s.format || 'WAV 96 kHz / 24-bit',
-            channels: s.channels || 'Stereo',
-            fileName: s.fileName || `RND_${s.category.substring(0,3).toUpperCase()}_00${Math.floor(Math.random()*90)+10}.wav`,
-            recordist: s.recordist || 'Иван Иванов',
-            license: s.license || 'CC BY 4.0',
-            keywords: s.keywords || `${s.category}, soundscape, rostov`,
-            comments: s.comments || []
-        }));
+        // Добавление недостающих метаданных и разбивка тегов
+        const soundsData = rawSoundsData.map(s => {
+            const keywordsStr = s.keywords || `${s.category}, soundscape, rostov`;
+            const tagsList = keywordsStr.split(',').map(t => t.trim()).filter(Boolean);
+            return {
+                ...s,
+                time: s.time || '14:30',
+                weather: s.weather || 'Ясно, 22°C',
+                micType: s.micType || 'Stereo Pair',
+                format: s.format || 'WAV 96 kHz / 24-bit',
+                channels: s.channels || 'Stereo',
+                fileName: s.fileName || `RND_${s.category.substring(0,3).toUpperCase()}_00${Math.floor(Math.random()*90)+10}.wav`,
+                recordist: s.recordist || 'Иван Иванов',
+                license: s.license || 'CC BY 4.0',
+                keywords: keywordsStr,
+                tagArray: tagsList,
+                comments: s.comments || []
+            };
+        });
 
         const translations = {
             ru: {
-                title: "Ростовская область", subtitle: "Аудиокарта", search_placeholder: "Поиск и фильтры...",
-                filter_all: "Все", filter_nature: "Природа", filter_industrial: "Индустрия", filter_social: "Социум",
+                title: "Ростовская область", subtitle: "Аудиокарта", search_placeholder: "Поиск звуков...",
+                filter_tab_ucs: "UCS", filter_tab_tags: "Теги", filter_tab_meta: "Параметры", 
+                ucs_category: "Категория", ucs_sub: "Субкатегория / Семантика",
+                meta_gear: "Рекордер", meta_channels: "Каналы", meta_license: "Лицензия", meta_recordist: "Автор", meta_weather: "Погода", meta_date: "Дата", mic_type: "Микрофон",
+                filter_nature: "Природа", filter_industrial: "Индустрия", filter_social: "Социум",
                 settings_title: "Настройки", gui_scale: "Масштаб интерфейса", theme: "Тема оформления", map_style: "Стиль карты (Фильтр)", map_normal: "Стандарт", map_mono: "Монохром", language: "Язык приложения", close: "Закрыть",
                 add_audio_title: "Добавить аудио", drag_drop: "Нажмите или перетащите аудиофайл", display_title: "Название", sound_desc: "Описание", file_name: "Имя файла (UCS)", keywords: "Теги (через запятую)",
                 location: "Локация", coords: "Координаты", date: "Дата", time: "Время", weather: "Погода", datetime: "Дата и Время",
-                rec_model: "Рекордер", mic_type: "Микрофон", format: "Формат", channels: "Каналы", recordist: "Автор", license: "Лицензия", publish: "Опубликовать",
+                rec_model: "Рекордер", format: "Формат", channels: "Каналы", recordist: "Автор", license: "Лицензия", publish: "Опубликовать",
                 rec_prefix: "Rec: ", coords_prefix: "Координаты: ", gear_prefix: "Оборудование: ",
                 err_no_audio: "Режим симуляции (аудиофайл отсутствует)", err_publish: "Функция загрузки будет доступна позже.",
                 success_publish: "Аудио успешно добавлено на карту!", audio_loaded: "Аудиофайл загружен", select_audio: "Пожалуйста, выберите аудиофайл",
-                comments: "Комментарии", comment_placeholder: "Оставьте комментарий...", send: "Отправить", no_comments: "Пока нет комментариев. Будьте первым!"
+                comments: "Комментарии", comment_placeholder: "Оставьте комментарий...", send: "", no_comments: "Пока нет комментариев. Будьте первым!",
+                moderation_notice: "Файл будет направлен на модерацию"
             },
             en: {
-                title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search & filters...",
-                filter_all: "All", filter_nature: "Nature", filter_industrial: "Industrial", filter_social: "Social",
+                title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search sounds...",
+                filter_tab_ucs: "UCS", filter_tab_tags: "Tags", filter_tab_meta: "Params",
+                ucs_category: "Category", ucs_sub: "Subcategory / Semantic",
+                meta_gear: "Recorder", meta_channels: "Channels", meta_license: "License", meta_recordist: "Recordist", meta_weather: "Weather", meta_date: "Date", mic_type: "Microphone",
+                filter_nature: "Nature", filter_industrial: "Industrial", filter_social: "Social",
                 settings_title: "Settings", gui_scale: "Interface Scale", theme: "Visual Theme", map_style: "Map Style (Filter)", map_normal: "Default", map_mono: "Monochrome", language: "Application Language", close: "Close",
                 add_audio_title: "Add Audio", drag_drop: "Click or drag audio file here", display_title: "Display Title", sound_desc: "Sound Description", file_name: "File Name (UCS)", keywords: "Tags / Keywords",
                 location: "Location", coords: "Coordinates", date: "Date", time: "Time", weather: "Weather", datetime: "Date & Time",
-                rec_model: "Recorder Model", mic_type: "Microphone Type", format: "Format", channels: "Channels", recordist: "Recordist", license: "License", publish: "Publish Sound",
+                rec_model: "Recorder Model", format: "Format", channels: "Channels", recordist: "Recordist", license: "License", publish: "Publish Sound",
                 rec_prefix: "Rec: ", coords_prefix: "Coordinates: ", gear_prefix: "Gear: ",
                 err_no_audio: "Simulation mode (audio file missing)", err_publish: "Upload feature will be available later.",
                 success_publish: "Sound added to map successfully!", audio_loaded: "Audio file loaded", select_audio: "Please select an audio file",
-                comments: "Comments", comment_placeholder: "Leave a comment...", send: "Send", no_comments: "No comments yet. Be the first!"
+                comments: "Comments", comment_placeholder: "Leave a comment...", send: "", no_comments: "No comments yet. Be the first!",
+                moderation_notice: "The file will be sent for moderation"
             }
         };
 
@@ -584,15 +611,36 @@
         let mockInterval = null, simulatedTime = 0, simulatedDuration = 120;
         const audioElement = document.getElementById('global-audio');
         
-        let activeCategories = new Set();
-        let activeTags = new Set();
+        let activeUcsCat = new Set();
+        let activeUcsSub = new Set();
+        let activeGenTags = new Set();
         
-        // Переменные для загрузки файлов и карты
+        // Новые фильтры параметров
+        let activeGear = new Set();
+        let activeChannels = new Set();
+        let activeLicense = new Set();
+        let activeRecordist = new Set();
+        let activeWeather = new Set();
+        let activeDate = new Set();
+        let activeMic = new Set(); // Фильтр по микрофону
+
+        let allExtractedTags = new Set();
+        let allExtractedSubcats = new Set();
+        let allExtractedGears = new Set();
+        let allExtractedChannels = new Set();
+        let allExtractedLicenses = new Set();
+        let allExtractedRecordists = new Set();
+        let allExtractedWeathers = new Set();
+        let allExtractedDates = new Set();
+        let allExtractedMics = new Set();
+
         let currentUploadedFileUrl = '';
         let addModalMap = null;
         let addModalPlacemark = null;
 
         document.addEventListener('DOMContentLoaded', () => {
+            initFiltersData();
+            renderFilterPanels();
             renderList();
             renderWaveform();
             setupAudioEvents();
@@ -602,52 +650,16 @@
                 renderList();
             });
             
-            // Логика Drag-and-Drop и выбора файла
             const dropZone = document.getElementById('drop-zone');
             const fileInput = document.getElementById('audio-file-input');
-
             dropZone.addEventListener('click', () => fileInput.click());
-
             fileInput.addEventListener('change', (e) => handleAudioFiles(e.target.files));
-            
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700');
-            });
-            dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700');
-            });
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700');
-                handleAudioFiles(e.dataTransfer.files);
-            });
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700'); });
+            dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700'); });
+            dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700'); handleAudioFiles(e.dataTransfer.files); });
 
             ymaps.ready(initMap);
         });
-        
-        function handleAudioFiles(files) {
-            if(files && files.length > 0) {
-                const file = files[0];
-                if(file.type.startsWith('audio/')) {
-                    document.getElementById('add-file-name').value = file.name;
-                    currentUploadedFileUrl = URL.createObjectURL(file);
-                    
-                    const dropZoneContent = document.getElementById('drop-zone-content');
-                    dropZoneContent.innerHTML = `
-                        <div class="flex flex-col items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-                            <span class="text-sm font-bold truncate w-full max-w-[250px]">${file.name}</span>
-                            <span class="text-xs text-slate-500">Готов к загрузке</span>
-                        </div>
-                    `;
-                    showToast(translations[currentLang].audio_loaded);
-                } else {
-                    showToast(translations[currentLang].select_audio);
-                }
-            }
-        }
 
         function showToast(message) {
             const toast = document.getElementById('toast-message');
@@ -701,8 +713,9 @@
             renderList();
             if(currentPlayingId) {
                 const s = soundsData.find(x => x.id === currentPlayingId);
-                document.getElementById('player-gear').textContent = dict.rec_prefix + s.gear;
+                document.getElementById('player-gear').innerHTML = `<i class="fa-solid fa-walkie-talkie mr-1"></i>${dict.rec_prefix + s.gear}`;
             }
+            renderFilterPanels();
         }
 
         function setTheme(theme) {
@@ -714,9 +727,13 @@
             if(theme === 'dark') {
                 dBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
                 lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                lBtn.innerHTML = '<i class="fa-solid fa-sun mr-1 text-slate-400"></i>Light';
+                dBtn.innerHTML = '<i class="fa-solid fa-moon mr-1 text-white"></i>Dark';
             } else {
                 lBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
                 dBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                lBtn.innerHTML = '<i class="fa-solid fa-sun mr-1 text-white"></i>Light';
+                dBtn.innerHTML = '<i class="fa-solid fa-moon mr-1 text-slate-400"></i>Dark';
             }
         }
 
@@ -730,180 +747,203 @@
             }
         }
 
-        function toggleAddModal() {
-            const m = document.getElementById('add-modal');
-            const c = document.getElementById('add-modal-content');
-            if (m.classList.contains('hidden')) {
-                m.classList.remove('hidden');
-                void m.offsetWidth; 
-                m.classList.remove('opacity-0', 'pointer-events-none'); 
-                c.classList.remove('scale-95');
+        function initFiltersData() {
+            allExtractedTags.clear();
+            allExtractedSubcats.clear();
+            allExtractedGears.clear();
+            allExtractedChannels.clear();
+            allExtractedLicenses.clear();
+            allExtractedRecordists.clear();
+            allExtractedWeathers.clear();
+            allExtractedDates.clear();
+            allExtractedMics.clear();
+
+            soundsData.forEach(s => {
+                s.tagArray.forEach(t => allExtractedTags.add(t));
+                if(s.typeTag) allExtractedSubcats.add(s.typeTag);
+                if(s.semanticTag) allExtractedSubcats.add(s.semanticTag);
                 
-                // Инициализация карты в модалке
-                if (!addModalMap && ymaps) {
-                    ymaps.ready(() => {
-                        addModalMap = new ymaps.Map('add-map-container', {
-                            center: [47.222, 39.718],
-                            zoom: 11,
-                            controls: ['zoomControl']
-                        });
-                        addModalPlacemark = new ymaps.Placemark([47.222, 39.718], {}, { preset: 'islands#blueDotIcon' });
-                        addModalMap.geoObjects.add(addModalPlacemark);
-                        
-                        addModalMap.events.add('click', function (e) {
-                            var coords = e.get('coords');
-                            addModalPlacemark.geometry.setCoordinates(coords);
-                            document.getElementById('add-coords').value = coords[0].toFixed(5) + ", " + coords[1].toFixed(5);
-                        });
-                    });
-                } else if (addModalMap) {
-                    addModalMap.container.fitToViewport();
-                }
-
-            } else {
-                m.classList.add('opacity-0', 'pointer-events-none'); 
-                c.classList.add('scale-95');
-                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
-            }
-        }
-
-        // --- ПУБЛИКАЦИЯ ЗВУКА ---
-        function publishSound() {
-            const title = document.getElementById('add-display-title').value || 'New Sound';
-            const desc = document.getElementById('add-desc').value;
-            const coordsStr = document.getElementById('add-coords').value;
-            
-            let lat = 47.222, lng = 39.718;
-            if(coordsStr.includes(',')) {
-                const parts = coordsStr.split(',');
-                lat = parseFloat(parts[0]) || lat;
-                lng = parseFloat(parts[1]) || lng;
-            }
-            
-            const catSelect = document.getElementById('add-category').value;
-            let cat = 'social';
-            if(catSelect.includes('NAT')) cat = 'nature';
-            if(catSelect.includes('IND')) cat = 'industrial';
-            
-            const newSound = {
-                id: 'new_' + Date.now(),
-                title: title,
-                category: cat,
-                lat: lat,
-                lng: lng,
-                duration: '0:00', // Будет обновлено при загрузке аудио
-                url: currentUploadedFileUrl, // Используем локальный URL
-                typeTag: document.getElementById('add-subcat').value || 'CUSTOM',
-                semanticTag: 'Upload',
-                gear: document.getElementById('add-recorder').value || 'Unknown Gear',
-                date: document.getElementById('add-date').value || '2023-10-01',
-                time: document.getElementById('add-time').value || '12:00',
-                weather: document.getElementById('add-weather').value || 'Clear',
-                description: desc,
-                micType: document.getElementById('add-mic').value || 'Unknown',
-                format: document.getElementById('add-format').value || 'WAV',
-                channels: document.getElementById('add-channels').value || 'Stereo',
-                recordist: document.getElementById('add-recordist').value || 'Anonymous',
-                license: document.getElementById('add-license').value || 'CC BY',
-                fileName: document.getElementById('add-file-name').value || 'new_audio.wav',
-                keywords: document.getElementById('add-tags').value || ''
-            };
-
-            soundsData.unshift(newSound); 
-            updateMapMarkers();
-            renderList();
-            
-            showToast(translations[currentLang].success_publish);
-            toggleAddModal();
-            
-            // Сбрасываем форму файла
-            currentUploadedFileUrl = '';
-            document.getElementById('audio-file-input').value = '';
-            document.getElementById('drop-zone-content').innerHTML = `
-                <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-3">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    <span class="text-sm font-bold" data-lang="drag_drop">${translations[currentLang].drag_drop}</span>
-                </div>
-                <div class="flex items-center justify-center gap-[2px] h-8 w-full px-6 mb-3 opacity-30 dark:opacity-50">
-                    <div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-10"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-6"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-8"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-4"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-2"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-7"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-9"></div><div class="flex-1 bg-slate-400 dark:bg-slate-300 rounded-full h-5"></div>
-                </div>
-            `;
-            
-            // Включаем звук
-            selectSound(newSound.id);
-            setTimeout(() => toggleMainPlay(), 500);
-        }
-
-        function toggleSettingsModal() {
-            const m = document.getElementById('settings-modal');
-            const c = document.getElementById('settings-modal-content');
-            if (m.classList.contains('hidden')) {
-                m.classList.remove('hidden');
-                void m.offsetWidth; 
-                m.classList.remove('opacity-0', 'pointer-events-none'); 
-                c.classList.remove('scale-95');
-            } else {
-                m.classList.add('opacity-0', 'pointer-events-none'); 
-                c.classList.add('scale-95');
-                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
-            }
-        }
-
-        // --- СИСТЕМА ФИЛЬТРАЦИИ И ТЕГОВ ---
-        function setFilter(type) {
-            if (type === 'all') { activeCategories.clear(); } 
-            else {
-                if (activeCategories.has(type)) { activeCategories.delete(type); } 
-                else { activeCategories.add(type); }
-            }
-            updateCategoryButtonsUI(); updateMapMarkers(); renderList(); 
-        }
-
-        function updateCategoryButtonsUI() {
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                const btnType = b.id.replace('filter-', '');
-                const isActive = (activeCategories.size === 0 && btnType === 'all') || activeCategories.has(btnType);
-                if (isActive) {
-                    b.classList.add('bg-slate-800', 'dark:bg-blue-600', 'text-white', 'shadow-md');
-                    b.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
-                } else {
-                    b.classList.remove('bg-slate-800', 'dark:bg-blue-600', 'text-white', 'shadow-md');
-                    b.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
-                }
+                if(s.gear) allExtractedGears.add(s.gear);
+                if(s.channels) allExtractedChannels.add(s.channels);
+                if(s.license) allExtractedLicenses.add(s.license);
+                if(s.recordist) allExtractedRecordists.add(s.recordist);
+                if(s.weather) allExtractedWeathers.add(s.weather);
+                if(s.date) allExtractedDates.add(s.date);
+                if(s.micType) allExtractedMics.add(s.micType);
             });
         }
 
-        function addTagFilter(tag) {
-            if (!tag) return; activeTags.add(tag); renderActiveTags(); updateMapMarkers(); renderList();
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar.classList.contains('sidebar-hidden')) toggleSidebar();
-            closeDetailsModal();
+        function switchFilterTab(tab) {
+            const btnUcs = document.getElementById('tab-ucs');
+            const btnTags = document.getElementById('tab-tags');
+            const btnMeta = document.getElementById('tab-meta');
+            const panelUcs = document.getElementById('panel-ucs');
+            const panelTags = document.getElementById('panel-tags');
+            const panelMeta = document.getElementById('panel-meta');
+
+            const activeClass = "flex-1 py-3 text-[12px] md:text-[13px] font-bold text-blue-600 border-b-2 border-blue-600 transition-colors";
+            const inactiveClass = "flex-1 py-3 text-[12px] md:text-[13px] font-bold text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-800 dark:hover:text-slate-200 transition-colors";
+
+            btnUcs.className = inactiveClass;
+            btnTags.className = inactiveClass;
+            btnMeta.className = inactiveClass;
+            panelUcs.classList.add('hidden');
+            panelTags.classList.add('hidden');
+            panelMeta.classList.add('hidden');
+
+            if (tab === 'ucs') {
+                btnUcs.className = activeClass;
+                panelUcs.classList.remove('hidden');
+            } else if (tab === 'tags') {
+                btnTags.className = activeClass;
+                panelTags.classList.remove('hidden');
+            } else {
+                btnMeta.className = activeClass;
+                panelMeta.classList.remove('hidden');
+            }
         }
 
-        function removeTagFilter(tag) { activeTags.delete(tag); renderActiveTags(); updateMapMarkers(); renderList(); }
+        function renderFilterPanels() {
+            // Отрисовка UCS
+            const catContainer = document.getElementById('filter-ucs-categories');
+            const cats = ['nature', 'industrial', 'social'];
+            const catIcons = { nature: 'fa-leaf', industrial: 'fa-industry', social: 'fa-people-group' };
+            
+            catContainer.innerHTML = cats.map(c => {
+                const count = soundsData.filter(s => s.category === c).length;
+                return `<button onclick="toggleUcsCat('${c}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center ${activeUcsCat.has(c) ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}">
+                    <i class="fa-solid ${catIcons[c]} mr-1.5 opacity-80"></i>${translations[currentLang][`filter_${c}`]} <span class="ml-1.5 text-[9px] font-normal opacity-60">(${count})</span>
+                </button>`;
+            }).join('');
+
+            const subContainer = document.getElementById('filter-ucs-subcategories');
+            subContainer.innerHTML = Array.from(allExtractedSubcats).sort().map(sub => {
+                const count = soundsData.filter(s => s.typeTag === sub || s.semanticTag === sub).length;
+                return `<button onclick="toggleUcsSub('${sub}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border flex items-center ${activeUcsSub.has(sub) ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}">
+                    ${sub} <span class="ml-1 text-[9px] font-normal opacity-60">(${count})</span>
+                </button>`;
+            }).join('');
+
+            // Отрисовка Общих тегов
+            const tagsContainer = document.getElementById('panel-tags');
+            tagsContainer.innerHTML = Array.from(allExtractedTags).sort().map(t => {
+                const count = soundsData.filter(s => s.tagArray.includes(t)).length;
+                return `<button onclick="toggleGenTag('${t}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border flex items-center ${activeGenTags.has(t) ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}">
+                    <i class="fa-solid fa-hashtag mr-0.5 opacity-60"></i>${t} <span class="ml-1 text-[9px] font-normal opacity-60">(${count})</span>
+                </button>`;
+            }).join('');
+
+            // Отрисовка Метаданных (Параметров)
+            const renderMetaSet = (set, containerId, toggleFn, icon, dataKey) => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.innerHTML = Array.from(set).sort().map(val => {
+                    const isActive = eval(`active${toggleFn.replace('toggle', '')}`).has(val);
+                    const count = soundsData.filter(s => s[dataKey] === val).length;
+                    return `<button onclick="${toggleFn}('${val}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border flex items-center ${isActive ? 'bg-teal-600 text-white border-teal-600 shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}">
+                        <i class="fa-solid ${icon} mr-1 opacity-70"></i>${val} <span class="ml-1 text-[9px] font-normal opacity-60">(${count})</span>
+                    </button>`;
+                }).join('');
+            };
+
+            renderMetaSet(allExtractedGears, 'filter-meta-gear', 'toggleGear', 'fa-walkie-talkie', 'gear');
+            renderMetaSet(allExtractedMics, 'filter-meta-mic', 'toggleMic', 'fa-microphone-lines', 'micType');
+            renderMetaSet(allExtractedChannels, 'filter-meta-channels', 'toggleChannels', 'fa-headphones', 'channels');
+            renderMetaSet(allExtractedLicenses, 'filter-meta-license', 'toggleLicense', 'fa-scale-balanced', 'license');
+            renderMetaSet(allExtractedRecordists, 'filter-meta-recordist', 'toggleRecordist', 'fa-user-astronaut', 'recordist');
+            renderMetaSet(allExtractedWeathers, 'filter-meta-weather', 'toggleWeather', 'fa-cloud-sun', 'weather');
+            renderMetaSet(allExtractedDates, 'filter-meta-date', 'toggleDate', 'fa-calendar-days', 'date');
+
+            renderActiveTags();
+        }
+
+        // Функции переключения фильтров
+        function toggleUcsCat(val) { if (activeUcsCat.has(val)) activeUcsCat.delete(val); else activeUcsCat.add(val); processFilterChange(); }
+        function toggleUcsSub(val) { if (activeUcsSub.has(val)) activeUcsSub.delete(val); else activeUcsSub.add(val); processFilterChange(); }
+        function toggleGenTag(val) { if (activeGenTags.has(val)) activeGenTags.delete(val); else activeGenTags.add(val); processFilterChange(); }
+        
+        function toggleGear(val) { if (activeGear.has(val)) activeGear.delete(val); else activeGear.add(val); processFilterChange(); }
+        function toggleMic(val) { if (activeMic.has(val)) activeMic.delete(val); else activeMic.add(val); processFilterChange(); }
+        function toggleChannels(val) { if (activeChannels.has(val)) activeChannels.delete(val); else activeChannels.add(val); processFilterChange(); }
+        function toggleLicense(val) { if (activeLicense.has(val)) activeLicense.delete(val); else activeLicense.add(val); processFilterChange(); }
+        function toggleRecordist(val) { if (activeRecordist.has(val)) activeRecordist.delete(val); else activeRecordist.add(val); processFilterChange(); }
+        function toggleWeather(val) { if (activeWeather.has(val)) activeWeather.delete(val); else activeWeather.add(val); processFilterChange(); }
+        function toggleDate(val) { if (activeDate.has(val)) activeDate.delete(val); else activeDate.add(val); processFilterChange(); }
+
+        function processFilterChange() {
+            renderFilterPanels();
+            updateMapMarkers();
+            renderList();
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('sidebar-hidden')) toggleSidebar();
+        }
+
+        function removeFilter(type, value) {
+            if (type === 'cat') activeUcsCat.delete(value);
+            if (type === 'sub') activeUcsSub.delete(value);
+            if (type === 'tag') activeGenTags.delete(value);
+            if (type === 'gear') activeGear.delete(value);
+            if (type === 'mic') activeMic.delete(value);
+            if (type === 'chan') activeChannels.delete(value);
+            if (type === 'lic') activeLicense.delete(value);
+            if (type === 'rec') activeRecordist.delete(value);
+            if (type === 'wea') activeWeather.delete(value);
+            if (type === 'date') activeDate.delete(value);
+            processFilterChange();
+        }
 
         function renderActiveTags() {
             const container = document.getElementById('active-tags-container');
-            if (activeTags.size === 0) { container.innerHTML = ''; container.classList.add('hidden'); return; }
-            container.classList.remove('hidden');
-            container.innerHTML = Array.from(activeTags).map(tag => `
-                <span onclick="removeTagFilter('${tag}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[11px] font-bold rounded-lg cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors shadow-sm">
-                    ${tag} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </span>
-            `).join('');
+            const totalActive = activeUcsCat.size + activeUcsSub.size + activeGenTags.size + 
+                                activeGear.size + activeMic.size + activeChannels.size + activeLicense.size + 
+                                activeRecordist.size + activeWeather.size + activeDate.size;
+            
+            if (totalActive === 0) { container.innerHTML = ''; return; }
+            let html = '';
+            
+            // UCS Категории (Blue)
+            activeUcsCat.forEach(c => { html += `<span onclick="removeFilter('cat', '${c}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">${translations[currentLang][`filter_${c}`]} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            // UCS Субкатегории (Indigo)
+            activeUcsSub.forEach(s => { html += `<span onclick="removeFilter('sub', '${s}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors">${s} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            // Общие теги (Amber)
+            activeGenTags.forEach(t => { html += `<span onclick="removeFilter('tag', '${t}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors">#${t} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            // Параметры / Метаданные (Teal)
+            activeGear.forEach(v => { html += `<span onclick="removeFilter('gear', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-walkie-talkie"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeMic.forEach(v => { html += `<span onclick="removeFilter('mic', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-microphone-lines"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeChannels.forEach(v => { html += `<span onclick="removeFilter('chan', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-headphones"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeLicense.forEach(v => { html += `<span onclick="removeFilter('lic', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-scale-balanced"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeRecordist.forEach(v => { html += `<span onclick="removeFilter('rec', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-user-astronaut"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeWeather.forEach(v => { html += `<span onclick="removeFilter('wea', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-cloud-sun"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeDate.forEach(v => { html += `<span onclick="removeFilter('date', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-calendar-days"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+
+            if (totalActive > 1) {
+                html += `<button onclick="activeUcsCat.clear(); activeUcsSub.clear(); activeGenTags.clear(); activeGear.clear(); activeMic.clear(); activeChannels.clear(); activeLicense.clear(); activeRecordist.clear(); activeWeather.clear(); activeDate.clear(); processFilterChange();" class="ml-auto text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 uppercase tracking-wider transition-colors"><i class="fa-solid fa-trash-can mr-1"></i>Сбросить</button>`;
+            }
+
+            container.innerHTML = html;
         }
 
         function getFilteredSounds() {
-            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const query = document.getElementById('search-input').value.toLowerCase();
             return soundsData.filter(s => {
-                const matchCategory = activeCategories.size === 0 || activeCategories.has(s.category);
-                const searchTarget = `${s.title} ${s.description} ${s.keywords || ''} ${s.typeTag || ''} ${s.semanticTag || ''} ${translations[currentLang][`filter_${s.category}`] || ''}`.toLowerCase();
-                const matchSearch = !searchQuery || searchTarget.includes(searchQuery);
-                const matchTags = activeTags.size === 0 || Array.from(activeTags).every(tag => {
-                    const t = tag.toLowerCase();
-                    return s.category.toLowerCase() === t || s.typeTag.toLowerCase() === t || s.semanticTag.toLowerCase() === t || (s.keywords && s.keywords.toLowerCase().includes(t));
-                });
-                return matchCategory && matchSearch && matchTags;
+                // Текстовый поиск теперь работает по всем параметрам
+                const searchTarget = `${s.title} ${s.description} ${s.keywords} ${s.category} ${translations[currentLang][`filter_${s.category}`] || ''} ${s.typeTag} ${s.semanticTag} ${s.gear} ${s.micType} ${s.recordist} ${s.weather} ${s.date} ${s.license} ${s.channels}`.toLowerCase();
+                const searchMatch = !query || searchTarget.includes(query);
+                
+                const catMatch = activeUcsCat.size === 0 || activeUcsCat.has(s.category);
+                const subMatch = activeUcsSub.size === 0 || activeUcsSub.has(s.typeTag) || activeUcsSub.has(s.semanticTag);
+                const tagMatch = activeGenTags.size === 0 || Array.from(activeGenTags).some(t => s.tagArray.includes(t));
+                
+                const gearMatch = activeGear.size === 0 || activeGear.has(s.gear);
+                const micMatch = activeMic.size === 0 || activeMic.has(s.micType);
+                const chanMatch = activeChannels.size === 0 || activeChannels.has(s.channels);
+                const licMatch = activeLicense.size === 0 || activeLicense.has(s.license);
+                const recMatch = activeRecordist.size === 0 || activeRecordist.has(s.recordist);
+                const weaMatch = activeWeather.size === 0 || activeWeather.has(s.weather);
+                const dateMatch = activeDate.size === 0 || activeDate.has(s.date);
+
+                // Поиск должен совпадать как с текстом, так и со всеми выбранными фильтрами
+                return searchMatch && catMatch && subMatch && tagMatch && gearMatch && micMatch && chanMatch && licMatch && recMatch && weaMatch && dateMatch;
             });
         }
 
@@ -926,7 +966,9 @@
             listContainer.innerHTML = '';
             const filtered = getFilteredSounds();
             
-            if(filtered.length === 0) { listContainer.innerHTML = `<p class="text-center text-sm text-slate-400 mt-4">Ничего не найдено</p>`; return; }
+            if(filtered.length === 0) { listContainer.innerHTML = `<p class="text-center text-sm text-slate-400 mt-4"><i class="fa-solid fa-box-open block text-2xl mb-2 opacity-50"></i>Ничего не найдено</p>`; return; }
+
+            const catIcons = { nature: 'fa-leaf', industrial: 'fa-industry', social: 'fa-people-group' };
 
             filtered.forEach(sound => {
                 const item = document.createElement('div');
@@ -935,21 +977,123 @@
                 item.onclick = () => selectSound(sound.id);
                 item.innerHTML = `
                     <button class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected && isPlaying ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
-                        ${isSelected && isPlaying ? '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" class="pointer-events-none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" class="pointer-events-none"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
+                        ${isSelected && isPlaying ? '<i class="fa-solid fa-pause text-xs"></i>' : '<i class="fa-solid fa-play text-xs translate-x-[1px]"></i>'}
                     </button>
                     <div class="flex-grow min-w-0 text-left">
                         <h3 class="font-semibold text-[13px] truncate text-slate-800 dark:text-white">${sound.title}</h3>
                         <div class="flex flex-wrap gap-1 mt-1">
-                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider">${translations[currentLang][`filter_${sound.category}`]}</span>
-                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">${sound.typeTag}</span>
-                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider">${sound.semanticTag}</span>
+                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider"><i class="fa-solid ${catIcons[sound.category]} mr-1"></i>${translations[currentLang][`filter_${sound.category}`]}</span>
+                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">${sound.typeTag}</span>
+                            ${sound.tagArray.slice(0, 2).map(t => `<span class="text-[8px] px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">#${t}</span>`).join('')}
                         </div>
                     </div>`;
                 listContainer.appendChild(item);
             });
         }
 
-        // --- УПРАВЛЕНИЕ ЗВУКОМ (С симуляцией для пустых URL) ---
+        function handleAudioFiles(files) {
+            if(files && files.length > 0) {
+                const file = files[0];
+                if(file.type.startsWith('audio/')) {
+                    document.getElementById('add-file-name').value = file.name;
+                    currentUploadedFileUrl = URL.createObjectURL(file);
+                    
+                    const dropZoneContent = document.getElementById('drop-zone-content');
+                    dropZoneContent.innerHTML = `
+                        <div class="flex flex-col items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
+                            <i class="fa-solid fa-file-audio text-4xl mb-2"></i>
+                            <span class="text-sm font-bold truncate w-full max-w-[250px]">${file.name}</span>
+                            <span class="text-xs text-slate-500"><i class="fa-solid fa-check mr-1"></i>Готов к загрузке</span>
+                        </div>
+                    `;
+                    showToast(translations[currentLang].audio_loaded);
+                } else {
+                    showToast(translations[currentLang].select_audio);
+                }
+            }
+        }
+
+        function publishSound() {
+            const title = document.getElementById('add-display-title').value || 'New Sound';
+            const desc = document.getElementById('add-desc').value;
+            const coordsStr = document.getElementById('add-coords').value;
+            
+            let lat = 47.222, lng = 39.718;
+            if(coordsStr.includes(',')) {
+                const parts = coordsStr.split(',');
+                lat = parseFloat(parts[0]) || lat;
+                lng = parseFloat(parts[1]) || lng;
+            }
+            
+            const catSelect = document.getElementById('add-category').value;
+            let cat = 'social';
+            if(catSelect.includes('NAT')) cat = 'nature';
+            if(catSelect.includes('IND')) cat = 'industrial';
+            
+            const keywordsStr = document.getElementById('add-tags').value || '';
+            const tagsList = keywordsStr.split(',').map(t => t.trim()).filter(Boolean);
+
+            // Обработка даты под общий формат
+            const rawDate = document.getElementById('add-date').value;
+            let formattedDate = rawDate;
+            if (rawDate) {
+                try {
+                    const d = new Date(rawDate);
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    // Формат: "12 окт. 2023 г." (зависит от локали браузера, но приведем к общему стилю)
+                    formattedDate = d.toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-US', options);
+                } catch(e) {}
+            }
+
+            const newSound = {
+                id: 'new_' + Date.now(),
+                title: title,
+                category: cat,
+                lat: lat,
+                lng: lng,
+                duration: '0:00',
+                url: currentUploadedFileUrl,
+                typeTag: document.getElementById('add-subcat').value || 'CUSTOM',
+                semanticTag: 'Upload',
+                gear: document.getElementById('add-recorder').value || 'Unknown Gear',
+                date: formattedDate || '2023-10-01',
+                time: document.getElementById('add-time').value || '12:00',
+                weather: document.getElementById('add-weather').value || 'Clear',
+                description: desc,
+                micType: document.getElementById('add-mic').value || 'Unknown',
+                format: document.getElementById('add-format').value || 'WAV',
+                channels: document.getElementById('add-channels').value || 'Stereo',
+                recordist: document.getElementById('add-recordist').value || 'Anonymous',
+                license: document.getElementById('add-license').value || 'CC BY',
+                fileName: document.getElementById('add-file-name').value || 'new_audio.wav',
+                keywords: keywordsStr,
+                tagArray: tagsList,
+                comments: []
+            };
+
+            soundsData.unshift(newSound); 
+            
+            initFiltersData();
+            renderFilterPanels();
+            updateMapMarkers();
+            renderList();
+            
+            showToast(translations[currentLang].success_publish);
+            toggleAddModal();
+            
+            currentUploadedFileUrl = '';
+            document.getElementById('audio-file-input').value = '';
+            document.getElementById('drop-zone-content').innerHTML = `
+                <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-300 dark:text-slate-500 mb-3"></i>
+                <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-2">
+                    <span class="text-sm font-bold" data-lang="drag_drop">${translations[currentLang].drag_drop}</span>
+                </div>
+            `;
+            
+            selectSound(newSound.id);
+            setTimeout(() => toggleMainPlay(), 500);
+        }
+
         function selectSound(id) {
             const s = soundsData.find(x => x.id === id);
             if (window.innerWidth < 768) { 
@@ -975,14 +1119,20 @@
             card.classList.remove('translate-y-[150%]', 'opacity-0');
             
             document.getElementById('player-title').textContent = s.title;
-            document.getElementById('player-gear').textContent = translations[currentLang].rec_prefix + s.gear;
+            document.getElementById('player-gear').innerHTML = `<i class="fa-solid fa-walkie-talkie mr-1 text-slate-400"></i>` + translations[currentLang].rec_prefix + s.gear;
             
             let cColor = s.category === 'nature' ? 'text-green-700 border-green-200 bg-green-50' : s.category === 'industrial' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-orange-700 border-orange-200 bg-orange-50';
-            document.getElementById('player-tags').innerHTML = `
-                <span onclick="event.stopPropagation(); addTagFilter('${s.category}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${translations[currentLang][`filter_${s.category}`]}</span>
-                <span onclick="event.stopPropagation(); addTagFilter('${s.typeTag}')" class="tag-pill border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 cursor-pointer hover:scale-105 transition-transform">${s.typeTag}</span>
-                <span onclick="event.stopPropagation(); addTagFilter('${s.semanticTag}')" class="tag-pill border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30 cursor-pointer hover:scale-105 transition-transform">${s.semanticTag}</span>
+            const catIcons = { nature: 'fa-leaf', industrial: 'fa-industry', social: 'fa-people-group' };
+            
+            let tagsHtml = `
+                <span onclick="event.stopPropagation(); toggleUcsCat('${s.category}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Добавить в фильтр"><i class="fa-solid ${catIcons[s.category]} mr-1"></i>${translations[currentLang][`filter_${s.category}`]}</span>
+                <span onclick="event.stopPropagation(); toggleUcsSub('${s.typeTag}')" class="tag-pill border-indigo-200 text-indigo-700 bg-indigo-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Добавить в фильтр">${s.typeTag}</span>
             `;
+            s.tagArray.slice(0, 2).forEach(t => {
+                tagsHtml += `<span onclick="event.stopPropagation(); toggleGenTag('${t}')" class="tag-pill border-amber-200 text-amber-700 bg-amber-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Добавить в фильтр"><i class="fa-solid fa-hashtag opacity-60 mr-0.5"></i>${t}</span>`;
+            });
+
+            document.getElementById('player-tags').innerHTML = tagsHtml;
             
             if (s.url) {
                 if (audioElement.src !== s.url) { 
@@ -1031,7 +1181,6 @@
             updateUIState();
         }
 
-        // --- ЛОГИКА СИМУЛЯЦИИ ПЛЕЕРА ---
         function prepareMockPlayback(s) {
             isPlaying = false;
             simulatedTime = 0;
@@ -1119,30 +1268,33 @@
             const s = soundsData.find(x => x.id === currentPlayingId); if (!s) return;
             document.getElementById('details-image').src = `https://picsum.photos/seed/${s.id}/800/500`;
             document.getElementById('details-title').textContent = s.title; 
-            document.getElementById('details-filename').textContent = s.fileName;
+            document.getElementById('details-filename').innerHTML = `<i class="fa-solid fa-file-waveform mr-1"></i>${s.fileName}`;
             document.getElementById('details-description').textContent = s.description;
             
             const dict = translations[currentLang];
+            
+            // Внедряем кликабельные метаданные (добавляем в фильтр по клику)
             document.getElementById('det-location').textContent = "Ростовская область";
             document.getElementById('det-coords').textContent = `${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
-            document.getElementById('det-datetime').textContent = `${s.date} / ${s.time}`;
-            document.getElementById('det-weather').textContent = s.weather;
-            document.getElementById('det-keywords').textContent = s.keywords;
-            document.getElementById('det-recorder').textContent = s.gear;
-            document.getElementById('det-mic').textContent = s.micType;
-            document.getElementById('det-format').textContent = s.format;
-            document.getElementById('det-channels').textContent = s.channels;
-            document.getElementById('det-recordist').textContent = s.recordist;
-            document.getElementById('det-license').textContent = s.license;
+            
+            const makeFilterLink = (val, type) => `<span onclick="toggle${type}('${val}'); closeDetailsModal();" class="cursor-pointer hover:text-blue-500 border-b border-dashed border-slate-300 dark:border-slate-600 transition-colors" title="Добавить в фильтр">${val}</span>`;
+            
+            document.getElementById('det-datetime').innerHTML = `${makeFilterLink(s.date, 'Date')} / ${s.time}`;
+            document.getElementById('det-weather').innerHTML = makeFilterLink(s.weather, 'Weather');
+            document.getElementById('det-recorder').innerHTML = makeFilterLink(s.gear, 'Gear');
+            document.getElementById('det-mic').innerHTML = makeFilterLink(s.micType, 'Mic'); 
+            document.getElementById('det-format').textContent = s.format; 
+            document.getElementById('det-channels').innerHTML = makeFilterLink(s.channels, 'Channels');
+            document.getElementById('det-recordist').innerHTML = makeFilterLink(s.recordist, 'Recordist');
+            document.getElementById('det-license').innerHTML = makeFilterLink(s.license, 'License');
             
             const downloadGroup = document.getElementById('details-download-group');
-            downloadGroup.classList.remove('hidden'); // Теперь кнопки всегда видны
+            downloadGroup.classList.remove('hidden'); 
             
             const baseName = s.fileName.replace(/\.[^/.]+$/, "");
             const btnWav = document.getElementById('btn-download-wav');
             const btnMp3 = document.getElementById('btn-download-mp3');
             
-            // Если есть реальный URL - используем его, иначе создаем пустой файл для симуляции
             const downloadUrl = s.url ? s.url : URL.createObjectURL(new Blob(["Демонстрационный аудиофайл отсутствует в симуляции"], {type: "text/plain"}));
             
             btnWav.href = downloadUrl;
@@ -1152,12 +1304,18 @@
             btnMp3.download = baseName + '.mp3';
 
             let cColor = s.category === 'nature' ? 'text-green-700 border-green-200 bg-green-50' : s.category === 'industrial' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-orange-700 border-orange-200 bg-orange-50';
-            
+            const catIcons = { nature: 'fa-leaf', industrial: 'fa-industry', social: 'fa-people-group' };
+
             document.getElementById('details-tags-container').innerHTML = `
-                <span onclick="addTagFilter('${s.category}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${dict[`filter_${s.category}`]}</span>
-                <span onclick="addTagFilter('${s.typeTag}')" class="tag-pill border-blue-100 text-blue-800 bg-blue-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${s.typeTag}</span>
-                <span onclick="addTagFilter('${s.semanticTag}')" class="tag-pill border-amber-100 text-amber-800 bg-amber-50/30 dark:bg-transparent dark:border-slate-600 dark:text-slate-300 cursor-pointer hover:scale-105 transition-transform">${s.semanticTag}</span>
+                <span onclick="toggleUcsCat('${s.category}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр"><i class="fa-solid ${catIcons[s.category]} mr-1"></i>${dict[`filter_${s.category}`]}</span>
+                <span onclick="toggleUcsSub('${s.typeTag}')" class="tag-pill border-indigo-200 text-indigo-700 bg-indigo-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр">${s.typeTag}</span>
+                <span onclick="toggleUcsSub('${s.semanticTag}')" class="tag-pill border-indigo-200 text-indigo-700 bg-indigo-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр">${s.semanticTag}</span>
             `;
+
+            const keywordsContainer = document.getElementById('det-keywords');
+            keywordsContainer.innerHTML = s.tagArray.map(t => `
+                <span onclick="toggleGenTag('${t}'); closeDetailsModal();" class="tag-pill border-amber-200 text-amber-700 bg-amber-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр"><i class="fa-solid fa-hashtag opacity-60 mr-0.5"></i>${t}</span>
+            `).join('');
             
             renderComments(s);
             
@@ -1188,7 +1346,7 @@
             container.innerHTML = sound.comments.map(c => `
                 <div class="bg-slate-100/60 dark:bg-slate-900/60 p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
                     <div class="flex justify-between items-baseline mb-1.5">
-                        <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200">${c.author}</span>
+                        <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200"><i class="fa-solid fa-user-astronaut mr-1.5 text-slate-400"></i>${c.author}</span>
                         <span class="text-[10px] text-slate-400 font-medium">${c.date}</span>
                     </div>
                     <p class="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed">${c.text}</p>
@@ -1208,6 +1366,53 @@
                 s.comments.push({ author: currentLang === 'ru' ? 'Вы (Гость)' : 'You (Guest)', text: text, date: dateStr });
                 input.value = '';
                 renderComments(s);
+            }
+        }
+        
+        function toggleAddModal() {
+            const m = document.getElementById('add-modal');
+            const c = document.getElementById('add-modal-content');
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden');
+                void m.offsetWidth; 
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
+                
+                if (!addModalMap && ymaps) {
+                    ymaps.ready(() => {
+                        addModalMap = new ymaps.Map('add-map-container', {
+                            center: [47.222, 39.718], zoom: 11, controls: ['zoomControl']
+                        });
+                        addModalPlacemark = new ymaps.Placemark([47.222, 39.718], {}, { preset: 'islands#blueDotIcon' });
+                        addModalMap.geoObjects.add(addModalPlacemark);
+                        addModalMap.events.add('click', function (e) {
+                            var coords = e.get('coords');
+                            addModalPlacemark.geometry.setCoordinates(coords);
+                            document.getElementById('add-coords').value = coords[0].toFixed(5) + ", " + coords[1].toFixed(5);
+                        });
+                    });
+                } else if (addModalMap) {
+                    addModalMap.container.fitToViewport();
+                }
+            } else {
+                m.classList.add('opacity-0', 'pointer-events-none'); 
+                c.classList.add('scale-95');
+                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
+            }
+        }
+        
+        function toggleSettingsModal() {
+            const m = document.getElementById('settings-modal');
+            const c = document.getElementById('settings-modal-content');
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden');
+                void m.offsetWidth; 
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
+            } else {
+                m.classList.add('opacity-0', 'pointer-events-none'); 
+                c.classList.add('scale-95');
+                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
             }
         }
     </script>
