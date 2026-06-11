@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="ru" class="light" style="font-size: 16px;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Аудиокарта Ростовской области</title>
+    
+    <!-- Tailwind CSS & Config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome & API Яндекс Карт -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_api_ключ_яндекс&lang=ru_RU" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            background-color: #f0f4f8;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Тёмная тема */
+        body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
+        body.dark-mode #sidebar, 
+        body.dark-mode #player-card, 
+        body.dark-mode #add-modal-content,
+        body.dark-mode #details-modal-content,
+        body.dark-mode #settings-modal-content { background-color: #1e293b; border-color: #334155; }
+        body.dark-mode .text-slate-800 { color: #f1f5f9; }
+        body.dark-mode .text-slate-600 { color: #cbd5e1; }
+        body.dark-mode .bg-white { background-color: #1e293b; }
+        body.dark-mode .bg-slate-100 { background-color: #334155; }
+        body.dark-mode .bg-slate-50 { background-color: #0f172a; }
+        body.dark-mode .modal-input { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+        [class*="gototech"] { display: none !important; }
+
+        /* Маркеры: Геофония, Биофония, Антропофония */
+        .custom-marker { border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.2s; cursor: pointer; }
+        .dark .custom-marker { border-color: #1e293b; }
+        .custom-marker.selected { transform: scale(1.3); z-index: 1000 !important; border-color: #0f172a; }
+        .dark .custom-marker.selected { border-color: #f8fafc; }
+        .marker-geo { background-color: #38bdf8; } 
+        .marker-bio { background-color: #4ade80; } 
+        .marker-anthro { background-color: #f97316; } 
+
+        /* Логика боковой панели */
+        #sidebar {
+            position: absolute;
+            top: 1rem; left: 1rem; bottom: 1rem;
+            width: calc(100% - 2rem);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+        @media (min-width: 768px) {
+            #sidebar { top: 1.5rem; left: 1.5rem; bottom: 1.5rem; width: 24rem; }
+        }
+        .sidebar-hidden {
+            transform: translateX(calc(-100% - 2rem)) !important;
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+
+        /* Анимация плеера */
+        #player-card { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease; will-change: transform; }
+        .drag-handle { width: 36px; height: 4px; background-color: #e2e8f0; border-radius: 2px; }
+        .tag-pill { padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; border-width: 1px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+        .tag-pill:hover { transform: scale(1.05); }
+        .tag-pill:active { transform: scale(0.95); }
+        .modal-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 14px; background: #fff; outline: none; transition: border-color 0.2s; }
+        .modal-label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+        
+        /* Базовые тайлы карты */
+        #map [class*="-ground-pane"], #map [class*="-copyrights-pane"] { transition: filter 0.5s ease; }
+        .dark #map:not(.map-monochrome) [class*="-ground-pane"], .dark #map:not(.map-monochrome) [class*="-copyrights-pane"] { filter: invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.1); }
+        #map.map-monochrome [class*="-ground-pane"], #map.map-monochrome [class*="-copyrights-pane"] { filter: grayscale(100%) contrast(1.1) brightness(1.05); }
+        .dark #map.map-monochrome [class*="-ground-pane"], .dark #map.map-monochrome [class*="-copyrights-pane"] { filter: grayscale(100%) invert(90%) brightness(0.8) contrast(1.2); }
+
+        .meta-group { display: flex; flex-direction: column; gap: 4px; }
+        .meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; display: flex; align-items: center; }
+        .meta-label i { margin-right: 6px; font-size: 0.75rem; opacity: 0.8; }
+        .meta-value { font-size: 0.85rem; font-weight: 500; color: #334155; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
+        .dark .meta-value { color: #cbd5e1; }
+        
+        /* Thumbnail grid for images */
+        .image-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+        .image-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0; }
+        .dark .image-thumb { border-color: #334155; }
+
+        /* Иконка человека (Soundwalker) */
+        .walker-marker {
+            width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;
+            transition: transform 0.1s linear; 
+        }
+        .walker-marker.walker-geo { background-color: #38bdf8; }
+        .walker-marker.walker-bio { background-color: #4ade80; }
+        .walker-marker.walker-anthro { background-color: #f97316; }
+        .dark .walker-marker { border-color: #0f172a; }
+
+        /* Компас для Ambisonics */
+        #ambisonic-compass {
+            width: 80px; height: 80px; border-radius: 50%; border: 2px solid #3b82f6; 
+            position: absolute; right: 1rem; top: -100px; background: rgba(255,255,255,0.9);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;
+            cursor: grab; transition: opacity 0.3s, transform 0.3s; opacity: 0; pointer-events: none; z-index: 100;
+        }
+        .dark #ambisonic-compass { background: rgba(30,41,59,0.9); border-color: #60a5fa; }
+        #ambisonic-compass.active { opacity: 1; pointer-events: auto; top: -90px; }
+        #ambisonic-compass:active { cursor: grabbing; }
+        .compass-arrow {
+            width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 30px solid #ef4444;
+            position: absolute; top: 10px; transform-origin: bottom center; transition: transform 0.1s;
+        }
+        .compass-center { width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; z-index: 2; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased relative">
+
+    <!-- Toast уведомления -->
+    <div id="toast-message" class="fixed top-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-5 py-3 rounded-full shadow-2xl z-[300] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 border border-slate-700">
+        <i class="fa-solid fa-circle-check text-green-400 text-lg"></i>
+        <span id="toast-text" class="text-[13px] font-semibold tracking-wide">Уведомление</span>
+    </div>
+
+    <!-- Карта -->
+    <div id="map" class="absolute inset-0 z-0 transition-all duration-500"></div>
+
+    <!-- UI Слои -->
+    <div class="absolute inset-0 pointer-events-none z-10 w-full h-full overflow-hidden">
+        
+        <!-- Кнопка бургер -->
+        <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="absolute top-4 left-4 md:top-6 md:left-6 z-20 w-12 h-12 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto">
+            <i class="fa-solid fa-bars text-xl pointer-events-none"></i>
+        </button>
+
+        <!-- Левая панель (Сайдбар) -->
+        <div id="sidebar" class="sidebar-hidden pointer-events-auto bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col flex-shrink-0 border border-slate-100 dark:border-slate-700/50 z-[60]">
+            <div class="p-6 pb-2 border-b border-slate-100 dark:border-slate-700/50">
+                <div class="flex justify-between items-start mb-1">
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-800 dark:text-white" data-lang="title">Ростовская область</h1>
+                    <button onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors pointer-events-auto shrink-0 ml-2">
+                        <i class="fa-solid fa-xmark text-lg pointer-events-none"></i>
+                    </button>
+                </div>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-5 flex items-center gap-2" data-lang="subtitle"><i class="fa-solid fa-map-location-dot"></i> Audio Map</p>
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    <input type="text" id="search-input" data-lang-placeholder="search_placeholder" placeholder="Поиск звуков..." class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white">
+                </div>
+            </div>
+
+            <!-- Вкладки фильтров -->
+            <div class="flex border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0">
+                <button onclick="switchFilterTab('ucs')" id="tab-ucs" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-blue-600 border-b-2 border-blue-600 transition-colors" data-lang="filter_tab_ucs"><i class="fa-solid fa-layer-group mr-1"></i>Категории</button>
+                <button onclick="switchFilterTab('tags')" id="tab-tags" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-800 dark:hover:text-slate-200 transition-colors" data-lang="filter_tab_tags"><i class="fa-solid fa-hashtag mr-1"></i>Теги</button>
+                <button onclick="switchFilterTab('meta')" id="tab-meta" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-800 dark:hover:text-slate-200 transition-colors" data-lang="filter_tab_meta"><i class="fa-solid fa-sliders mr-1"></i>Параметры</button>
+            </div>
+
+            <!-- Контейнер для активных тегов фильтрации -->
+            <div id="active-tags-container" class="px-6 py-2.5 flex flex-wrap gap-2 empty:hidden bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0"></div>
+
+            <!-- Панель Акустической экологии (Cat/UCS) -->
+            <div id="panel-ucs" class="px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-col gap-3 flex-shrink-0">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="ucs_category">Эко-Акустика</p>
+                    <div class="flex flex-wrap gap-1.5" id="filter-ucs-categories"></div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="ucs_sub">Субкатегория (UCS)</p>
+                    <div class="flex flex-wrap gap-1.5" id="filter-ucs-subcategories"></div>
+                </div>
+            </div>
+
+            <!-- Панель Общих тегов -->
+            <div id="panel-tags" class="hidden px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-wrap gap-1.5 flex-shrink-0">
+                <!-- Заполняется JS -->
+            </div>
+
+            <!-- Панель Метаданных -->
+            <div id="panel-meta" class="hidden px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-col gap-4 flex-shrink-0">
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_principle">Принцип записи</p><div class="flex flex-wrap gap-1.5" id="filter-meta-principle"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_gear">Рекордер</p><div class="flex flex-wrap gap-1.5" id="filter-meta-gear"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="mic_type">Микрофон</p><div class="flex flex-wrap gap-1.5" id="filter-meta-mic"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_channels">Система / Каналы</p><div class="flex flex-wrap gap-1.5" id="filter-meta-channels"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_recordist">Автор</p><div class="flex flex-wrap gap-1.5" id="filter-meta-recordist"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_weather">Погода</p><div class="flex flex-wrap gap-1.5" id="filter-meta-weather"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_date">Дата</p><div class="flex flex-wrap gap-1.5" id="filter-meta-date"></div></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_license">Лицензия</p><div class="flex flex-wrap gap-1.5" id="filter-meta-license"></div></div>
+            </div>
+
+            <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
+        </div>
+
+        <!-- Плеер -->
+        <div class="absolute bottom-0 left-0 right-0 w-full pointer-events-none flex justify-center pb-4 md:pb-6 z-40">
+            <div id="player-card" class="pointer-events-auto bg-white dark:bg-slate-800 rounded-[1.8rem] md:rounded-[2rem] shadow-[0_-8px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_50px_rgba(0,0,0,0.5)] p-4 md:p-5 w-[94%] max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 dark:border-slate-700 relative">
+                
+                <div id="ambisonic-compass" class="pointer-events-auto">
+                    <div class="compass-arrow" id="compass-arrow"></div>
+                    <div class="compass-center"></div>
+                    <div class="absolute top-1 text-[8px] font-bold text-slate-400">N</div>
+                    <div class="absolute bottom-1 text-[8px] font-bold text-slate-400">S</div>
+                    <div class="absolute left-2 text-[8px] font-bold text-slate-400">W</div>
+                    <div class="absolute right-2 text-[8px] font-bold text-slate-400">E</div>
+                </div>
+
+                <div onclick="closePlayerCard()" class="absolute top-0 left-0 right-0 h-6 md:h-8 flex justify-center items-center cursor-pointer z-50">
+                    <div class="drag-handle mt-1"></div>
+                </div>
+
+                <div id="waveform-wrapper" class="relative w-full h-12 md:h-16 cursor-pointer group mb-2 mt-4">
+                    <div id="waveform-bg" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-100 dark:text-slate-700"></div>
+                    <div id="waveform-active" class="absolute inset-0 flex items-center justify-between gap-[2px] text-slate-800 dark:text-blue-500 pointer-events-none" style="clip-path: inset(0 100% 0 0);"></div>
+                    <div id="playhead" class="absolute top-0 bottom-0 w-[1.5px] bg-slate-400 dark:bg-blue-400 rounded-full pointer-events-none z-10 shadow-[0_0_4px_rgba(0,0,0,0.2)]" style="left: 0%;"></div>
+                    <input type="range" id="audio-timeline" min="0" max="100" value="0" step="0.01" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 m-0" oninput="seekAudio(this.value)">
+                </div>
+                
+                <div class="flex justify-between text-[10px] md:text-[11px] font-semibold text-slate-900 dark:text-slate-200 mb-4 px-0.5">
+                    <div>
+                        <span id="time-current">0:00</span>
+                        <span class="text-slate-300 dark:text-slate-600 mx-1">/</span>
+                        <span id="time-total" class="text-slate-400 dark:text-slate-500">0:00</span>
+                    </div>
+                    <span id="time-total-right" class="text-slate-400 dark:text-slate-500">0:00</span>
+                </div>
+
+                <div class="flex items-center gap-3 md:gap-4">
+                    <button id="main-play-btn" onclick="toggleMainPlay()" class="w-10 h-10 md:w-12 md:h-12 bg-[#2d3238] dark:bg-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md flex-shrink-0">
+                        <i id="main-play-icon" class="fa-solid fa-play text-sm md:text-base translate-x-0.5 pointer-events-none"></i>
+                        <i id="main-pause-icon" class="fa-solid fa-pause text-sm md:text-base hidden pointer-events-none"></i>
+                    </button>
+                    
+                    <div class="flex-grow min-w-0 text-left">
+                        <div class="flex items-center mb-0.5 gap-2">
+                            <h2 id="player-title" onclick="openDetailsModal()" class="text-[13px] md:text-[15px] font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">Title</h2>
+                            <button id="btn-ambi-toggle" onclick="toggleAmbisonics()" class="hidden text-indigo-500 hover:text-indigo-400 flex-shrink-0 transition-colors" title="Включить 360 вращение">
+                                <i class="fa-solid fa-vr-cardboard text-sm pointer-events-none"></i>
+                            </button>
+                            <button onclick="openDetailsModal()" class="text-slate-300 hover:text-blue-500 dark:hover:text-blue-400 flex-shrink-0 transition-colors">
+                                <i class="fa-solid fa-circle-info text-sm pointer-events-none"></i>
+                            </button>
+                        </div>
+                        <div id="player-tags" class="flex flex-wrap gap-1.5 mb-1 mt-0.5"></div>
+                        <p id="player-gear" class="text-[9px] text-slate-400 font-semibold truncate"><i class="fa-solid fa-walkie-talkie mr-1"></i>Recorder Name</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки управления справа -->
+        <div class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 pointer-events-auto z-50 flex flex-col gap-3">
+            <button onclick="toggleAddModal()" class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-xl border border-blue-500 transition-transform hover:scale-105 active:scale-95" title="Add Audio">
+                <i class="fa-solid fa-plus text-xl pointer-events-none"></i>
+            </button>
+            <button onclick="toggleSettingsModal()" class="w-12 h-12 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 transition-all" title="Settings">
+                <i class="fa-solid fa-sliders text-lg pointer-events-none"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Модальное окно Настроек -->
+    <div id="settings-modal" onclick="if(event.target === this) toggleSettingsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div id="settings-modal-content" class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
+            <div class="px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="settings_title"><i class="fa-solid fa-gear mr-2 text-slate-400"></i>Настройки</h3>
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="gui_scale"><i class="fa-solid fa-text-height mr-1"></i> Масштаб интерфейса</label>
+                    <div class="grid grid-cols-3 gap-2" id="scale-buttons">
+                        <button data-scale="small" onclick="changeGUISize('small')" class="p-2.5 text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Small</button>
+                        <button data-scale="medium" onclick="changeGUISize('medium')" class="p-2.5 text-xs font-bold bg-blue-600 text-white rounded-xl transition-all shadow-md">Medium</button>
+                        <button data-scale="large" onclick="changeGUISize('large')" class="p-2.5 text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Large</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="theme"><i class="fa-solid fa-circle-half-stroke mr-1"></i> Тема оформления</label>
+                    <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 py-2 text-xs font-bold bg-white text-slate-800 shadow-sm rounded-lg transition-all"><i class="fa-solid fa-sun mr-1 text-amber-500"></i>Light</button>
+                        <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all"><i class="fa-solid fa-moon mr-1 text-indigo-400"></i>Dark</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="map_style"><i class="fa-solid fa-map mr-1"></i> Стиль карты (Фильтр)</label>
+                    <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <button onclick="setMapStyle('normal')" id="map-normal-btn" class="flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all" data-lang="map_normal">Стандарт</button>
+                        <button onclick="setMapStyle('monochrome')" id="map-mono-btn" class="flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all" data-lang="map_mono">Монохром</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="language"><i class="fa-solid fa-language mr-1"></i> Язык приложения</label>
+                    <div class="relative">
+                        <select onchange="setLanguage(this.value)" id="lang-select" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-semibold appearance-none cursor-pointer">
+                            <option value="ru">🇷🇺 Русский</option>
+                            <option value="en">🇬🇧 English</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 pt-0">
+                <button onclick="toggleSettingsModal()" class="w-full py-3.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold rounded-xl transition-all" data-lang="close">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно ADD AUDIO -->
+    <div id="add-modal" onclick="if(event.target === this) toggleAddModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div id="add-modal-content" class="bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden transform scale-95 transition-all border border-slate-100 dark:border-slate-800 pointer-events-auto">
+            
+            <div class="px-6 py-5 flex justify-between items-center bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white" data-lang="add_audio_title"><i class="fa-solid fa-file-audio mr-2 text-blue-600"></i>Добавить аудио</h3>
+                <button onclick="toggleAddModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                <!-- Блок 1: Основная информация (Загрузка файла и Фото) -->
+                <div class="space-y-4">
+                    <div id="drop-zone" class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors relative">
+                        <input type="file" id="audio-file-input" accept=".wav" class="hidden">
+                        <div id="drop-zone-content" class="pointer-events-none w-full flex flex-col items-center">
+                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-300 dark:text-slate-500 mb-3"></i>
+                            <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-2">
+                                <span class="text-sm font-bold" data-lang="drag_drop">Нажмите или перетащите аудиофайл (.wav)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-2xl p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onclick="document.getElementById('image-file-input').click()">
+                        <input type="file" id="image-file-input" accept="image/*" multiple class="hidden" onchange="handleImageFiles(this.files)">
+                        <div class="flex flex-col items-center justify-center text-center text-slate-500 dark:text-slate-400">
+                            <i class="fa-solid fa-camera text-2xl mb-2 opacity-70"></i>
+                            <span class="text-xs font-bold">Прикрепить фото (до 3-х шт.)</span>
+                        </div>
+                        <div id="image-preview-container" class="image-preview-grid hidden"></div>
+                    </div>
+
+                    <div>
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="file_name">Сгенерированное имя файла (UCS)</label>
+                        <input id="add-file-name" type="text" value="AMB_Loc_Tag_Anon.wav" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-mono text-xs cursor-not-allowed" readonly>
+                    </div>
+
+                    <div>
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="display_title">Отображаемое название (Внутреннее)</label>
+                        <input id="add-display-title" type="text" value="Новая запись" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium">
+                    </div>
+
+                    <div>
+                        <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="sound_desc">Описание звука</label>
+                        <textarea id="add-desc" rows="3" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 h-20 resize-none leading-relaxed text-sm">Опишите звуковое окружение...</textarea>
+                    </div>
+                </div>
+
+                <!-- Блок 2: UCS Tags -->
+                <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-layer-group mr-1"></i>Классификация по стандарту UCS</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="modal-label text-slate-400">Группа (Эко-акустика):</label>
+                            <select id="add-category" onchange="updateUcsSubcats()" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
+                                <option value="geophony">Геофония (AIR, WATER, WEATHER)</option>
+                                <option value="biophony">Биофония (ANIMALS, BIRDS)</option>
+                                <option value="anthrophony" selected>Антропофония (HUMAN, CITY, IND)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400">Субкатегория (UCS CatID):</label>
+                            <select id="add-subcat" onchange="generateUCSFileName()" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
+                                <!-- Заполняется скриптом -->
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="modal-label text-slate-400" data-lang="keywords">Свободные теги (через запятую)</label>
+                        <input id="add-tags" type="text" value="City, Field recording" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs" oninput="generateUCSFileName()">
+                    </div>
+                </div>
+
+                <!-- Блок 3: Location (Интерактивная карта), Date, Time, Weather -->
+                <div class="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 items-start">
+                    <div id="add-map-container" class="w-full h-40 sm:h-auto sm:aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 relative cursor-crosshair shrink-0">
+                        <!-- Сюда будет загружена Яндекс.Карта для выбора точки -->
+                    </div>
+                    <div class="space-y-3 w-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="location">Локация</label>
+                                <input id="add-loc" type="text" value="Ростов-на-Дону" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs" oninput="generateUCSFileName()">
+                            </div>
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="coords">Координаты</label>
+                                <input id="add-coords" type="text" value="47.222, 39.718" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs font-mono" readonly>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="date">Дата</label>
+                                <input id="add-date" type="date" value="2023-10-01" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                            </div>
+                            <div>
+                                <label class="modal-label text-slate-400" data-lang="time">Время</label>
+                                <input id="add-time" type="time" value="12:00" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="weather">Погода</label>
+                            <select id="add-weather" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                                <option value="Ясно (Clear)">Ясно (Clear)</option>
+                                <option value="Облачно (Cloudy)">Облачно (Cloudy)</option>
+                                <option value="Дождь (Rain)">Дождь (Rain)</option>
+                                <option value="Гроза (Thunderstorm)">Гроза (Thunderstorm)</option>
+                                <option value="Ветер (Wind)">Ветер (Wind)</option>
+                                <option value="Снег (Snow)">Снег (Snow)</option>
+                                <option value="Туман (Fog)">Туман (Fog)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок 4: Technical & Legal -->
+                <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="modal-label text-slate-400" data-lang="meta_principle">Принцип записи</label>
+                            <select id="add-principle" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                                <option value="Направленная фиксация (Spot)">Направленная фиксация (Spot)</option>
+                                <option value="Оставленный рекордер (Drop rig)">Оставленный рекордер (Drop rig)</option>
+                                <option value="Звуковая прогулка (Soundwalk)">Звуковая прогулка (Soundwalk)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="rec_model">Рекордер</label>
+                            <input id="add-recorder" type="text" value="Zoom H6" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="mic_type">Микрофон</label>
+                            <input id="add-mic" type="text" value="Sennheiser NTG3" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs">
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="format">Формат (Только WAV)</label>
+                            <select id="add-format" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                                <option>WAV 48kHz / 24-bit</option>
+                                <option>WAV 96kHz / 24-bit</option>
+                                <option>WAV 192kHz / 24-bit</option>
+                                <option>WAV 48kHz / 32-bit Float</option>
+                                <option>WAV 96kHz / 32-bit Float</option>
+                                <option>WAV 192kHz / 32-bit Float</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="meta_channels">Система / Каналы</label>
+                            <select id="add-channels" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                                <option>Mono</option>
+                                <option>Stereo XY</option>
+                                <option>Stereo ORTF</option>
+                                <option>Stereo AB</option>
+                                <option>Stereo M/S</option>
+                                <option>Ambisonics</option>
+                                <option>Binaural</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="recordist">Автор</label>
+                            <input id="add-recordist" type="text" value="Иван Иванов" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 text-xs" oninput="generateUCSFileName()">
+                        </div>
+                        <div>
+                            <label class="modal-label text-slate-400" data-lang="license">Лицензия</label>
+                            <select id="add-license" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none text-xs font-semibold">
+                                <option>CC BY 4.0</option>
+                                <option>CC0 (Public Domain)</option>
+                                <option>Copyrighted</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="p-6 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
+                <p class="text-xs text-slate-500 dark:text-slate-400 text-center mb-3 flex items-center justify-center gap-1.5" data-lang="moderation_notice">
+                    <i class="fa-solid fa-shield-halved"></i> Файл будет направлен на модерацию
+                </p>
+                <button onclick="publishSound()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]" data-lang="publish">
+                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Опубликовать звук
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Деталей звука -->
+    <div id="details-modal" onclick="if(event.target === this) closeDetailsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div id="details-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
+            <div class="relative h-40 md:h-56 shrink-0 bg-slate-200 dark:bg-slate-700">
+                <img id="details-image" src="" class="w-full h-full object-cover">
+                <!-- Контейнер для дополнительных фотографий -->
+                <div id="details-extra-images" class="absolute bottom-4 right-4 flex gap-2 hidden"></div>
+                <!-- Градиент для кнопки закрытия -->
+                <div class="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent h-20 pointer-events-none"></div>
+                <button onclick="closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors shadow-lg">
+                    <i class="fa-solid fa-xmark text-lg pointer-events-none"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                <!-- Шапка с тайтлом и скачиванием -->
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex-grow min-w-0">
+                        <div id="details-tags-container" class="flex flex-wrap gap-2 mb-3"></div>
+                        <h2 id="details-title" class="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white leading-tight mb-2"></h2>
+                        <p id="details-filename" class="text-xs font-mono text-slate-400 dark:text-slate-500 break-all"></p>
+                    </div>
+                    
+                    <!-- Кнопка скачивания WAV -->
+                    <div id="details-download-group" class="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                        <button onclick="downloadSound('wav')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-waveform text-sm"></i> WAV
+                        </button>
+                    </div>
+                </div>
+                
+                <p id="details-description" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base border-l-4 border-blue-500 pl-4 py-1"></p>
+                
+                <!-- Сетка метаданных -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-4 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="location"><i class="fa-solid fa-location-dot"></i> Location</span>
+                        <span class="meta-value" id="det-location">Rostov</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="coords"><i class="fa-solid fa-location-crosshairs"></i> Coordinates</span>
+                        <span class="meta-value font-mono text-[11px]" id="det-coords">0,0</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="datetime"><i class="fa-regular fa-clock"></i> Date & Time</span>
+                        <span class="meta-value" id="det-datetime">01.01.2023</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="weather"><i class="fa-solid fa-cloud-sun"></i> Weather</span>
+                        <span class="meta-value" id="det-weather">Clear</span>
+                    </div>
+                    <div class="meta-group md:col-span-2">
+                        <span class="meta-label" data-lang="keywords"><i class="fa-solid fa-tags"></i> Tags</span>
+                        <div class="flex flex-wrap gap-1.5 mt-1" id="det-keywords"></div>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="meta_principle"><i class="fa-solid fa-street-view"></i> Principle</span>
+                        <span class="meta-value" id="det-principle">Spot</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="rec_model"><i class="fa-solid fa-walkie-talkie"></i> Recorder</span>
+                        <span class="meta-value" id="det-recorder">Zoom</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="mic_type"><i class="fa-solid fa-microphone-lines"></i> Microphone</span>
+                        <span class="meta-value" id="det-mic">Binaural</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="format"><i class="fa-solid fa-file-waveform"></i> Format</span>
+                        <span class="meta-value" id="det-format">WAV 96kHz / 24-bit</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="meta_channels"><i class="fa-solid fa-headphones"></i> Channels</span>
+                        <span class="meta-value" id="det-channels">Stereo XY</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="recordist"><i class="fa-solid fa-user-astronaut"></i> Recordist</span>
+                        <span class="meta-value" id="det-recordist">John Doe</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label" data-lang="license"><i class="fa-solid fa-scale-balanced"></i> License</span>
+                        <span class="meta-value" id="det-license">CC0</span>
+                    </div>
+                </div>
+                
+                <!-- Секция комментариев -->
+                <div class="mt-2 border-t border-slate-100 dark:border-slate-700/50 pt-6">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-lang="comments"><i class="fa-regular fa-comments mr-2 opacity-70"></i>Комментарии</h3>
+                    <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-comment-input" data-lang-placeholder="comment_placeholder" placeholder="Оставьте комментарий..." class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm flex-1">
+                        <button onclick="addComment()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95" data-lang="send">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="global-audio"></audio>
+
+    <script>
+        // Гео-утилиты для Звуковых Прогулок (Soundwalks)
+        function getDistance(p1, p2) {
+            const dx = p1[0] - p2[0], dy = p1[1] - p2[1];
+            return Math.sqrt(dx*dx + dy*dy);
+        }
+
+        function getPointAlongRoute(route, ratio) {
+            if (!route || route.length === 0) return null;
+            if (route.length === 1) return route[0];
+            if (ratio <= 0) return route[0];
+            if (ratio >= 1) return route[route.length - 1];
+
+            let totalDist = 0;
+            const segments = [];
+            for (let i = 0; i < route.length - 1; i++) {
+                const dist = getDistance(route[i], route[i+1]);
+                segments.push({ start: route[i], end: route[i+1], dist: dist });
+                totalDist += dist;
+            }
+
+            const targetDist = totalDist * ratio;
+            let currentDist = 0;
+
+            for (let i = 0; i < segments.length; i++) {
+                const seg = segments[i];
+                if (currentDist + seg.dist >= targetDist) {
+                    const segRatio = (targetDist - currentDist) / seg.dist;
+                    const lat = seg.start[0] + (seg.end[0] - seg.start[0]) * segRatio;
+                    const lng = seg.start[1] + (seg.end[1] - seg.start[1]) * segRatio;
+                    return [lat, lng];
+                }
+                currentDist += seg.dist;
+            }
+            return route[route.length - 1];
+        }
+
+        // Транслитерация
+        function transliterate(word) {
+            const a = {"Ё":"Yo","Й":"I","Ц":"Ts","У":"U","К":"K","Е":"E","Н":"N","Г":"G","Ш":"Sh","Щ":"Sch","З":"Z","Х":"H","Ъ":"","ё":"yo","й":"i","ц":"ts","у":"u","к":"k","е":"e","н":"n","г":"g","ш":"sh","щ":"sch","з":"z","х":"h","ъ":"","Ф":"F","Ы":"I","В":"V","А":"A","П":"P","Р":"R","О":"O","Л":"L","Д":"D","Ж":"Zh","Э":"E","ф":"f","ы":"i","в":"v","а":"a","п":"p","р":"r","о":"o","л":"l","д":"d","ж":"zh","э":"e","Я":"Ya","Ч":"Ch","С":"S","М":"M","И":"I","Т":"T","Ь":"","Б":"B","Ю":"Yu","я":"ya","ч":"ch","с":"s","м":"m","и":"i","т":"t","ь":"","б":"b","ю":"yu", " ":"_"};
+            return word.split('').map(char => a[char] || char).join('').replace(/[^a-zA-Z0-9_]/g, '');
+        }
+
+        const ucsStructure = {
+            'geophony': [
+                { id: 'AIRBlow', name: 'AIR (Выдув)' }, { id: 'AIRBrst', name: 'AIR (Всплеск)' }, { id: 'AIRHiss', name: 'AIR (Шипение)' },
+                { id: 'NATWeth', name: 'NATURE (Погода)' }, { id: 'NATWatr', name: 'NATURE (Вода)' }, { id: 'NATWind', name: 'NATURE (Ветер)' }, { id: 'NATForst', name: 'NATURE (Лес)' },
+                { id: 'WATRBubl', name: 'WATER (Пузыри)' }, { id: 'WATRDrop', name: 'WATER (Капли)' }, { id: 'WATRSplsh', name: 'WATER (Всплеск)' }, { id: 'WATRFlow', name: 'WATER (Поток)' },
+                { id: 'WETHRain', name: 'WEATHER (Дождь)' }, { id: 'WETHThun', name: 'WEATHER (Гром)' }, { id: 'WETHWind', name: 'WEATHER (Ветер-Шторм)' }
+            ],
+            'biophony': [
+                { id: 'ANMDmst', name: 'ANIMALS (Домашние)' }, { id: 'ANMFarm', name: 'ANIMALS (Фермерские)' }, { id: 'ANMWild', name: 'ANIMALS (Дикие)' }, { id: 'ANMBrd', name: 'ANIMALS (Птицы)' }, { id: 'ANMIns', name: 'ANIMALS (Насекомые)' }
+            ],
+            'anthrophony': [
+                { id: 'ALRMBell', name: 'ALARM (Колокол)' }, { id: 'ALRMBuzz', name: 'ALARM (Жужжание)' }, { id: 'ALRMSirn', name: 'ALARM (Сирена)' },
+                { id: 'AMBCity', name: 'AMB (Город)' }, { id: 'AMBInds', name: 'AMB (Индустрия)' }, { id: 'AMBMarkt', name: 'AMB (Рынок)' }, { id: 'AMBPark', name: 'AMB (Парк)' }, { id: 'AMBRoom', name: 'AMB (Комната)' }, { id: 'AMBStrt', name: 'AMB (Улица)' },
+                { id: 'DOORMetl', name: 'DOORS (Металл)' }, { id: 'DOORWood', name: 'DOORS (Дерево)' },
+                { id: 'FOLFtst', name: 'FOLEY (Шаги)' },
+                { id: 'HUMCrwd', name: 'HUMAN (Толпа)' }, { id: 'HUMVoc', name: 'HUMAN (Голос)' }, { id: 'HUMMvmt', name: 'HUMAN (Движение)' },
+                { id: 'INDMchn', name: 'IND (Машины)' }, { id: 'INDFctry', name: 'IND (Завод)' }, { id: 'INDTool', name: 'IND (Инструмент)' },
+                { id: 'VEHCar', name: 'VEHICLES (Авто)' }, { id: 'VEHTrc', name: 'VEHICLES (Грузовик)' }, { id: 'VEHTrn', name: 'VEHICLES (Поезд)' }, { id: 'VEHAir', name: 'VEHICLES (Авиа)' }, { id: 'VEHBoat', name: 'VEHICLES (Лодка)' }
+            ]
+        };
+
+        const rawSoundsData = [
+            { id: 'r1', title: 'Набережная Дона', ecoCategory: 'geophony', lat: 47.2130, lng: 39.7150, duration: '1:08', url: '', typeTag: 'NATWatr', semanticTag: 'Nature', gear: 'Tascam DR-40X', date: '21 авг. 2023 г.', description: 'Ритмичный плеск волн великой реки Дон о бетонную набережную Ростова.', comments: [{author: 'Анна', text: 'Очень успокаивает, спасибо!', date: '12.10.2023'}], keywords: 'Water, River, Waves, Night', micType: 'Sennheiser NTG3', recPrinciple: 'Направленная фиксация (Spot)', channels: 'Stereo AB', weather: 'Ясно (Clear)' },
+            { id: 'r2', title: 'Центральный рынок', ecoCategory: 'anthrophony', lat: 47.2173, lng: 39.7083, duration: '2:12', url: '', typeTag: 'AMBMarkt', semanticTag: 'Trade Identity', gear: 'Zoom F6', date: '04 июн. 2023 г.', description: 'Пульс Ростова. Шумный Старый базар утром.', keywords: 'Crowd, Voices, Morning, Market', micType: 'Lavalier', recPrinciple: 'Звуковая прогулка (Soundwalk)', channels: 'Binaural', weather: 'Ясно (Clear)', route: [[47.2173, 39.7083], [47.2180, 39.7085], [47.2185, 39.7090], [47.2180, 39.7100], [47.2170, 39.7095]] },
+            { id: 'r3', title: 'Завод Ростсельмаш', ecoCategory: 'anthrophony', lat: 47.2600, lng: 39.7600, duration: '0:45', url: '', typeTag: 'INDMchn', semanticTag: 'Industry', gear: 'Rode NTG4+', date: '15 сен. 2023 г.', description: 'Индустриальный звуковой ландшафт.', keywords: 'Machines, Metal, Factory, Heavy', micType: 'Shotgun', recPrinciple: 'Направленная фиксация (Spot)', channels: 'Mono', weather: 'Облачно (Cloudy)' },
+            { id: 'r4', title: 'Парк Горького', ecoCategory: 'anthrophony', lat: 47.2210, lng: 39.7020, duration: '1:45', url: '', typeTag: 'AMBPark', semanticTag: 'Leisure', gear: 'Zoom H5', date: '12 мая 2023 г.', description: 'Спокойная атмосфера центрального парка.', keywords: 'Park, Birds, Wind, Children', micType: 'Rode NT4', recPrinciple: 'Оставленный рекордер (Drop rig)', channels: 'Stereo XY', weather: 'Ясно (Clear)' },
+            { id: 'r5', title: 'Улица Пушкинская', ecoCategory: 'anthrophony', lat: 47.2260, lng: 39.7180, duration: '1:30', url: '', typeTag: 'AMBCity', semanticTag: 'Urban Life', gear: 'Binaural Mic', date: '02 окт. 2023 г.', description: 'Прогулка по пешеходной зоне.', keywords: 'Steps, Street, Leaves, Walk', micType: 'Soundman OKM II', recPrinciple: 'Звуковая прогулка (Soundwalk)', channels: 'Ambisonics', weather: 'Ветер (Wind)', route: [[47.2260, 39.7180], [47.2265, 39.7200], [47.2270, 39.7220], [47.2275, 39.7240]] }
+        ];
+
+        const soundsData = rawSoundsData.map(s => {
+            const keywordsStr = s.keywords || `${s.ecoCategory}, soundscape, rostov`;
+            const tagsList = keywordsStr.split(',').map(t => t.trim()).filter(Boolean);
+            
+            const cleanLoc = transliterate(s.location || 'Rostov').substring(0, 15);
+            const cleanTags = transliterate(tagsList[0] || 'Tag').substring(0, 15);
+            const cleanRecordist = transliterate(s.recordist || 'IvanIvanov').replace(/\s+/g, '');
+            
+            return {
+                ...s,
+                time: s.time || '14:30',
+                weather: s.weather || 'Ясно (Clear)',
+                micType: s.micType || 'Stereo Pair',
+                recPrinciple: s.recPrinciple || 'Направленная фиксация (Spot)',
+                format: s.format || 'WAV 96kHz / 24-bit',
+                channels: s.channels || 'Stereo XY',
+                fileName: `${s.typeTag}_${cleanLoc}_${cleanTags}_${cleanRecordist}.wav`, 
+                recordist: s.recordist || 'Иван Иванов',
+                license: s.license || 'CC BY 4.0',
+                keywords: keywordsStr,
+                tagArray: tagsList,
+                comments: s.comments || [],
+                images: [] 
+            };
+        });
+
+        const translations = {
+            ru: {
+                title: "Ростовская область", subtitle: "Аудиокарта", search_placeholder: "Поиск звуков...",
+                filter_tab_ucs: "Категории", filter_tab_tags: "Теги", filter_tab_meta: "Параметры", 
+                ucs_category: "Эко-Акустика", ucs_sub: "Субкатегория (UCS)",
+                meta_gear: "Рекордер", meta_channels: "Система / Каналы", meta_license: "Лицензия", meta_recordist: "Автор", meta_weather: "Погода", meta_date: "Дата", mic_type: "Микрофон", meta_principle: "Принцип записи",
+                filter_geophony: "Геофония", filter_biophony: "Биофония", filter_anthrophony: "Антропофония",
+                settings_title: "Настройки", gui_scale: "Масштаб интерфейса", theme: "Тема оформления", map_style: "Стиль карты (Фильтр)", map_normal: "Стандарт", map_mono: "Монохром", language: "Язык приложения", close: "Закрыть",
+                add_audio_title: "Добавить аудио", drag_drop: "Нажмите или перетащите аудиофайл (.wav)", display_title: "Название", sound_desc: "Описание", file_name: "Имя файла (UCS)", keywords: "Теги (через запятую)",
+                location: "Локация", coords: "Координаты", date: "Дата", time: "Время", weather: "Погода", datetime: "Дата и Время",
+                rec_model: "Рекордер", format: "Формат", channels: "Каналы", recordist: "Автор", license: "Лицензия", publish: "Опубликовать",
+                rec_prefix: "Rec: ", coords_prefix: "Координаты: ", gear_prefix: "Оборудование: ",
+                err_no_audio: "Режим симуляции (аудиофайл отсутствует)", err_publish: "Функция загрузки будет доступна позже.",
+                success_publish: "Аудио успешно добавлено на карту!", audio_loaded: "Аудиофайл загружен", select_audio: "Пожалуйста, выберите аудиофайл",
+                comments: "Комментарии", comment_placeholder: "Оставьте комментарий...", send: "", no_comments: "Пока нет комментариев. Будьте первым!",
+                moderation_notice: "Файл будет направлен на модерацию", meta_embedded: "Координаты {coords} успешно вшиты в метаданные файла.",
+                soundwalk_notice: "Маршрут звуковой прогулки"
+            },
+            en: {
+                title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search sounds...",
+                filter_tab_ucs: "Categories", filter_tab_tags: "Tags", filter_tab_meta: "Params",
+                ucs_category: "Eco-Acoustics", ucs_sub: "Subcategory (UCS)",
+                meta_gear: "Recorder", meta_channels: "System / Channels", meta_license: "License", meta_recordist: "Recordist", meta_weather: "Weather", meta_date: "Date", mic_type: "Microphone", meta_principle: "Recording Principle",
+                filter_geophony: "Geophony", filter_biophony: "Biophony", filter_anthrophony: "Anthrophony",
+                settings_title: "Settings", gui_scale: "Interface Scale", theme: "Visual Theme", map_style: "Map Style (Filter)", map_normal: "Default", map_mono: "Monochrome", language: "Application Language", close: "Close",
+                add_audio_title: "Add Audio", drag_drop: "Click or drag audio file here (.wav)", display_title: "Display Title", sound_desc: "Sound Description", file_name: "File Name (UCS)", keywords: "Tags / Keywords",
+                location: "Location", coords: "Coordinates", date: "Date", time: "Time", weather: "Weather", datetime: "Date & Time",
+                rec_model: "Recorder Model", format: "Format", channels: "Channels", recordist: "Recordist", license: "License", publish: "Publish Sound",
+                rec_prefix: "Rec: ", coords_prefix: "Coordinates: ", gear_prefix: "Gear: ",
+                err_no_audio: "Simulation mode (audio file missing)", err_publish: "Upload feature will be available later.",
+                success_publish: "Sound added to map successfully!", audio_loaded: "Audio file loaded", select_audio: "Please select an audio file",
+                comments: "Comments", comment_placeholder: "Leave a comment...", send: "", no_comments: "No comments yet. Be the first!",
+                moderation_notice: "The file will be sent for moderation", meta_embedded: "Coordinates {coords} embedded successfully into file metadata.",
+                soundwalk_notice: "Soundwalk Route"
+            }
+        };
+
+        let map, currentPlayingId = null, isPlaying = false, animationFrameId = null, currentLang = 'ru', currentTheme = 'light';
+        let mockInterval = null, simulatedTime = 0, simulatedDuration = 120;
+        const audioElement = document.getElementById('global-audio');
+        
+        let activeUcsCat = new Set();
+        let activeUcsSub = new Set();
+        let activeGenTags = new Set();
+        
+        // Фильтры параметров
+        let activeGear = new Set();
+        let activeChannels = new Set();
+        let activeLicense = new Set();
+        let activeRecordist = new Set();
+        let activeWeather = new Set();
+        let activeDate = new Set();
+        let activeMic = new Set();
+        let activePrinciple = new Set(); 
+
+        let allExtractedTags = new Set();
+        let allExtractedSubcats = new Set();
+        let allExtractedGears = new Set();
+        let allExtractedChannels = new Set();
+        let allExtractedLicenses = new Set();
+        let allExtractedRecordists = new Set();
+        let allExtractedWeathers = new Set();
+        let allExtractedDates = new Set();
+        let allExtractedMics = new Set();
+        let allExtractedPrinciples = new Set();
+
+        let currentUploadedFileUrl = '';
+        let uploadedImageUrls = []; 
+        let addModalMap = null;
+        let addModalPlacemark = null;
+
+        // Переменные для карты звуковой прогулки
+        let activePolyline = null;
+        let walkerMarker = null;
+        let walkerLayout = null;
+
+        // Переменные для Ambisonics
+        let isAmbisonicMode = false;
+        let compassAngle = 0;
+        let isDraggingCompass = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFiltersData();
+            renderFilterPanels();
+            renderList();
+            renderWaveform();
+            setupAudioEvents();
+            updateUcsSubcats(); 
+            
+            document.getElementById('search-input').addEventListener('input', () => {
+                updateMapMarkers();
+                renderList();
+            });
+            
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('audio-file-input');
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleAudioFiles(e.target.files));
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700'); });
+            dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700'); });
+            dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-slate-700'); handleAudioFiles(e.dataTransfer.files); });
+
+            setupAmbisonicCompass();
+
+            ymaps.ready(initMap);
+        });
+
+        function handleImageFiles(files) {
+            const container = document.getElementById('image-preview-container');
+            if(files && files.length > 0) {
+                uploadedImageUrls = [];
+                const limit = Math.min(files.length, 3);
+                for(let i=0; i<limit; i++) {
+                    const file = files[i];
+                    if(file.type.startsWith('image/')) {
+                        uploadedImageUrls.push(URL.createObjectURL(file));
+                    }
+                }
+                if(uploadedImageUrls.length > 0) {
+                    container.classList.remove('hidden');
+                    container.innerHTML = uploadedImageUrls.map(url => `<img src="${url}" class="image-thumb">`).join('');
+                }
+            }
+        }
+
+        function updateUcsSubcats() {
+            const cat = document.getElementById('add-category').value;
+            const subcatSelect = document.getElementById('add-subcat');
+            if(ucsStructure[cat]) {
+                subcatSelect.innerHTML = ucsStructure[cat].map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            } else {
+                subcatSelect.innerHTML = `<option value="USER">USER (Пользовательская)</option>`;
+            }
+            generateUCSFileName();
+        }
+
+        function generateUCSFileName() {
+            const subcat = document.getElementById('add-subcat').value || 'USER';
+            let loc = document.getElementById('add-loc').value.trim();
+            loc = transliterate(loc).substring(0, 15);
+            if(!loc) loc = 'Loc';
+            let tagsStr = document.getElementById('add-tags').value.trim();
+            let firstTag = tagsStr.split(',')[0] || 'Tag';
+            firstTag = transliterate(firstTag).replace(/\s+/g, '').substring(0, 15);
+            let recordist = document.getElementById('add-recordist').value.trim();
+            recordist = transliterate(recordist).replace(/\s+/g, '');
+            if(!recordist) recordist = 'Anon';
+            document.getElementById('add-file-name').value = `${subcat}_${loc}_${firstTag}_${recordist}.wav`;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').textContent = message;
+            toast.classList.remove('-translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            if(window.toastTimeout) clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        function initMap() {
+            map = new ymaps.Map('map', { center: [47.217, 39.708], zoom: 11, controls: ['zoomControl'] });
+            walkerLayout = ymaps.templateLayoutFactory.createClass(
+                '<div class="walker-marker $[properties.colorClass]"><i class="fa-solid fa-person-walking"></i></div>'
+            );
+            updateMapMarkers();
+        }
+
+        function setMapStyle(style) {
+            const mapContainer = document.getElementById('map');
+            const nBtn = document.getElementById('map-normal-btn');
+            const mBtn = document.getElementById('map-mono-btn');
+            if (style === 'monochrome') {
+                mapContainer.classList.add('map-monochrome');
+                mBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
+                nBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+            } else {
+                mapContainer.classList.remove('map-monochrome');
+                nBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
+                mBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+            }
+        }
+
+        function changeGUISize(size) {
+            const scales = { small: '14px', medium: '16px', large: '18px' };
+            document.documentElement.style.fontSize = scales[size];
+            document.querySelectorAll('#scale-buttons button').forEach(btn => {
+                if (btn.dataset.scale === size) {
+                    btn.className = "p-2.5 text-xs font-bold bg-blue-600 text-white rounded-xl transition-all shadow-md scale-105";
+                } else {
+                    btn.className = "p-2.5 text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors";
+                }
+            });
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const dict = translations[lang];
+            document.querySelectorAll('[data-lang]').forEach(el => el.textContent = dict[el.getAttribute('data-lang')]);
+            document.querySelectorAll('[data-lang-placeholder]').forEach(el => el.placeholder = dict[el.getAttribute('data-lang-placeholder')]);
+            renderList();
+            if(currentPlayingId) {
+                const s = soundsData.find(x => x.id === currentPlayingId);
+                document.getElementById('player-gear').innerHTML = `<i class="fa-solid fa-walkie-talkie mr-1"></i>${dict.rec_prefix + s.gear}`;
+            }
+            renderFilterPanels();
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            const html = document.documentElement;
+            if (theme === 'dark') { html.classList.add('dark'); } else { html.classList.remove('dark'); }
+            const lBtn = document.getElementById('theme-light-btn');
+            const dBtn = document.getElementById('theme-dark-btn');
+            if(theme === 'dark') {
+                dBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
+                lBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                lBtn.innerHTML = '<i class="fa-solid fa-sun mr-1 text-slate-400"></i>Light';
+                dBtn.innerHTML = '<i class="fa-solid fa-moon mr-1 text-white"></i>Dark';
+            } else {
+                lBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-600 text-white shadow-md rounded-lg transition-all";
+                dBtn.className = "flex-1 py-2 text-xs font-bold bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-all";
+                lBtn.innerHTML = '<i class="fa-solid fa-sun mr-1 text-white"></i>Light';
+                dBtn.innerHTML = '<i class="fa-solid fa-moon mr-1 text-slate-400"></i>Dark';
+            }
+        }
+
+        function toggleSidebar() {
+            const s = document.getElementById('sidebar');
+            s.classList.toggle('sidebar-hidden');
+            if(window.innerWidth >= 768) {
+                const playerCard = document.getElementById('player-card');
+                if (s.classList.contains('sidebar-hidden')) { playerCard.style.marginLeft = '0'; } 
+                else { playerCard.style.marginLeft = '25.5rem'; }
+            }
+        }
+
+        function initFiltersData() {
+            allExtractedTags.clear();
+            allExtractedSubcats.clear();
+            allExtractedGears.clear();
+            allExtractedChannels.clear();
+            allExtractedLicenses.clear();
+            allExtractedRecordists.clear();
+            allExtractedWeathers.clear();
+            allExtractedDates.clear();
+            allExtractedMics.clear();
+            allExtractedPrinciples.clear();
+
+            soundsData.forEach(s => {
+                s.tagArray.forEach(t => allExtractedTags.add(t));
+                if(s.typeTag) allExtractedSubcats.add(s.typeTag);
+                if(s.semanticTag) allExtractedSubcats.add(s.semanticTag);
+                
+                if(s.gear) allExtractedGears.add(s.gear);
+                if(s.channels) allExtractedChannels.add(s.channels);
+                if(s.license) allExtractedLicenses.add(s.license);
+                if(s.recordist) allExtractedRecordists.add(s.recordist);
+                if(s.weather) allExtractedWeathers.add(s.weather);
+                if(s.date) allExtractedDates.add(s.date);
+                if(s.micType) allExtractedMics.add(s.micType);
+                if(s.recPrinciple) allExtractedPrinciples.add(s.recPrinciple);
+            });
+        }
+
+        function switchFilterTab(tab) {
+            const btnUcs = document.getElementById('tab-ucs');
+            const btnTags = document.getElementById('tab-tags');
+            const btnMeta = document.getElementById('tab-meta');
+            const panelUcs = document.getElementById('panel-ucs');
+            const panelTags = document.getElementById('panel-tags');
+            const panelMeta = document.getElementById('panel-meta');
+
+            const activeClass = "flex-1 py-3 text-[12px] md:text-[13px] font-bold text-blue-600 border-b-2 border-blue-600 transition-colors";
+            const inactiveClass = "flex-1 py-3 text-[12px] md:text-[13px] font-bold text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-800 dark:hover:text-slate-200 transition-colors";
+
+            btnUcs.className = inactiveClass;
+            btnTags.className = inactiveClass;
+            btnMeta.className = inactiveClass;
+            panelUcs.classList.add('hidden');
+            panelTags.classList.add('hidden');
+            panelMeta.classList.add('hidden');
+
+            if (tab === 'ucs') {
+                btnUcs.className = activeClass;
+                panelUcs.classList.remove('hidden');
+            } else if (tab === 'tags') {
+                btnTags.className = activeClass;
+                panelTags.classList.remove('hidden');
+            } else {
+                btnMeta.className = activeClass;
+                panelMeta.classList.remove('hidden');
+            }
+        }
+
+        function renderFilterPanels() {
+            const catContainer = document.getElementById('filter-ucs-categories');
+            const cats = ['geophony', 'biophony', 'anthrophony'];
+            const catIcons = { geophony: 'fa-wind', biophony: 'fa-crow', anthrophony: 'fa-city' };
+            
+            catContainer.innerHTML = cats.map(c => {
+                const count = soundsData.filter(s => s.ecoCategory === c).length;
+                return `<button onclick="toggleUcsCat('${c}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center ${activeUcsCat.has(c) ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}">
+                    <i class="fa-solid ${catIcons[c]} mr-1.5 opacity-80"></i>${translations[currentLang][`filter_${c}`]} <span class="ml-1.5 text-[9px] font-normal opacity-60">(${count})</span>
+                </button>`;
+            }).join('');
+
+            const subContainer = document.getElementById('filter-ucs-subcategories');
+            subContainer.innerHTML = Array.from(allExtractedSubcats).sort().map(sub => {
+                const count = soundsData.filter(s => s.typeTag === sub || s.semanticTag === sub).length;
+                return `<button onclick="toggleUcsSub('${sub}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border flex items-center ${activeUcsSub.has(sub) ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}">
+                    ${sub} <span class="ml-1 text-[9px] font-normal opacity-60">(${count})</span>
+                </button>`;
+            }).join('');
+
+            const tagsContainer = document.getElementById('panel-tags');
+            tagsContainer.innerHTML = Array.from(allExtractedTags).sort().map(t => {
+                const count = soundsData.filter(s => s.tagArray.includes(t)).length;
+                return `<button onclick="toggleGenTag('${t}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border flex items-center ${activeGenTags.has(t) ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}">
+                    <i class="fa-solid fa-hashtag mr-0.5 opacity-60"></i>${t} <span class="ml-1 text-[9px] font-normal opacity-60">(${count})</span>
+                </button>`;
+            }).join('');
+
+            const renderMetaSet = (set, containerId, toggleFn, icon, dataKey) => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.innerHTML = Array.from(set).sort().map(val => {
+                    const isActive = eval(`active${toggleFn.replace('toggle', '')}`).has(val);
+                    const count = soundsData.filter(s => s[dataKey] === val).length;
+                    return `<button onclick="${toggleFn}('${val}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border flex items-center ${isActive ? 'bg-teal-600 text-white border-teal-600 shadow-sm' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}">
+                        <i class="fa-solid ${icon} mr-1 opacity-70"></i>${val} <span class="ml-1 text-[9px] font-normal opacity-60">(${count})</span>
+                    </button>`;
+                }).join('');
+            };
+
+            renderMetaSet(allExtractedPrinciples, 'filter-meta-principle', 'togglePrinciple', 'fa-street-view', 'recPrinciple');
+            renderMetaSet(allExtractedGears, 'filter-meta-gear', 'toggleGear', 'fa-walkie-talkie', 'gear');
+            renderMetaSet(allExtractedMics, 'filter-meta-mic', 'toggleMic', 'fa-microphone-lines', 'micType');
+            renderMetaSet(allExtractedChannels, 'filter-meta-channels', 'toggleChannels', 'fa-headphones', 'channels');
+            renderMetaSet(allExtractedLicenses, 'filter-meta-license', 'toggleLicense', 'fa-scale-balanced', 'license');
+            renderMetaSet(allExtractedRecordists, 'filter-meta-recordist', 'toggleRecordist', 'fa-user-astronaut', 'recordist');
+            renderMetaSet(allExtractedWeathers, 'filter-meta-weather', 'toggleWeather', 'fa-cloud-sun', 'weather');
+            renderMetaSet(allExtractedDates, 'filter-meta-date', 'toggleDate', 'fa-calendar-days', 'date');
+
+            renderActiveTags();
+        }
+
+        function toggleUcsCat(val) { if (activeUcsCat.has(val)) activeUcsCat.delete(val); else activeUcsCat.add(val); processFilterChange(); }
+        function toggleUcsSub(val) { if (activeUcsSub.has(val)) activeUcsSub.delete(val); else activeUcsSub.add(val); processFilterChange(); }
+        function toggleGenTag(val) { if (activeGenTags.has(val)) activeGenTags.delete(val); else activeGenTags.add(val); processFilterChange(); }
+        function togglePrinciple(val) { if (activePrinciple.has(val)) activePrinciple.delete(val); else activePrinciple.add(val); processFilterChange(); }
+        function toggleGear(val) { if (activeGear.has(val)) activeGear.delete(val); else activeGear.add(val); processFilterChange(); }
+        function toggleMic(val) { if (activeMic.has(val)) activeMic.delete(val); else activeMic.add(val); processFilterChange(); }
+        function toggleChannels(val) { if (activeChannels.has(val)) activeChannels.delete(val); else activeChannels.add(val); processFilterChange(); }
+        function toggleLicense(val) { if (activeLicense.has(val)) activeLicense.delete(val); else activeLicense.add(val); processFilterChange(); }
+        function toggleRecordist(val) { if (activeRecordist.has(val)) activeRecordist.delete(val); else activeRecordist.add(val); processFilterChange(); }
+        function toggleWeather(val) { if (activeWeather.has(val)) activeWeather.delete(val); else activeWeather.add(val); processFilterChange(); }
+        function toggleDate(val) { if (activeDate.has(val)) activeDate.delete(val); else activeDate.add(val); processFilterChange(); }
+
+        function processFilterChange() {
+            renderFilterPanels();
+            updateMapMarkers();
+            renderList();
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('sidebar-hidden')) toggleSidebar();
+        }
+
+        function removeFilter(type, value) {
+            if (type === 'cat') activeUcsCat.delete(value);
+            if (type === 'sub') activeUcsSub.delete(value);
+            if (type === 'tag') activeGenTags.delete(value);
+            if (type === 'pri') activePrinciple.delete(value);
+            if (type === 'gear') activeGear.delete(value);
+            if (type === 'mic') activeMic.delete(value);
+            if (type === 'chan') activeChannels.delete(value);
+            if (type === 'lic') activeLicense.delete(value);
+            if (type === 'rec') activeRecordist.delete(value);
+            if (type === 'wea') activeWeather.delete(value);
+            if (type === 'date') activeDate.delete(value);
+            processFilterChange();
+        }
+
+        function renderActiveTags() {
+            const container = document.getElementById('active-tags-container');
+            const totalActive = activeUcsCat.size + activeUcsSub.size + activeGenTags.size + 
+                                activeGear.size + activeMic.size + activeChannels.size + activeLicense.size + 
+                                activeRecordist.size + activeWeather.size + activeDate.size + activePrinciple.size;
+            
+            if (totalActive === 0) { container.innerHTML = ''; return; }
+            let html = '';
+            
+            activeUcsCat.forEach(c => { html += `<span onclick="removeFilter('cat', '${c}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">${translations[currentLang][`filter_${c}`]} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeUcsSub.forEach(s => { html += `<span onclick="removeFilter('sub', '${s}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors">${s} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeGenTags.forEach(t => { html += `<span onclick="removeFilter('tag', '${t}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors">#${t} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activePrinciple.forEach(v => { html += `<span onclick="removeFilter('pri', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-street-view"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeGear.forEach(v => { html += `<span onclick="removeFilter('gear', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-walkie-talkie"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeMic.forEach(v => { html += `<span onclick="removeFilter('mic', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-microphone-lines"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeChannels.forEach(v => { html += `<span onclick="removeFilter('chan', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-headphones"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeLicense.forEach(v => { html += `<span onclick="removeFilter('lic', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-scale-balanced"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeRecordist.forEach(v => { html += `<span onclick="removeFilter('rec', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-user-astronaut"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeWeather.forEach(v => { html += `<span onclick="removeFilter('wea', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-cloud-sun"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+            activeDate.forEach(v => { html += `<span onclick="removeFilter('date', '${v}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded-lg cursor-pointer hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors"><i class="fa-solid fa-calendar-days"></i>${v} <i class="fa-solid fa-xmark opacity-70"></i></span>`; });
+
+            if (totalActive > 1) {
+                html += `<button onclick="activeUcsCat.clear(); activeUcsSub.clear(); activeGenTags.clear(); activePrinciple.clear(); activeGear.clear(); activeMic.clear(); activeChannels.clear(); activeLicense.clear(); activeRecordist.clear(); activeWeather.clear(); activeDate.clear(); processFilterChange();" class="ml-auto text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 uppercase tracking-wider transition-colors"><i class="fa-solid fa-trash-can mr-1"></i>Сбросить</button>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function getFilteredSounds() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            return soundsData.filter(s => {
+                const searchTarget = `${s.title} ${s.description} ${s.keywords} ${s.ecoCategory} ${translations[currentLang][`filter_${s.ecoCategory}`] || ''} ${s.typeTag} ${s.semanticTag} ${s.recPrinciple} ${s.gear} ${s.micType} ${s.recordist} ${s.weather} ${s.date} ${s.license} ${s.channels}`.toLowerCase();
+                const searchMatch = !query || searchTarget.includes(query);
+                
+                const catMatch = activeUcsCat.size === 0 || activeUcsCat.has(s.ecoCategory);
+                const subMatch = activeUcsSub.size === 0 || activeUcsSub.has(s.typeTag) || activeUcsSub.has(s.semanticTag);
+                const tagMatch = activeGenTags.size === 0 || Array.from(activeGenTags).some(t => s.tagArray.includes(t));
+                
+                const priMatch = activePrinciple.size === 0 || activePrinciple.has(s.recPrinciple);
+                const gearMatch = activeGear.size === 0 || activeGear.has(s.gear);
+                const micMatch = activeMic.size === 0 || activeMic.has(s.micType);
+                const chanMatch = activeChannels.size === 0 || activeChannels.has(s.channels);
+                const licMatch = activeLicense.size === 0 || activeLicense.has(s.license);
+                const recMatch = activeRecordist.size === 0 || activeRecordist.has(s.recordist);
+                const weaMatch = activeWeather.size === 0 || activeWeather.has(s.weather);
+                const dateMatch = activeDate.size === 0 || activeDate.has(s.date);
+
+                return searchMatch && catMatch && subMatch && tagMatch && priMatch && gearMatch && micMatch && chanMatch && licMatch && recMatch && weaMatch && dateMatch;
+            });
+        }
+
+        function updateMapMarkers() {
+            if (!map) return;
+            map.geoObjects.each(function (obj) {
+                if (obj !== activePolyline && obj !== walkerMarker) {
+                    map.geoObjects.remove(obj);
+                }
+            });
+
+            const createMarkerLayout = (colorClass, id, isSoundwalk) => ymaps.templateLayoutFactory.createClass(
+                `<div id="marker-${id}" class="w-4 h-4 md:w-5 md:h-5 custom-marker ${colorClass} ${currentPlayingId === id ? 'selected' : ''} flex items-center justify-center">
+                    ${isSoundwalk ? '<i class="fa-solid fa-route text-[8px] md:text-[10px] text-white opacity-80"></i>' : ''}
+                </div>`
+            );
+            
+            const filtered = getFilteredSounds();
+            filtered.forEach(sound => {
+                let colorClass = sound.ecoCategory === 'geophony' ? 'marker-geo' : sound.ecoCategory === 'biophony' ? 'marker-bio' : 'marker-anthro';
+                const isSoundwalk = sound.recPrinciple && sound.recPrinciple.includes('Soundwalk');
+                const p = new ymaps.Placemark([sound.lat, sound.lng], {}, { 
+                    iconLayout: createMarkerLayout(colorClass, sound.id, isSoundwalk), 
+                    iconShape: { type: 'Rectangle', coordinates: [[-10, -10], [10, 10]] }, 
+                    iconOffset: [-10, -10] 
+                });
+                p.events.add('click', () => selectSound(sound.id));
+                map.geoObjects.add(p);
+            });
+        }
+
+        function renderList() {
+            const listContainer = document.getElementById('sounds-list');
+            listContainer.innerHTML = '';
+            const filtered = getFilteredSounds();
+            
+            if(filtered.length === 0) { listContainer.innerHTML = `<p class="text-center text-sm text-slate-400 mt-4"><i class="fa-solid fa-box-open block text-2xl mb-2 opacity-50"></i>Ничего не найдено</p>`; return; }
+
+            const catIcons = { geophony: 'fa-wind', biophony: 'fa-crow', anthrophony: 'fa-city' };
+
+            filtered.forEach(sound => {
+                const item = document.createElement('div');
+                const isSelected = currentPlayingId === sound.id;
+                const isSoundwalk = sound.recPrinciple && sound.recPrinciple.includes('Soundwalk');
+                
+                item.className = `p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 group ${isSelected ? 'bg-slate-50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-500 shadow-sm' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`;
+                item.onclick = () => selectSound(sound.id);
+                item.innerHTML = `
+                    <button class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected && isPlaying ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+                        ${isSelected && isPlaying ? '<i class="fa-solid fa-pause text-xs"></i>' : '<i class="fa-solid fa-play text-xs translate-x-[1px]"></i>'}
+                    </button>
+                    <div class="flex-grow min-w-0 text-left">
+                        <h3 class="font-semibold text-[13px] truncate text-slate-800 dark:text-white flex items-center gap-1.5">
+                            ${isSoundwalk ? '<i class="fa-solid fa-route text-blue-500" title="Звуковая прогулка"></i>' : ''} ${sound.title}
+                        </h3>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider"><i class="fa-solid ${catIcons[sound.ecoCategory]} mr-1"></i>${translations[currentLang][`filter_${sound.ecoCategory}`]}</span>
+                            <span class="text-[8px] px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">${sound.typeTag}</span>
+                        </div>
+                    </div>`;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function clearMapRoutes() {
+            if (activePolyline) { map.geoObjects.remove(activePolyline); activePolyline = null; }
+            if (walkerMarker) { map.geoObjects.remove(walkerMarker); walkerMarker = null; }
+        }
+
+        // --- Управление Ambisonics 360 ---
+        function setupAmbisonicCompass() {
+            const compass = document.getElementById('ambisonic-compass');
+            const arrow = document.getElementById('compass-arrow');
+            
+            compass.addEventListener('mousedown', (e) => {
+                isDraggingCompass = true;
+                updateCompassAngle(e);
+            });
+            window.addEventListener('mousemove', (e) => {
+                if(isDraggingCompass) updateCompassAngle(e);
+            });
+            window.addEventListener('mouseup', () => {
+                isDraggingCompass = false;
+            });
+        }
+
+        function updateCompassAngle(e) {
+            const compass = document.getElementById('ambisonic-compass');
+            const arrow = document.getElementById('compass-arrow');
+            const rect = compass.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const dx = e.clientX - centerX;
+            const dy = e.clientY - centerY;
+            
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            angle += 90; 
+            
+            compassAngle = angle;
+            arrow.style.transform = `rotate(${angle}deg)`;
+        }
+
+        function toggleAmbisonics() {
+            const compass = document.getElementById('ambisonic-compass');
+            const btn = document.getElementById('btn-ambi-toggle');
+            
+            isAmbisonicMode = !isAmbisonicMode;
+            if(isAmbisonicMode) {
+                compass.classList.add('active');
+                btn.classList.remove('text-indigo-500');
+                btn.classList.add('text-green-500');
+                showToast("Режим 360° вращения включен. Покрутите компас.");
+            } else {
+                compass.classList.remove('active');
+                btn.classList.add('text-indigo-500');
+                btn.classList.remove('text-green-500');
+                
+                compassAngle = 0;
+                document.getElementById('compass-arrow').style.transform = `rotate(0deg)`;
+            }
+        }
+
+        function publishSound() {
+            let title = document.getElementById('add-display-title').value.trim() || 'New Sound';
+            const desc = document.getElementById('add-desc').value;
+            const coordsStr = document.getElementById('add-coords').value;
+            
+            let lat = 47.222, lng = 39.718;
+            if(coordsStr.includes(',')) {
+                const parts = coordsStr.split(',');
+                lat = parseFloat(parts[0]) || lat;
+                lng = parseFloat(parts[1]) || lng;
+            }
+            
+            const ecoCat = document.getElementById('add-category').value;
+            const keywordsStr = document.getElementById('add-tags').value || '';
+            const tagsList = keywordsStr.split(',').map(t => t.trim()).filter(Boolean);
+
+            const rawDate = document.getElementById('add-date').value;
+            let formattedDate = rawDate;
+            if (rawDate) {
+                try {
+                    const d = new Date(rawDate);
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    formattedDate = d.toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-US', options);
+                } catch(e) {}
+            }
+            
+            generateUCSFileName();
+
+            const newSound = {
+                id: 'new_' + Date.now(),
+                title: title,
+                ecoCategory: ecoCat,
+                lat: lat,
+                lng: lng,
+                duration: '0:00',
+                url: currentUploadedFileUrl,
+                typeTag: document.getElementById('add-subcat').value || 'USER',
+                semanticTag: 'Upload',
+                recPrinciple: document.getElementById('add-principle').value || 'Направленная фиксация (Spot)',
+                gear: document.getElementById('add-recorder').value || 'Unknown Gear',
+                date: formattedDate || '2023-10-01',
+                time: document.getElementById('add-time').value || '12:00',
+                weather: document.getElementById('add-weather').value || 'Ясно (Clear)',
+                description: desc,
+                micType: document.getElementById('add-mic').value || 'Unknown',
+                format: document.getElementById('add-format').value || 'WAV 96kHz / 24-bit',
+                channels: document.getElementById('add-channels').value || 'Stereo XY',
+                recordist: document.getElementById('add-recordist').value || 'Anonymous',
+                license: document.getElementById('add-license').value || 'CC BY',
+                fileName: document.getElementById('add-file-name').value || 'new_audio.wav',
+                keywords: keywordsStr,
+                tagArray: tagsList,
+                comments: [],
+                images: uploadedImageUrls 
+            };
+
+            soundsData.unshift(newSound); 
+            
+            initFiltersData();
+            renderFilterPanels();
+            updateMapMarkers();
+            renderList();
+            
+            showToast(translations[currentLang].success_publish);
+            toggleAddModal();
+            
+            currentUploadedFileUrl = '';
+            uploadedImageUrls = [];
+            document.getElementById('audio-file-input').value = '';
+            document.getElementById('image-file-input').value = '';
+            document.getElementById('image-preview-container').innerHTML = '';
+            document.getElementById('image-preview-container').classList.add('hidden');
+            document.getElementById('drop-zone-content').innerHTML = `
+                <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-300 dark:text-slate-500 mb-3"></i>
+                <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-2">
+                    <span class="text-sm font-bold" data-lang="drag_drop">${translations[currentLang].drag_drop}</span>
+                </div>
+            `;
+            
+            selectSound(newSound.id);
+            setTimeout(() => toggleMainPlay(), 500);
+        }
+
+        function selectSound(id) {
+            const s = soundsData.find(x => x.id === id);
+            if (window.innerWidth < 768) { 
+                const sb = document.getElementById('sidebar'); 
+                if (!sb.classList.contains('sidebar-hidden')) toggleSidebar(); 
+            } else {
+                const sb = document.getElementById('sidebar'); 
+                if (!sb.classList.contains('sidebar-hidden')) document.getElementById('player-card').style.marginLeft = '25.5rem';
+            }
+            
+            clearMapRoutes();
+            
+            isAmbisonicMode = false;
+            document.getElementById('ambisonic-compass').classList.remove('active');
+            compassAngle = 0;
+            document.getElementById('compass-arrow').style.transform = `rotate(0deg)`;
+
+            let colorHex = '#38bdf8'; // geophony - blue
+            let walkerColorClass = 'walker-geo';
+            if(s.ecoCategory === 'biophony') { colorHex = '#4ade80'; walkerColorClass = 'walker-bio'; }
+            if(s.ecoCategory === 'anthrophony') { colorHex = '#f97316'; walkerColorClass = 'walker-anthro'; }
+
+            if (s.route && s.route.length > 1) {
+                activePolyline = new ymaps.Polyline(s.route, {}, {
+                    strokeColor: colorHex, strokeWidth: 4, strokeOpacity: 0.8, strokeStyle: 'shortdash'
+                });
+                map.geoObjects.add(activePolyline);
+                
+                walkerMarker = new ymaps.Placemark(s.route[0], { colorClass: walkerColorClass }, {
+                    iconLayout: walkerLayout, iconShape: { type: 'Circle', coordinates: [0, 0], radius: 12 }, iconOffset: [-12, -12]
+                });
+                map.geoObjects.add(walkerMarker);
+                
+                map.setBounds(activePolyline.geometry.getBounds(), {checkZoomRange: true, duration: 800, zoomMargin: 40});
+                showToast(translations[currentLang].soundwalk_notice);
+            } else {
+                map.setCenter([s.lat, s.lng], 15, { duration: 800 });
+            }
+            
+            if(currentPlayingId !== id && isPlaying) {
+                 audioElement.pause();
+                 isPlaying = false;
+                 if (mockInterval) clearInterval(mockInterval);
+            }
+            
+            currentPlayingId = id; 
+            updateMapMarkers();
+            
+            const card = document.getElementById('player-card');
+            card.classList.remove('translate-y-[150%]', 'opacity-0');
+            
+            document.getElementById('player-title').textContent = s.title;
+            document.getElementById('player-gear').innerHTML = `<i class="fa-solid fa-walkie-talkie mr-1 text-slate-400"></i>` + translations[currentLang].rec_prefix + s.gear;
+            
+            const btnAmbi = document.getElementById('btn-ambi-toggle');
+            if(s.channels && s.channels.toLowerCase().includes('ambisonics')) {
+                btnAmbi.classList.remove('hidden');
+                btnAmbi.classList.add('text-indigo-500');
+                btnAmbi.classList.remove('text-green-500');
+            } else {
+                btnAmbi.classList.add('hidden');
+            }
+
+            let cColor = s.ecoCategory === 'geophony' ? 'text-blue-700 border-blue-200 bg-blue-50' : s.ecoCategory === 'biophony' ? 'text-green-700 border-green-200 bg-green-50' : 'text-orange-700 border-orange-200 bg-orange-50';
+            const catIcons = { geophony: 'fa-wind', biophony: 'fa-crow', anthrophony: 'fa-city' };
+            
+            let tagsHtml = `
+                <span onclick="event.stopPropagation(); toggleUcsCat('${s.ecoCategory}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Добавить в фильтр"><i class="fa-solid ${catIcons[s.ecoCategory]} mr-1"></i>${translations[currentLang][`filter_${s.ecoCategory}`]}</span>
+                <span onclick="event.stopPropagation(); toggleUcsSub('${s.typeTag}')" class="tag-pill border-indigo-200 text-indigo-700 bg-indigo-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Добавить в фильтр">${s.typeTag}</span>
+            `;
+            s.tagArray.slice(0, 2).forEach(t => {
+                tagsHtml += `<span onclick="event.stopPropagation(); toggleGenTag('${t}')" class="tag-pill border-amber-200 text-amber-700 bg-amber-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Добавить в фильтр"><i class="fa-solid fa-hashtag opacity-60 mr-0.5"></i>${t}</span>`;
+            });
+
+            document.getElementById('player-tags').innerHTML = tagsHtml;
+            
+            if (s.url) {
+                if (audioElement.src !== s.url) { 
+                    audioElement.src = s.url; 
+                    audioElement.play().then(() => { isPlaying = true; startTimelineAnimation(); updateUIState(); })
+                    .catch(() => { isPlaying = false; prepareMockPlayback(s); }); 
+                } else { toggleMainPlay(); }
+            } else {
+                audioElement.pause();
+                audioElement.removeAttribute('src'); 
+                prepareMockPlayback(s);
+            }
+        }
+
+        function closePlayerCard() {
+            isPlaying = false;
+            audioElement.pause(); 
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (mockInterval) clearInterval(mockInterval);
+            
+            const card = document.getElementById('player-card');
+            card.classList.add('translate-y-[150%]', 'opacity-0');
+            currentPlayingId = null; 
+            
+            isAmbisonicMode = false;
+            document.getElementById('ambisonic-compass').classList.remove('active');
+
+            clearMapRoutes();
+            updateMapMarkers(); 
+            renderList();
+        }
+
+        function toggleMainPlay() {
+            if (!currentPlayingId) return;
+            const s = soundsData.find(x => x.id === currentPlayingId);
+            
+            if (isPlaying) { 
+                isPlaying = false;
+                audioElement.pause(); 
+                if (mockInterval) clearInterval(mockInterval);
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            } else { 
+                isPlaying = true;
+                if (s.url && audioElement.src) {
+                    audioElement.play().then(() => startTimelineAnimation()).catch(() => { startMockPlayback(s); });
+                } else {
+                    showToast(translations[currentLang].err_no_audio);
+                    startMockPlayback(s);
+                }
+            }
+            updateUIState();
+        }
+
+        function prepareMockPlayback(s) {
+            isPlaying = false;
+            simulatedTime = 0;
+            const parts = (s.duration || "1:00").split(':');
+            simulatedDuration = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            
+            document.getElementById('time-total').textContent = s.duration;
+            document.getElementById('time-total-right').textContent = s.duration;
+            updatePlayerVisuals(0, simulatedDuration);
+            updateUIState();
+        }
+
+        function startMockPlayback(s) {
+            if (mockInterval) clearInterval(mockInterval);
+            mockInterval = setInterval(() => {
+                if (!isPlaying) return;
+                simulatedTime += 0.25; 
+                if (simulatedTime >= simulatedDuration) {
+                    isPlaying = false;
+                    simulatedTime = 0;
+                    clearInterval(mockInterval);
+                    updateUIState();
+                    return;
+                }
+                updatePlayerVisuals(simulatedTime, simulatedDuration);
+            }, 250);
+        }
+
+        function updateUIState() {
+            const p = document.getElementById('main-play-icon'), s = document.getElementById('main-pause-icon');
+            if (isPlaying) { p.classList.add('hidden'); s.classList.remove('hidden'); }
+            else { p.classList.remove('hidden'); s.classList.add('hidden'); }
+            renderList();
+        }
+
+        function renderWaveform() {
+            const data = [15, 25, 45, 20, 60, 40, 80, 55, 30, 15, 40, 70, 90, 50, 35, 20, 25, 45, 65, 85, 55, 35, 20, 25, 45, 65, 10, 35, 55, 75, 15, 40, 60, 35, 15, 50, 70, 90, 55, 30, 25, 45, 75, 85];
+            let h = ''; data.forEach(v => h += `<div class="flex-1 bg-current rounded-full" style="height: ${v}%;"></div>`);
+            document.getElementById('waveform-bg').innerHTML = h; document.getElementById('waveform-active').innerHTML = h;
+        }
+
+        function startTimelineAnimation() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            const a = () => { 
+                if (!isPlaying || !audioElement.src) return; 
+                updatePlayerVisuals(audioElement.currentTime, audioElement.duration || 1);
+                animationFrameId = requestAnimationFrame(a); 
+            };
+            a();
+        }
+        
+        function updatePlayerVisuals(current, total) {
+            if(isNaN(total) || total === 0) return;
+            const r = current / total;
+            document.getElementById('time-current').textContent = formatTime(current); 
+            document.getElementById('waveform-active').style.clipPath = `inset(0 ${100 - r * 100}% 0 0)`; 
+            document.getElementById('playhead').style.left = `${r * 100}%`;
+            document.getElementById('audio-timeline').value = r * 100;
+
+            if (walkerMarker && currentPlayingId) {
+                const s = soundsData.find(x => x.id === currentPlayingId);
+                if (s && s.route) {
+                    const newPos = getPointAlongRoute(s.route, r);
+                    if (newPos) {
+                        walkerMarker.geometry.setCoordinates(newPos);
+                    }
+                }
+            }
+        }
+
+        function seekAudio(v) { 
+            const ratio = v / 100;
+            if (audioElement.src && audioElement.src.startsWith('blob:')) { 
+                if (audioElement.duration) { 
+                    audioElement.currentTime = ratio * audioElement.duration; 
+                    if (!isPlaying) updatePlayerVisuals(audioElement.currentTime, audioElement.duration);
+                } 
+            } else {
+                simulatedTime = ratio * simulatedDuration;
+                if (!isPlaying) updatePlayerVisuals(simulatedTime, simulatedDuration);
+            }
+        }
+        
+        function formatTime(s) { const m = Math.floor(s / 60), sec = Math.floor(s % 60); return `${m}:${sec < 10 ? '0' : ''}${sec}`; }
+        
+        function setupAudioEvents() { 
+            audioElement.onended = () => { isPlaying = false; updateUIState(); }; 
+            audioElement.onloadedmetadata = () => { 
+                document.getElementById('time-total').textContent = formatTime(audioElement.duration); 
+                document.getElementById('time-total-right').textContent = formatTime(audioElement.duration); 
+            }; 
+        }
+
+        function openDetailsModal() {
+            const s = soundsData.find(x => x.id === currentPlayingId); if (!s) return;
+            
+            if(s.images && s.images.length > 0) {
+                document.getElementById('details-image').src = s.images[0];
+                const extraContainer = document.getElementById('details-extra-images');
+                if(s.images.length > 1) {
+                    extraContainer.innerHTML = s.images.slice(1).map(img => `<img src="${img}" class="w-16 h-16 rounded-lg border-2 border-white shadow-md object-cover">`).join('');
+                    extraContainer.classList.remove('hidden');
+                } else {
+                    extraContainer.classList.add('hidden');
+                }
+            } else {
+                document.getElementById('details-image').src = `https://picsum.photos/seed/${s.id}/800/500`;
+                document.getElementById('details-extra-images').classList.add('hidden');
+            }
+            
+            document.getElementById('details-title').textContent = s.title; 
+            document.getElementById('details-filename').innerHTML = `<i class="fa-solid fa-file-waveform mr-1"></i>${s.fileName}`;
+            document.getElementById('details-description').textContent = s.description;
+            
+            const dict = translations[currentLang];
+            
+            document.getElementById('det-location').textContent = "Ростовская область";
+            document.getElementById('det-coords').textContent = `${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`;
+            
+            const makeFilterLink = (val, type) => `<span onclick="toggle${type}('${val}'); closeDetailsModal();" class="cursor-pointer hover:text-blue-500 border-b border-dashed border-slate-300 dark:border-slate-600 transition-colors" title="Добавить в фильтр">${val}</span>`;
+            
+            document.getElementById('det-datetime').innerHTML = `${makeFilterLink(s.date, 'Date')} / ${s.time}`;
+            document.getElementById('det-weather').innerHTML = makeFilterLink(s.weather, 'Weather');
+            document.getElementById('det-principle').innerHTML = makeFilterLink(s.recPrinciple, 'Principle');
+            document.getElementById('det-recorder').innerHTML = makeFilterLink(s.gear, 'Gear');
+            document.getElementById('det-mic').innerHTML = makeFilterLink(s.micType, 'Mic'); 
+            document.getElementById('det-format').textContent = s.format; 
+            document.getElementById('det-channels').innerHTML = makeFilterLink(s.channels, 'Channels');
+            document.getElementById('det-recordist').innerHTML = makeFilterLink(s.recordist, 'Recordist');
+            document.getElementById('det-license').innerHTML = makeFilterLink(s.license, 'License');
+            
+            const downloadGroup = document.getElementById('details-download-group');
+            downloadGroup.classList.remove('hidden'); 
+            
+            let cColor = s.ecoCategory === 'geophony' ? 'text-blue-700 border-blue-200 bg-blue-50' : s.ecoCategory === 'biophony' ? 'text-green-700 border-green-200 bg-green-50' : 'text-orange-700 border-orange-200 bg-orange-50';
+            const catIcons = { geophony: 'fa-wind', biophony: 'fa-crow', anthrophony: 'fa-city' };
+
+            document.getElementById('details-tags-container').innerHTML = `
+                <span onclick="toggleUcsCat('${s.ecoCategory}')" class="tag-pill ${cColor} uppercase dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр"><i class="fa-solid ${catIcons[s.ecoCategory]} mr-1"></i>${dict[`filter_${s.ecoCategory}`]}</span>
+                <span onclick="toggleUcsSub('${s.typeTag}')" class="tag-pill border-indigo-200 text-indigo-700 bg-indigo-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр">${s.typeTag}</span>
+                <span onclick="toggleUcsSub('${s.semanticTag}')" class="tag-pill border-indigo-200 text-indigo-700 bg-indigo-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр">${s.semanticTag}</span>
+            `;
+
+            const keywordsContainer = document.getElementById('det-keywords');
+            keywordsContainer.innerHTML = s.tagArray.map(t => `
+                <span onclick="toggleGenTag('${t}'); closeDetailsModal();" class="tag-pill border-amber-200 text-amber-700 bg-amber-50 dark:bg-transparent dark:border-slate-600 dark:text-slate-300" title="Использовать как фильтр"><i class="fa-solid fa-hashtag opacity-60 mr-0.5"></i>${t}</span>
+            `).join('');
+            
+            renderComments(s);
+            
+            const m = document.getElementById('details-modal'); 
+            const c = document.getElementById('details-modal-content');
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden'); 
+                void m.offsetWidth;
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
+            }
+        }
+
+        function downloadSound(format) {
+            const s = soundsData.find(x => x.id === currentPlayingId);
+            if(!s) return;
+            
+            const baseName = s.fileName.replace(/\.[^/.]+$/, "");
+            const finalName = `${baseName}.${format}`;
+            
+            showToast(translations[currentLang].meta_embedded.replace('{coords}', `${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}`));
+
+            let downloadUrl = s.url;
+            
+            if (!s.url || s.url.startsWith('blob:') && s.url.length < 50) {
+                const metaText = `=== МЕТАДАННЫЕ АУДИОФАЙЛА (BEXT/iXML симуляция) ===\nИмя (UCS): ${baseName}\nКоординаты (GPS): ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}\nПринцип: ${s.recPrinciple}\nЛокация: ${s.location || 'Ростовская область'}\nАвтор: ${s.recordist}\nТеги: ${s.keywords}\n=========================================\n\n[Здесь находятся бинарные данные .${format}]`;
+                downloadUrl = URL.createObjectURL(new Blob([metaText], {type: "text/plain"}));
+            } 
+            
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = finalName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function closeDetailsModal() { 
+            const m = document.getElementById('details-modal'); 
+            const c = document.getElementById('details-modal-content');
+            m.classList.add('opacity-0', 'pointer-events-none'); 
+            c.classList.add('scale-95');
+            setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300); 
+        }
+
+        function renderComments(sound) {
+            const container = document.getElementById('comments-list');
+            if(!sound.comments || sound.comments.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400 dark:text-slate-500 italic px-2">${translations[currentLang].no_comments}</p>`;
+                return;
+            }
+            container.innerHTML = sound.comments.map(c => `
+                <div class="bg-slate-100/60 dark:bg-slate-900/60 p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+                    <div class="flex justify-between items-baseline mb-1.5">
+                        <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200"><i class="fa-solid fa-user-astronaut mr-1.5 text-slate-400"></i>${c.author}</span>
+                        <span class="text-[10px] text-slate-400 font-medium">${c.date}</span>
+                    </div>
+                    <p class="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed">${c.text}</p>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addComment() {
+            const input = document.getElementById('new-comment-input');
+            const text = input.value.trim();
+            if (!text || !currentPlayingId) return; 
+            
+            const s = soundsData.find(x => x.id === currentPlayingId);
+            if(s) {
+                const dateStr = new Date().toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-US');
+                s.comments.push({ author: currentLang === 'ru' ? 'Вы (Гость)' : 'You (Guest)', text: text, date: dateStr });
+                input.value = '';
+                renderComments(s);
+            }
+        }
+        
+        function toggleAddModal() {
+            const m = document.getElementById('add-modal');
+            const c = document.getElementById('add-modal-content');
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden');
+                void m.offsetWidth; 
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
+                
+                if (!addModalMap && ymaps) {
+                    ymaps.ready(() => {
+                        addModalMap = new ymaps.Map('add-map-container', {
+                            center: [47.222, 39.718], zoom: 11, controls: ['zoomControl']
+                        });
+                        addModalPlacemark = new ymaps.Placemark([47.222, 39.718], {}, { preset: 'islands#blueDotIcon' });
+                        addModalMap.geoObjects.add(addModalPlacemark);
+                        addModalMap.events.add('click', function (e) {
+                            var coords = e.get('coords');
+                            addModalPlacemark.geometry.setCoordinates(coords);
+                            document.getElementById('add-coords').value = coords[0].toFixed(5) + ", " + coords[1].toFixed(5);
+                        });
+                    });
+                } else if (addModalMap) {
+                    addModalMap.container.fitToViewport();
+                }
+            } else {
+                m.classList.add('opacity-0', 'pointer-events-none'); 
+                c.classList.add('scale-95');
+                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
+            }
+        }
+        
+        function toggleSettingsModal() {
+            const m = document.getElementById('settings-modal');
+            const c = document.getElementById('settings-modal-content');
+            if (m.classList.contains('hidden')) {
+                m.classList.remove('hidden');
+                void m.offsetWidth; 
+                m.classList.remove('opacity-0', 'pointer-events-none'); 
+                c.classList.remove('scale-95');
+            } else {
+                m.classList.add('opacity-0', 'pointer-events-none'); 
+                c.classList.add('scale-95');
+                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
+            }
+        }
+    </script>
+</body>
+</html>
