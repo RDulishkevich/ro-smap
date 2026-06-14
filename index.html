@@ -223,13 +223,20 @@
                     <input type="range" id="audio-timeline" min="0" max="100" value="0" step="0.01" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 m-0" oninput="window.seekAudio(this.value)">
                 </div>
                 
-                <div class="flex justify-between text-[10px] md:text-[11px] font-semibold text-slate-900 dark:text-slate-200 mb-4 px-0.5">
+                <div class="flex justify-between items-center text-[10px] md:text-[11px] font-semibold text-slate-900 dark:text-slate-200 mb-4 px-0.5">
                     <div>
                         <span id="time-current">0:00</span>
                         <span class="text-slate-300 dark:text-slate-600 mx-1">/</span>
                         <span id="time-total" class="text-slate-400 dark:text-slate-500">0:00</span>
                     </div>
-                    <span id="time-total-right" class="text-slate-400 dark:text-slate-500">0:00</span>
+                    
+                    <!-- Блок управления громкостью -->
+                    <div class="flex items-center gap-2 pointer-events-auto">
+                        <button onclick="window.toggleMute()" class="text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors outline-none shrink-0" title="Громкость">
+                            <i id="volume-icon" class="fa-solid fa-volume-high pointer-events-none text-sm w-4 text-center"></i>
+                        </button>
+                        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1" class="w-16 md:w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-400" oninput="window.changeVolume(this.value)">
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-3 md:gap-4">
@@ -245,8 +252,8 @@
                             <button id="btn-ambi-toggle" onclick="window.toggleAmbisonics()" class="hidden text-indigo-500 hover:text-indigo-400 flex-shrink-0 transition-colors" title="Включить 360 вращение">
                                 <i class="fa-solid fa-globe text-sm pointer-events-none"></i>
                             </button>
-                            <button onclick="window.openDetailsModal()" class="text-slate-300 hover:text-blue-500 dark:hover:text-blue-400 flex-shrink-0 transition-colors">
-                                <i class="fa-solid fa-circle-info text-sm pointer-events-none"></i>
+                            <button onclick="window.openDetailsModal()" class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-slate-700/80 dark:text-blue-400 dark:hover:bg-slate-600 flex items-center justify-center flex-shrink-0 transition-all shadow-sm active:scale-95 ml-1" title="Подробнее">
+                                <i class="fa-solid fa-info text-[13px] md:text-[15px] pointer-events-none"></i>
                             </button>
                         </div>
                         <div id="player-tags" class="flex flex-wrap gap-1.5 mb-1 mt-0.5"></div>
@@ -745,6 +752,33 @@
         window.isAmbisonicMode = false;
         window.compassAngle = 0;
         window.isDraggingCompass = false;
+        
+        window.lastVolume = 1;
+
+        window.changeVolume = function(val) {
+            const num = parseFloat(val);
+            if(window.audioElement) window.audioElement.volume = num;
+            if(window.gainNode) window.gainNode.gain.value = num; // Для поддержки режима Ambisonics
+            
+            const icon = document.getElementById('volume-icon');
+            if(icon) {
+                icon.className = 'pointer-events-none text-sm w-4 text-center fa-solid ' + 
+                    (num === 0 ? 'fa-volume-xmark text-red-500' : (num < 0.5 ? 'fa-volume-low' : 'fa-volume-high'));
+            }
+            if(num > 0) window.lastVolume = num;
+        };
+
+        window.toggleMute = function() {
+            const slider = document.getElementById('volume-slider');
+            if(!slider) return;
+            if(parseFloat(slider.value) > 0) {
+                slider.value = 0;
+                window.changeVolume(0);
+            } else {
+                slider.value = window.lastVolume || 1;
+                window.changeVolume(window.lastVolume || 1);
+            }
+        };
 
         const YANDEX_BUCKET_URL = 'https://storage.yandexcloud.net/rosmap2026';
         const YANDEX_FUNCTION_URL = 'https://functions.yandexcloud.net/d4ebp9rd7rd53iso4p8u';
@@ -2810,6 +2844,24 @@
                 if(touchStartX - touchEndX > 50) window.nextLightbox();
                 if(touchEndX - touchStartX > 50) window.prevLightbox();
             }, {passive: true});
+
+            // Player Card Swipe support
+            const playerCardEl = document.getElementById('player-card');
+            let playerTouchStartY = 0;
+            if(playerCardEl) {
+                playerCardEl.addEventListener('touchstart', e => { 
+                    if(e.target.closest('#ambi-sphere-pad') || e.target.tagName.toLowerCase() === 'input') return;
+                    playerTouchStartY = e.touches[0].screenY; 
+                }, {passive: true});
+                playerCardEl.addEventListener('touchend', e => { 
+                    if(e.target.closest('#ambi-sphere-pad') || e.target.tagName.toLowerCase() === 'input') return;
+                    let playerTouchEndY = e.changedTouches[0].screenY; 
+                    let diffY = playerTouchEndY - playerTouchStartY;
+                    
+                    if(diffY > 50) window.closePlayerCard(); // Свайп вниз - закрыть
+                    else if(diffY < -50) window.openDetailsModal(); // Свайп вверх - открыть описание
+                }, {passive: true});
+            }
 
             // АСИНХРОННАЯ ЗАГРУЗКА БАЗЫ ДАННЫХ ИЗ ЯНДЕКС ОБЛАКА
             fetch(YANDEX_BUCKET_URL + '/map_data.json?nocache=' + Date.now())
