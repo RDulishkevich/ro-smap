@@ -749,21 +749,6 @@
             return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
         }
 
-        window.loadLocalSounds = function() {
-            try {
-                const stored = localStorage.getItem('rosmap_custom_sounds');
-                return stored ? JSON.parse(stored) : [];
-            } catch(e) { return []; }
-        };
-
-        window.saveLocalSound = function(soundData) {
-            try {
-                const stored = window.loadLocalSounds();
-                stored.unshift(soundData);
-                localStorage.setItem('rosmap_custom_sounds', JSON.stringify(stored));
-            } catch(e) { console.error("Error saving locally", e); }
-        };
-
         // --- 2. Dictionaries and Datasets ---
         const ucsStructure = {
             'AMBIENCE': [{ id: 'AMBAbnd', name: 'AMBAbnd (Заброшенное)' }, { id: 'AMBCity', name: 'AMBCity (Город)' }, { id: 'AMBInds', name: 'AMBInds (Индустрия)' }, { id: 'AMBMarkt', name: 'AMBMarkt (Рынок)' }, { id: 'AMBNatr', name: 'AMBNatr (Природа)' }, { id: 'AMBPark', name: 'AMBPark (Парк)' }, { id: 'AMBRoom', name: 'AMBRoom (Комната)' }, { id: 'AMBStrt', name: 'AMBStrt (Улица)' }, { id: 'AMBUrba', name: 'AMBUrba (Урбанистика)' }],
@@ -846,9 +831,7 @@
             ];
         }
 
-        const initialCombined = [...window.rawSoundsData, ...window.loadLocalSounds()];
-
-        window.soundsData = initialCombined.map(s => {
+        window.soundsData = window.rawSoundsData.map(s => {
             const keywordsStr = s.keywords || `soundscape, rostov`;
             const tagsList = keywordsStr.split(',').map(t => t.trim()).filter(Boolean);
             const cleanTitle = window.transliterate(s.title).substring(0, 20);
@@ -887,25 +870,15 @@
 
         let currentUser = null;
 
-        const initAuth = async (retries = 3) => {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    return; // Успешная авторизация
-                } catch (error) {
-                    console.error(`Auth error (attempt ${i + 1}):`, error);
-                    if (i === retries - 1) break;
-                    // Экспоненциальная задержка перед следующей попыткой
-                    await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
-                }
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
             }
-            console.warn("Не удалось авторизоваться в Firebase из-за ошибки сети. Приложение будет работать в локальном режиме.");
         };
-        initAuth();
+        
+        initAuth().catch(e => console.warn("Внимание: сбой авторизации", e));
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
@@ -919,8 +892,8 @@
                     dbSounds.push({ dbId: doc.id, ...doc.data() });
                 });
 
-                // Объединяем дефолтные, локальные (из localStorage) и облачные звуки
-                const combinedData = [...window.rawSoundsData, ...window.loadLocalSounds(), ...dbSounds];
+                // Объединяем дефолтные и облачные звуки
+                const combinedData = [...window.rawSoundsData, ...dbSounds];
                 
                 window.soundsData = combinedData.map(s => {
                     const keywordsStr = s.keywords || `soundscape, rostov`;
@@ -957,22 +930,17 @@
 
         window.saveSoundToDB = async function(soundData) {
             if (!currentUser) {
-                console.warn("Пользователь не авторизован для записи в БД.");
-                // Fallback to local
-                window.saveLocalSound(soundData);
-                window.soundsData.unshift(soundData); 
-                window.initFiltersData();
-                window.renderFilterPanels();
-                window.updateMapMarkers();
-                window.renderList();
+                console.warn("Нет авторизации для записи в БД.");
+                window.showToast("Ошибка: Нет подключения к облачной базе данных");
                 return;
             }
             try {
                 const soundsRef = collection(db, 'artifacts', appId, 'public', 'data', 'map_sounds');
                 await addDoc(soundsRef, soundData);
-                console.log("Звук успешно сохранен в базе данных!");
+                console.log("Звук успешно сохранен в облачной базе!");
             } catch (e) {
                 console.error("Ошибка при сохранении документа: ", e);
+                window.showToast("Не удалось сохранить данные");
             }
         };
     </script>
@@ -1681,14 +1649,17 @@
             };
 
             if (typeof window.saveSoundToDB === 'function') {
-                window.saveSoundToDB(newSound);
+                await window.saveSoundToDB(newSound);
             } else {
-                window.saveLocalSound(newSound);
-                window.soundsData.unshift(newSound); 
+                console.error("DB module not loaded.");
+                window.showToast("Системная ошибка: модуль БД недоступен");
+            }
+            
+            // Оптимистичное обновление интерфейса для мгновенного отклика
+            if (!window.soundsData.find(s => s.id === newSound.id)) {
+                window.soundsData.unshift(newSound);
                 window.initFiltersData();
-                window.renderFilterPanels();
-                window.updateMapMarkers();
-                window.renderList();
+                window.processFilterChange();
             }
             
             window.showToast(translations[window.currentLang].success_publish);
