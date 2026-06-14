@@ -42,7 +42,8 @@
         body.dark-mode #player-card, 
         body.dark-mode #add-modal-content,
         body.dark-mode #details-modal-content,
-        body.dark-mode #settings-modal-content { background-color: #1e293b; border-color: #334155; }
+        body.dark-mode #settings-modal-content,
+        body.dark-mode #ui-modal-content { background-color: #1e293b; border-color: #334155; }
         body.dark-mode .text-slate-800 { color: #f1f5f9; }
         body.dark-mode .text-slate-600 { color: #cbd5e1; }
         body.dark-mode .bg-white { background-color: #1e293b; }
@@ -134,7 +135,7 @@
 </head>
 <body class="text-slate-800 antialiased relative">
 
-    <div id="toast-message" class="fixed top-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-5 py-3 rounded-full shadow-2xl z-[300] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 border border-slate-700 z-[9999]">
+    <div id="toast-message" class="fixed top-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-5 py-3 rounded-full shadow-2xl z-[300] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 border border-slate-700">
         <i class="fa-solid fa-circle-info text-blue-400 text-lg"></i>
         <span id="toast-text" class="text-[13px] font-semibold tracking-wide">Уведомление</span>
     </div>
@@ -386,7 +387,7 @@
                             <i class="fa-solid fa-camera text-2xl mb-2 opacity-70"></i>
                             <span class="text-xs font-bold" data-lang="add_photo">Прикрепить фото (до 3-х шт.)</span>
                         </div>
-                        <div id="image-preview-container" class="image-preview-grid hidden"></div>
+                        <div id="image-preview-container" class="image-preview-grid hidden mt-3"></div>
                     </div>
 
                     <div>
@@ -658,6 +659,26 @@
         </div>
     </div>
 
+    <!-- Кастомные UI Модальные окна (Замена alert, confirm, prompt) -->
+    <div id="ui-modal-overlay" class="fixed inset-0 z-[9999] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="ui-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 id="ui-modal-title" class="font-bold text-slate-800 dark:text-white text-lg">Заголовок</h3>
+                <button onclick="window.CustomUI.close(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 outline-none">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <p id="ui-modal-message" class="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">Текст сообщения</p>
+                <input type="text" id="ui-modal-input" class="hidden modal-input w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white mb-2" onkeydown="if(event.key === 'Enter') window.CustomUI.close(true)" />
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50">
+                <button id="ui-modal-cancel" onclick="window.CustomUI.close(false)" class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors">Отмена</button>
+                <button id="ui-modal-confirm" onclick="window.CustomUI.close(true)" class="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-md">ОК</button>
+            </div>
+        </div>
+    </div>
+
     <audio id="global-audio" crossorigin="anonymous" preload="auto"></audio>
 
     <script>
@@ -683,7 +704,10 @@
 
         window.currentUploadedFileUrl = '';
         window.currentUploadedFile = null; 
-        window.uploadedImageUrls = []; 
+        
+        // Массив объектов: { file: File (если новое фото), url: Blob/String (для превью) }
+        window.pendingImages = []; 
+
         window.addModalMap = null;
         window.addModalPlacemark = null;
 
@@ -708,6 +732,60 @@
         const YANDEX_FUNCTION_URL = 'https://functions.yandexcloud.net/d4ebp9rd7rd53iso4p8u';
 
         window.cloudDataCache = [];
+
+        // --- 2. Custom UI (Замена alert/prompt/confirm) ---
+        window.CustomUI = {
+            resolve: null,
+            open: function(options) {
+                return new Promise((resolve) => {
+                    this.resolve = resolve;
+                    document.getElementById('ui-modal-title').innerHTML = options.title || 'Подтверждение';
+                    document.getElementById('ui-modal-message').innerHTML = options.message || '';
+                    
+                    const input = document.getElementById('ui-modal-input');
+                    if(options.type === 'prompt') {
+                        input.classList.remove('hidden');
+                        input.type = options.inputType || 'text';
+                        input.placeholder = options.placeholder || '';
+                        input.value = '';
+                        setTimeout(() => input.focus(), 100);
+                    } else {
+                        input.classList.add('hidden');
+                    }
+                    
+                    const confirmBtn = document.getElementById('ui-modal-confirm');
+                    confirmBtn.textContent = options.confirmText || 'ОК';
+                    confirmBtn.className = options.confirmClass || 'px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-md';
+                    
+                    const cancelBtn = document.getElementById('ui-modal-cancel');
+                    cancelBtn.textContent = options.cancelText || 'Отмена';
+
+                    const overlay = document.getElementById('ui-modal-overlay');
+                    const content = document.getElementById('ui-modal-content');
+                    overlay.classList.remove('hidden');
+                    void overlay.offsetWidth;
+                    overlay.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                });
+            },
+            close: function(isConfirm) {
+                const overlay = document.getElementById('ui-modal-overlay');
+                const content = document.getElementById('ui-modal-content');
+                overlay.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+                
+                if(this.resolve) {
+                    const input = document.getElementById('ui-modal-input');
+                    if(!input.classList.contains('hidden')) {
+                        this.resolve(isConfirm ? input.value : null);
+                    } else {
+                        this.resolve(isConfirm);
+                    }
+                    this.resolve = null;
+                }
+            }
+        };
 
         // --- 3. Utilities ---
         window.transliterate = function(word) {
@@ -775,7 +853,7 @@
             return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
         }
 
-        // --- 2. Dictionaries and Datasets ---
+        // --- 4. Dictionaries and Datasets ---
         const ucsStructure = {
             'AMBIENCE': [{ id: 'AMBAbnd', name: 'AMBAbnd (Заброшенное)' }, { id: 'AMBCity', name: 'AMBCity (Город)' }, { id: 'AMBInds', name: 'AMBInds (Индустрия)' }, { id: 'AMBMarkt', name: 'AMBMarkt (Рынок)' }, { id: 'AMBNatr', name: 'AMBNatr (Природа)' }, { id: 'AMBPark', name: 'AMBPark (Парк)' }, { id: 'AMBRoom', name: 'AMBRoom (Комната)' }, { id: 'AMBStrt', name: 'AMBStrt (Улица)' }, { id: 'AMBUrba', name: 'AMBUrba (Урбанистика)' }],
             'WATER': [{ id: 'WATRBubl', name: 'WATRBubl (Пузыри)' }, { id: 'WATRDrop', name: 'WATRDrop (Капли)' }, { id: 'WATRSplsh', name: 'WATRSplsh (Всплеск)' }, { id: 'WATRFlow', name: 'WATRFlow (Поток)' }],
@@ -913,7 +991,7 @@
                 
                 window.mergeData(newCloudData);
                 window.initFiltersData();
-                window.processFilterChange();
+                window.processFilterChange(false);
                 
                 const adminList = document.getElementById('admin-sounds-list');
                 if(document.getElementById('admin-modal') && !document.getElementById('admin-modal').classList.contains('hidden')) {
@@ -928,13 +1006,20 @@
         };
 
         // --- ADMIN PANEL LOGIC ---
-        window.promptAdminLogin = function() {
-            const pwd = prompt(translations[window.currentLang].password_prompt || "Введите пароль администратора:");
+        window.promptAdminLogin = async function() {
+            const pwd = await window.CustomUI.open({
+                title: '<i class="fa-solid fa-lock mr-2 text-blue-500"></i>' + translations[window.currentLang].admin_login,
+                message: translations[window.currentLang].password_prompt,
+                type: 'prompt',
+                inputType: 'password',
+                confirmText: 'Войти'
+            });
+
             if (pwd === "Скай") {
                 window.toggleSettingsModal();
                 setTimeout(() => window.openAdminPanel(), 300);
             } else if (pwd !== null) {
-                window.showToast(translations[window.currentLang].wrong_password || "Неверный пароль!");
+                window.showToast(translations[window.currentLang].wrong_password);
             }
         };
 
@@ -962,15 +1047,19 @@
             const list = document.getElementById('admin-sounds-list');
             if(!list) return;
             
+            const rawIds = window.rawSoundsData.map(s => s.id);
+            
             list.innerHTML = window.soundsData.map(s => {
+                const isHardcoded = rawIds.includes(s.id);
                 return `
                     <div class="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                         <div class="flex-1 min-w-0 pr-4">
                             <p class="text-sm font-bold text-slate-800 dark:text-white truncate">${s.title}</p>
                             <p class="text-xs text-slate-500 truncate">${s.fileName}</p>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.editSound('${s.id}')" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-500 dark:bg-blue-900/30 dark:hover:bg-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Редактировать</button>
+                        <div class="flex items-center gap-2">
+                            ${isHardcoded ? `<span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">Вшито</span>` : ''}
+                            <button onclick="window.editSound('${s.id}')" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-500 dark:bg-blue-900/30 dark:hover:bg-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Изменить</button>
                             <button onclick="window.deleteSoundFromCloud('${s.id}')" class="text-red-600 hover:text-white bg-red-50 hover:bg-red-500 dark:bg-red-900/30 dark:hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Удалить</button>
                         </div>
                     </div>
@@ -984,7 +1073,7 @@
             if(!s) return;
             
             window.editingSoundId = id;
-            window.toggleAddModal(); // Opens and resets logic
+            window.toggleAddModal(true); 
             
             setTimeout(() => {
                 document.getElementById('add-modal-header-title').innerHTML = `<i class="fa-solid fa-pen-to-square mr-2 text-blue-600"></i><span data-lang="edit_audio">${translations[window.currentLang].edit_audio || "Редактировать аудио"}</span>`;
@@ -1027,7 +1116,6 @@
                     document.getElementById('add-clear-route').classList.add('hidden');
                 }
                 
-                // Parse date logic if needed, fallback to preserving value.
                 document.getElementById('add-time').value = s.time || '12:00';
                 document.getElementById('add-weather').value = s.weather || 'Ясно (Clear)';
                 document.getElementById('add-principle').value = s.recPrinciple || 'Направленная фиксация (Spot)';
@@ -1038,13 +1126,23 @@
                 document.getElementById('add-recordist').value = s.recordist || '';
                 document.getElementById('add-license').value = s.license || 'CC BY 4.0';
                 
+                // Подтягиваем старые фото
+                window.pendingImages = s.images ? s.images.map(url => ({ file: null, url: url })) : [];
+                window.renderImagePreviews();
+
                 window.generateUCSFileName();
             }, 50);
         };
 
         window.deleteSoundFromCloud = async function(id) {
-            const confirmMsg = translations[window.currentLang].delete_confirm || "Вы уверены, что хотите удалить этот звук?";
-            if(!confirm(confirmMsg)) return;
+            const confirmed = await window.CustomUI.open({
+                title: '<i class="fa-solid fa-trash-can mr-2 text-red-500"></i>Удалить звук?',
+                message: translations[window.currentLang].delete_confirm,
+                confirmText: 'Удалить',
+                confirmClass: 'px-5 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-md'
+            });
+
+            if(!confirmed) return;
             
             window.showToast("Удаление...");
             let updatedCloud = [...window.cloudDataCache];
@@ -1062,7 +1160,7 @@
             if(success) window.showToast("Звук успешно удален!");
         };
 
-        // --- 4. Filtering Logic ---
+        // --- 5. Filtering Logic ---
         window.initFiltersData = function() {
             window.allExtractedTags.clear(); window.allExtractedSubcats.clear(); window.allExtractedGears.clear();
             window.allExtractedChannels.clear(); window.allExtractedLicenses.clear(); window.allExtractedRecordists.clear();
@@ -1226,9 +1324,11 @@
                 let colorClass = sound.ecoCategory === 'geophony' ? 'marker-geo' : sound.ecoCategory === 'biophony' ? 'marker-bio' : 'marker-anthro';
                 const isSoundwalk = sound.recPrinciple && sound.recPrinciple.includes('Soundwalk');
                 const isAmbisonic = sound.channels && sound.channels.toLowerCase().includes('ambisonics');
+                const hitRadius = window.currentPlayingId === sound.id ? 32 : 24; 
+                
                 const p = new ymaps.Placemark([sound.lat, sound.lng], {}, { 
                     iconLayout: createMarkerLayout(colorClass, sound.id, isSoundwalk, isAmbisonic), 
-                    iconShape: { type: 'Rectangle', coordinates: [[-14, -14], [14, 14]] }, 
+                    iconShape: { type: 'Circle', coordinates: [0, 0], radius: hitRadius }, 
                     iconOffset: [-14, -14] 
                 });
                 p.events.add('click', () => window.selectSound(sound.id));
@@ -1274,25 +1374,29 @@
         }
 
         // --- 5. Export variables to window to use in HTML callbacks ---
-        window.toggleEcoLayer = function(val) { if (window.activeEcoLayer.has(val)) window.activeEcoLayer.delete(val); else window.activeEcoLayer.add(val); window.processFilterChange(); }
-        window.toggleUcsCat = function(val) { if (window.activeUcsCat.has(val)) window.activeUcsCat.delete(val); else window.activeUcsCat.add(val); window.processFilterChange(); }
-        window.toggleUcsSub = function(val) { if (window.activeUcsSub.has(val)) window.activeUcsSub.delete(val); else window.activeUcsSub.add(val); window.processFilterChange(); }
-        window.toggleGenTag = function(val) { if (window.activeGenTags.has(val)) window.activeGenTags.delete(val); else window.activeGenTags.add(val); window.processFilterChange(); }
-        window.togglePrinciple = function(val) { if (window.activePrinciple.has(val)) window.activePrinciple.delete(val); else window.activePrinciple.add(val); window.processFilterChange(); }
-        window.toggleGear = function(val) { if (window.activeGear.has(val)) window.activeGear.delete(val); else window.activeGear.add(val); window.processFilterChange(); }
-        window.toggleMic = function(val) { if (window.activeMic.has(val)) window.activeMic.delete(val); else window.activeMic.add(val); window.processFilterChange(); }
-        window.toggleChannels = function(val) { if (window.activeChannels.has(val)) window.activeChannels.delete(val); else window.activeChannels.add(val); window.processFilterChange(); }
-        window.toggleLicense = function(val) { if (window.activeLicense.has(val)) window.activeLicense.delete(val); else window.activeLicense.add(val); window.processFilterChange(); }
-        window.toggleRecordist = function(val) { if (window.activeRecordist.has(val)) window.activeRecordist.delete(val); else window.activeRecordist.add(val); window.processFilterChange(); }
-        window.toggleWeather = function(val) { if (window.activeWeather.has(val)) window.activeWeather.delete(val); else window.activeWeather.add(val); window.processFilterChange(); }
-        window.toggleDate = function(val) { if (window.activeDate.has(val)) window.activeDate.delete(val); else window.activeDate.add(val); window.processFilterChange(); }
+        window.toggleEcoLayer = function(val) { if (window.activeEcoLayer.has(val)) window.activeEcoLayer.delete(val); else window.activeEcoLayer.add(val); window.processFilterChange(false); }
+        window.toggleUcsCat = function(val) { if (window.activeUcsCat.has(val)) window.activeUcsCat.delete(val); else window.activeUcsCat.add(val); window.processFilterChange(false); }
+        window.toggleUcsSub = function(val) { if (window.activeUcsSub.has(val)) window.activeUcsSub.delete(val); else window.activeUcsSub.add(val); window.processFilterChange(false); }
+        window.toggleGenTag = function(val) { if (window.activeGenTags.has(val)) window.activeGenTags.delete(val); else window.activeGenTags.add(val); window.processFilterChange(false); }
+        window.togglePrinciple = function(val) { if (window.activePrinciple.has(val)) window.activePrinciple.delete(val); else window.activePrinciple.add(val); window.processFilterChange(false); }
+        window.toggleGear = function(val) { if (window.activeGear.has(val)) window.activeGear.delete(val); else window.activeGear.add(val); window.processFilterChange(false); }
+        window.toggleMic = function(val) { if (window.activeMic.has(val)) window.activeMic.delete(val); else window.activeMic.add(val); window.processFilterChange(false); }
+        window.toggleChannels = function(val) { if (window.activeChannels.has(val)) window.activeChannels.delete(val); else window.activeChannels.add(val); window.processFilterChange(false); }
+        window.toggleLicense = function(val) { if (window.activeLicense.has(val)) window.activeLicense.delete(val); else window.activeLicense.add(val); window.processFilterChange(false); }
+        window.toggleRecordist = function(val) { if (window.activeRecordist.has(val)) window.activeRecordist.delete(val); else window.activeRecordist.add(val); window.processFilterChange(false); }
+        window.toggleWeather = function(val) { if (window.activeWeather.has(val)) window.activeWeather.delete(val); else window.activeWeather.add(val); window.processFilterChange(false); }
+        window.toggleDate = function(val) { if (window.activeDate.has(val)) window.activeDate.delete(val); else window.activeDate.add(val); window.processFilterChange(false); }
         
-        window.processFilterChange = function() {
+        window.processFilterChange = function(forceOpenDesktopSidebar = false) {
             window.renderFilterPanels();
             window.updateMapMarkers();
             window.renderList();
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && sidebar.classList.contains('sidebar-hidden')) window.toggleSidebar();
+            if (forceOpenDesktopSidebar) {
+                const sidebar = document.getElementById('sidebar');
+                if (window.innerWidth >= 768 && sidebar && sidebar.classList.contains('sidebar-hidden')) {
+                    window.toggleSidebar();
+                }
+            }
         }
 
         window.removeFilter = function(type, value) {
@@ -1308,7 +1412,7 @@
             if (type === 'rec') window.activeRecordist.delete(value);
             if (type === 'wea') window.activeWeather.delete(value);
             if (type === 'date') window.activeDate.delete(value);
-            window.processFilterChange();
+            window.processFilterChange(false);
         }
 
         window.switchFilterTab = function(tab) {
@@ -1546,22 +1650,41 @@
         }
 
         window.handleImageFilesWrapper = function(files) {
-            const container = document.getElementById('image-preview-container');
-            if (!container) return;
             if(files && files.length > 0) {
-                window.uploadedImageUrls = [];
-                const limit = Math.min(files.length, 3);
-                for(let i=0; i<limit; i++) {
-                    const file = files[i];
-                    if(file.type.startsWith('image/')) {
-                        window.uploadedImageUrls.push(URL.createObjectURL(file));
+                for(let i=0; i<files.length; i++) {
+                    if(files[i].type.startsWith('image/') && window.pendingImages.length < 3) {
+                        window.pendingImages.push({
+                            file: files[i],
+                            url: URL.createObjectURL(files[i])
+                        });
                     }
                 }
-                if(window.uploadedImageUrls.length > 0) {
-                    container.classList.remove('hidden');
-                    container.innerHTML = window.uploadedImageUrls.map(url => `<img src="${url}" class="image-thumb">`).join('');
-                }
+                window.renderImagePreviews();
             }
+        }
+
+        window.renderImagePreviews = function() {
+            const container = document.getElementById('image-preview-container');
+            if (!container) return;
+            if(window.pendingImages.length > 0) {
+                container.classList.remove('hidden');
+                container.innerHTML = window.pendingImages.map((img, idx) => `
+                    <div class="relative group">
+                        <img src="${img.url}" class="image-thumb">
+                        <button type="button" onclick="event.stopPropagation(); window.removePendingImage(${idx})" class="absolute top-1 right-1 bg-red-600/90 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity outline-none">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                container.classList.add('hidden');
+                container.innerHTML = '';
+            }
+        }
+
+        window.removePendingImage = function(idx) {
+            window.pendingImages.splice(idx, 1);
+            window.renderImagePreviews();
         }
 
         window.updateUcsSubcats = function() {
@@ -1606,7 +1729,7 @@
             if(files && files.length > 0) {
                 const file = files[0];
                 if(file.type.startsWith('audio/')) {
-                    window.currentUploadedFile = file; // Сохраняем файл для загрузки
+                    window.currentUploadedFile = file;
                     window.generateUCSFileName(); 
                     window.currentUploadedFileUrl = URL.createObjectURL(file);
                     
@@ -1693,38 +1816,30 @@
             
             let finalUrl = window.editingSoundId ? window.soundsData.find(x => x.id === window.editingSoundId).url : window.currentUploadedFileUrl;
 
-            // Блок реальной загрузки WAV в Яндекс.Облако
+            if (publishBtn) publishBtn.disabled = true;
+
+            // 1. Блок реальной загрузки аудио в Яндекс.Облако
             if (window.currentUploadedFile) {
                 try {
-                    if(publishBtn) publishBtn.disabled = true;
                     if(btnText) btnText.textContent = "Загрузка аудио в облако...";
-                    
                     const response = await fetch(YANDEX_FUNCTION_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            fileName: finalFileName,
-                            contentType: window.currentUploadedFile.type || 'audio/wav'
-                        })
+                        body: JSON.stringify({ fileName: finalFileName, contentType: window.currentUploadedFile.type || 'audio/wav' })
                     });
-
                     if (!response.ok) throw new Error("Ошибка получения ссылки на загрузку");
                     const data = await response.json();
-
-                    if(btnText) btnText.textContent = "Отправка файла...";
-
+                    
                     const uploadResponse = await fetch(data.uploadUrl, {
                         method: "PUT",
                         headers: { "Content-Type": window.currentUploadedFile.type || 'audio/wav' },
                         body: window.currentUploadedFile
                     });
+                    if (!uploadResponse.ok) throw new Error("Ошибка загрузки аудиофайла");
 
-                    if (!uploadResponse.ok) throw new Error("Ошибка загрузки файла в бакет");
-
-                    finalUrl = data.fileUrl; // Заменяем локальный URL на публичную ссылку Яндекса
-
+                    finalUrl = data.fileUrl;
                 } catch (err) {
-                    console.error("Upload error:", err);
+                    console.error(err);
                     window.showToast("Ошибка загрузки аудио. Проверьте консоль.");
                     if(publishBtn) publishBtn.disabled = false;
                     if(btnText) btnText.textContent = translations[window.currentLang].publish;
@@ -1732,7 +1847,34 @@
                 }
             }
 
-            // ---- СОХРАНЕНИЕ МЕТКИ В JSON ЯНДЕКС.ОБЛАКА ----
+            // 2. Блок реальной загрузки ФОТО в Яндекс.Облако
+            let finalImageUrls = [];
+            if(btnText) btnText.textContent = "Сохранение фото...";
+            
+            for(let img of window.pendingImages) {
+                if (img.file) { 
+                    try {
+                        const imgExt = img.file.name.split('.').pop();
+                        const imgFileName = `img_${Date.now()}_${Math.random().toString(36).substring(2,7)}.${imgExt}`;
+                        
+                        const presignRes = await fetch(YANDEX_FUNCTION_URL, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ fileName: imgFileName, contentType: img.file.type })
+                        });
+                        const data = await presignRes.json();
+                        
+                        await fetch(data.uploadUrl, { method: "PUT", headers: { "Content-Type": img.file.type }, body: img.file });
+                        finalImageUrls.push(data.fileUrl);
+                    } catch (err) {
+                        console.error("Ошибка загрузки фото", err);
+                    }
+                } else {
+                    finalImageUrls.push(img.url); // Сохраняем уже существующие ссылки
+                }
+            }
+
+            // 3. Сохранение метки в JSON Яндекс.Облака
             if(btnText) btnText.textContent = "Сохранение метки в базу...";
 
             const newSoundForCloud = {
@@ -1762,7 +1904,7 @@
                 fileName: finalFileName,
                 keywords: keywordsStr,
                 comments: window.editingSoundId ? window.soundsData.find(x => x.id === window.editingSoundId).comments : [],
-                images: window.uploadedImageUrls 
+                images: finalImageUrls 
             };
 
             let updatedCloudData = [...window.cloudDataCache];
@@ -1777,8 +1919,7 @@
             const success = await window.syncCloudData(updatedCloudData);
             if(success) {
                 window.showToast("Успешно сохранено!");
-                window.toggleAddModal(true); // force close without confirmation
-                window.resetAddForm();
+                window.toggleAddModal(true);
                 window.selectSound(newSoundForCloud.id);
                 setTimeout(() => window.toggleMainPlay(), 500);
             } else {
@@ -2240,15 +2381,21 @@
                 if(idx >= 0) {
                     updatedCloud[idx] = s;
                 } else {
-                    updatedCloud.push(s); // Если это хардкод звук, мы создаем его клон в облаке
+                    updatedCloud.push(s); 
                 }
                 await window.syncCloudData(updatedCloud);
             }
         }
         
-        window.closeAddModalSafely = function() {
+        window.closeAddModalSafely = async function() {
             const confirmMsg = translations[window.currentLang].close_confirm || "Вы уверены, что хотите закрыть? Введенные данные не сохранятся.";
-            if(confirm(confirmMsg)) {
+            const confirmed = await window.CustomUI.open({
+                title: '<i class="fa-solid fa-triangle-exclamation mr-2 text-amber-500"></i>Закрыть окно?',
+                message: confirmMsg,
+                confirmText: 'Закрыть',
+                confirmClass: 'px-5 py-2.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-md'
+            });
+            if(confirmed) {
                 window.toggleAddModal(true);
             }
         };
@@ -2263,7 +2410,8 @@
             if(el('image-file-input')) el('image-file-input').value = '';
             window.currentUploadedFile = null;
             window.currentUploadedFileUrl = '';
-            window.uploadedImageUrls = [];
+            window.pendingImages = [];
+            window.renderImagePreviews();
             
             const dropZoneContent = el('drop-zone-content');
             if(dropZoneContent) {
@@ -2273,12 +2421,6 @@
                         <span class="text-sm font-bold" data-lang="drag_drop">${translations[window.currentLang].drag_drop || "Нажмите или перетащите аудиофайл (.wav)"}</span>
                     </div>
                 `;
-            }
-            
-            const imgContainer = el('image-preview-container');
-            if(imgContainer) {
-                imgContainer.innerHTML = '';
-                imgContainer.classList.add('hidden');
             }
 
             if(el('add-user-defined')) el('add-user-defined').value = '';
@@ -2504,7 +2646,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             window.audioElement = document.getElementById('global-audio');
             
-            // Изначально загружаем базовые точки для мгновенного отображения интерфейса
             window.soundsData = window.rawSoundsData.map(window.formatSoundObject);
             
             window.renderWaveform();
@@ -2521,14 +2662,14 @@
                     }
                     if (window.initFiltersData) {
                         window.initFiltersData();
-                        window.processFilterChange();
+                        window.processFilterChange(window.innerWidth >= 768);
                     }
                 })
                 .catch(err => {
                     console.warn("База данных в облаке пока пуста или недоступна.", err);
                     if (window.initFiltersData) {
                         window.initFiltersData();
-                        window.processFilterChange();
+                        window.processFilterChange(window.innerWidth >= 768);
                     }
                 });
             
