@@ -658,7 +658,7 @@
                     <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-lang="comments"><i class="fa-regular fa-comments mr-2 opacity-70"></i>Комментарии</h3>
                     <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
                     <div class="flex gap-2">
-                        <input type="text" id="new-comment-input" data-lang-placeholder="comment_placeholder" placeholder="Оставьте комментарий..." class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm flex-1">
+                        <input type="text" id="new-comment-input" data-lang-placeholder="comment_placeholder" placeholder="Оставьте комментарий..." class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm flex-1" onkeydown="if(event.key === 'Enter') window.addComment()">
                         <button onclick="window.addComment()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95" data-lang="send">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
@@ -1214,6 +1214,17 @@
                 // Подтягиваем старые фото
                 window.pendingImages = s.images ? s.images.map(url => ({ file: null, url: url })) : [];
                 window.renderImagePreviews();
+
+                const dropZoneContent = document.getElementById('drop-zone-content');
+                if (s.url && dropZoneContent) {
+                    dropZoneContent.innerHTML = `
+                        <div class="flex flex-col items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
+                            <i class="fa-solid fa-file-audio text-4xl mb-2"></i>
+                            <span class="text-sm font-bold truncate w-full max-w-[250px]">${s.fileName || "Текущий файл сохранен"}</span>
+                            <span class="text-xs text-slate-500"><i class="fa-solid fa-check mr-1"></i>Исходный файл прикреплен</span>
+                        </div>
+                    `;
+                }
 
                 window.generateUCSFileName();
             }, 50);
@@ -1899,7 +1910,9 @@
             const btnText = document.getElementById('publish-btn-text');
             const publishBtn = document.getElementById('publish-btn');
             
-            let finalUrl = window.editingSoundId ? window.soundsData.find(x => x.id === window.editingSoundId).url : window.currentUploadedFileUrl;
+            const existingSound = window.editingSoundId ? window.soundsData.find(x => x.id === window.editingSoundId) : null;
+            let finalUrl = window.currentUploadedFileUrl || (existingSound ? existingSound.url : '');
+            let existingDuration = existingSound ? (existingSound.duration || '0:00') : '0:00';
 
             if (publishBtn) publishBtn.disabled = true;
 
@@ -1923,6 +1936,7 @@
                     if (!uploadResponse.ok) throw new Error("Ошибка загрузки аудиофайла");
 
                     finalUrl = data.fileUrl;
+                    existingDuration = '0:00'; // Сбросим, если загружаем новый
                 } catch (err) {
                     console.error(err);
                     window.showToast("Ошибка загрузки аудио. Проверьте консоль.");
@@ -1962,17 +1976,13 @@
             // 3. Сохранение метки в JSON Яндекс.Облака
             if(btnText) btnText.textContent = "Сохранение метки в базу...";
 
-            // Рассчитываем номер в архиве для НОВОГО звука
             const maxNum = window.soundsData.reduce((max, s) => {
                 const num = parseInt(s.archiveNum) || 0;
                 return num > max ? num : max;
             }, 0);
             
             let newArchiveNum = String(maxNum + 1).padStart(3, '0');
-            if (window.editingSoundId) {
-                const existing = window.soundsData.find(x => x.id === window.editingSoundId);
-                if (existing && existing.archiveNum) newArchiveNum = existing.archiveNum;
-            }
+            if (existingSound && existingSound.archiveNum) newArchiveNum = existingSound.archiveNum;
 
             const newSoundForCloud = {
                 id: window.editingSoundId || ('new_' + Date.now()),
@@ -1984,10 +1994,10 @@
                 lng: lng,
                 route: routeData,
                 location: location,
-                duration: '0:00',
+                duration: existingDuration,
                 url: finalUrl,
                 typeTag: subcat,
-                semanticTag: 'Upload',
+                semanticTag: existingSound ? existingSound.semanticTag : 'Upload',
                 recPrinciple: document.getElementById('add-principle') ? document.getElementById('add-principle').value : 'Spot',
                 gear: document.getElementById('add-recorder') ? document.getElementById('add-recorder').value : 'Unknown Gear',
                 date: formattedDate || '2023-10-01',
@@ -2001,7 +2011,7 @@
                 license: document.getElementById('add-license') ? document.getElementById('add-license').value : 'CC BY 4.0',
                 fileName: finalFileName,
                 keywords: keywordsStr,
-                comments: window.editingSoundId ? window.soundsData.find(x => x.id === window.editingSoundId).comments : [],
+                comments: existingSound ? existingSound.comments : [],
                 images: finalImageUrls 
             };
 
@@ -2020,9 +2030,8 @@
                 window.showToast("Успешно сохранено!");
                 window.toggleAddModal(true);
                 window.selectSound(newSoundForCloud.id);
-                setTimeout(() => window.toggleMainPlay(), 500);
             } else {
-                window.showToast("Аудио загружено, но метка не сохранилась в облако.");
+                window.showToast("Ошибка сохранения в облако.");
             }
             
             if(publishBtn) publishBtn.disabled = false;
@@ -2081,12 +2090,6 @@
                 window.map.setCenter([s.lat, s.lng], 15, { duration: 800 });
             }
             
-            if(window.currentPlayingId !== id && window.isPlaying) {
-                 if (window.audioElement) window.audioElement.pause();
-                 window.isPlaying = false;
-                 if (window.mockInterval) clearInterval(window.mockInterval);
-            }
-            
             window.currentPlayingId = id; 
             window.updateMapMarkers();
             
@@ -2112,23 +2115,27 @@
             if(pTags) pTags.innerHTML = tagsHtml;
             
             if (s.url) {
-                if (window.audioElement && window.audioElement.src !== s.url) { 
-                    window.audioElement.src = s.url; 
-                    const playPromise = window.audioElement.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => { 
-                            window.isPlaying = true; 
-                            window.startTimelineAnimation(); 
-                            window.updateUIState(); 
-                        }).catch((err) => { 
-                            if (err.name !== 'AbortError') {
-                                console.error("Audio playback error:", err);
-                                window.isPlaying = false; 
-                                window.prepareMockPlayback(s); 
-                            }
-                        }); 
+                if (window.audioElement) { 
+                    if (window.audioElement.src !== s.url && !window.audioElement.src.endsWith(s.url)) {
+                        window.audioElement.src = s.url; 
                     }
-                } else { window.toggleMainPlay(); }
+                    if(!window.isPlaying) {
+                        const playPromise = window.audioElement.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => { 
+                                window.isPlaying = true; 
+                                window.startTimelineAnimation(); 
+                                window.updateUIState(); 
+                            }).catch((err) => { 
+                                if (err.name !== 'AbortError') {
+                                    console.error("Audio playback error:", err);
+                                    window.isPlaying = false; 
+                                    window.prepareMockPlayback(s); 
+                                }
+                            }); 
+                        }
+                    }
+                }
             } else {
                 if (window.audioElement) {
                     window.audioElement.pause();
