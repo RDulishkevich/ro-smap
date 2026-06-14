@@ -362,8 +362,13 @@
         <div id="add-modal-content" class="bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden transform scale-95 transition-all border border-slate-100 dark:border-slate-800 pointer-events-auto">
             
             <div class="px-6 py-5 flex justify-between items-center bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-                <h3 id="add-modal-header-title" class="text-xl font-bold text-slate-800 dark:text-white"><i class="fa-solid fa-file-audio mr-2 text-blue-600"></i><span data-lang="add_audio_title">Добавить аудио</span></h3>
-                <button onclick="window.closeAddModalSafely()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <button id="add-modal-back-btn" onclick="window.goBackFromAdd()" class="hidden text-slate-400 hover:text-blue-600 transition-colors outline-none shrink-0">
+                        <i class="fa-solid fa-arrow-left text-xl pointer-events-none"></i>
+                    </button>
+                    <h3 id="add-modal-header-title" class="text-xl font-bold text-slate-800 dark:text-white truncate"><i class="fa-solid fa-file-audio mr-2 text-blue-600"></i><span data-lang="add_audio_title">Добавить аудио</span></h3>
+                </div>
+                <button onclick="window.closeAddModalSafely()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0 ml-4 outline-none">
                     <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
                 </button>
             </div>
@@ -569,7 +574,11 @@
                 <img id="details-image" src="" class="w-full h-full object-cover">
                 <div id="details-extra-images" class="absolute bottom-4 right-4 flex gap-2 hidden"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent h-20 pointer-events-none"></div>
-                <button onclick="window.closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors shadow-lg">
+                
+                <button id="details-modal-back-btn" onclick="window.goBackFromDetails()" class="hidden absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors shadow-lg outline-none pointer-events-auto z-10">
+                    <i class="fa-solid fa-arrow-left text-lg pointer-events-none"></i>
+                </button>
+                <button onclick="window.closeDetailsModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors shadow-lg outline-none pointer-events-auto z-10">
                     <i class="fa-solid fa-xmark text-lg pointer-events-none"></i>
                 </button>
             </div>
@@ -659,6 +668,16 @@
         </div>
     </div>
 
+    <!-- Лайтбокс для просмотра фотографий -->
+    <div id="lightbox-overlay" class="fixed inset-0 z-[99999] bg-black/95 hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+        <button onclick="window.closeLightbox()" class="absolute top-4 right-4 text-white hover:text-gray-300 text-3xl z-50 px-4 py-2 outline-none"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="window.prevLightbox(event)" class="absolute left-0 md:left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 text-4xl z-50 px-4 py-12 outline-none"><i class="fa-solid fa-chevron-left"></i></button>
+        <button onclick="window.nextLightbox(event)" class="absolute right-0 md:right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 text-4xl z-50 px-4 py-12 outline-none"><i class="fa-solid fa-chevron-right"></i></button>
+        
+        <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] object-contain transition-transform duration-300 select-none pointer-events-none">
+        <div id="lightbox-counter" class="absolute bottom-6 text-white text-sm font-bold tracking-widest bg-black/50 px-4 py-1.5 rounded-full">1 / 3</div>
+    </div>
+
     <!-- Кастомные UI Модальные окна (Замена alert, confirm, prompt) -->
     <div id="ui-modal-overlay" class="fixed inset-0 z-[9999] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="ui-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all">
@@ -704,8 +723,6 @@
 
         window.currentUploadedFileUrl = '';
         window.currentUploadedFile = null; 
-        
-        // Массив объектов: { file: File (если новое фото), url: Blob/String (для превью) }
         window.pendingImages = []; 
 
         window.addModalMap = null;
@@ -718,6 +735,7 @@
         window.addModalRoute = [];
         window.addModalPolyline = null;
         window.editingSoundId = null;
+        window.openedFromAdmin = false;
 
         window.audioContext = null;
         window.foaDecoder = null;
@@ -853,6 +871,64 @@
             return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
         }
 
+        window.assignArchiveNumbers = function() {
+            const total = window.soundsData.length;
+            window.soundsData.forEach((s, idx) => {
+                s.archiveNum = String(total - idx).padStart(3, '0');
+            });
+        }
+
+        // --- Lightbox ---
+        window.currentLightboxImages = [];
+        window.currentLightboxIndex = 0;
+
+        window.openLightbox = function(images, index) {
+            if(!images || images.length === 0) return;
+            window.currentLightboxImages = images;
+            window.currentLightboxIndex = index;
+            window.updateLightboxView();
+            const lb = document.getElementById('lightbox-overlay');
+            lb.classList.remove('hidden');
+            lb.classList.add('flex');
+            void lb.offsetWidth;
+            lb.classList.remove('opacity-0');
+        }
+
+        window.openLightboxForSound = function(id, index) {
+            const s = window.soundsData.find(x => x.id === id);
+            if(s && s.images && s.images.length > 0) {
+                window.openLightbox(s.images, index);
+            }
+        }
+
+        window.closeLightbox = function() {
+            const lb = document.getElementById('lightbox-overlay');
+            lb.classList.add('opacity-0');
+            setTimeout(() => { 
+                lb.classList.add('hidden'); 
+                lb.classList.remove('flex');
+            }, 300);
+        }
+
+        window.nextLightbox = function(e) {
+            if(e) e.stopPropagation();
+            if(window.currentLightboxImages.length <= 1) return;
+            window.currentLightboxIndex = (window.currentLightboxIndex + 1) % window.currentLightboxImages.length;
+            window.updateLightboxView();
+        }
+
+        window.prevLightbox = function(e) {
+            if(e) e.stopPropagation();
+            if(window.currentLightboxImages.length <= 1) return;
+            window.currentLightboxIndex = (window.currentLightboxIndex - 1 + window.currentLightboxImages.length) % window.currentLightboxImages.length;
+            window.updateLightboxView();
+        }
+
+        window.updateLightboxView = function() {
+            document.getElementById('lightbox-img').src = window.currentLightboxImages[window.currentLightboxIndex];
+            document.getElementById('lightbox-counter').textContent = `${window.currentLightboxIndex + 1} / ${window.currentLightboxImages.length}`;
+        }
+
         // --- 4. Dictionaries and Datasets ---
         const ucsStructure = {
             'AMBIENCE': [{ id: 'AMBAbnd', name: 'AMBAbnd (Заброшенное)' }, { id: 'AMBCity', name: 'AMBCity (Город)' }, { id: 'AMBInds', name: 'AMBInds (Индустрия)' }, { id: 'AMBMarkt', name: 'AMBMarkt (Рынок)' }, { id: 'AMBNatr', name: 'AMBNatr (Природа)' }, { id: 'AMBPark', name: 'AMBPark (Парк)' }, { id: 'AMBRoom', name: 'AMBRoom (Комната)' }, { id: 'AMBStrt', name: 'AMBStrt (Улица)' }, { id: 'AMBUrba', name: 'AMBUrba (Урбанистика)' }],
@@ -968,7 +1044,8 @@
                 if(cs.deleted) combinedMap.delete(cs.id);
                 else combinedMap.set(cs.id, cs);
             });
-            window.soundsData = Array.from(combinedMap.values()).map(window.formatSoundObject);
+            window.soundsData = Array.from(combinedMap.values()).reverse().map(window.formatSoundObject);
+            window.assignArchiveNumbers();
             window.cloudDataCache = cloudData;
         };
 
@@ -1043,6 +1120,13 @@
             }
         };
 
+        window.viewSoundFromAdmin = function(id) {
+            window.openedFromAdmin = true;
+            window.closeAdminPanel();
+            window.selectSound(id);
+            window.openDetailsModal();
+        };
+
         window.renderAdminList = function() {
             const list = document.getElementById('admin-sounds-list');
             if(!list) return;
@@ -1052,12 +1136,12 @@
             list.innerHTML = window.soundsData.map(s => {
                 const isHardcoded = rawIds.includes(s.id);
                 return `
-                    <div class="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <div class="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onclick="window.viewSoundFromAdmin('${s.id}')">
                         <div class="flex-1 min-w-0 pr-4">
                             <p class="text-sm font-bold text-slate-800 dark:text-white truncate">${s.title}</p>
-                            <p class="text-xs text-slate-500 truncate">${s.fileName}</p>
+                            <p class="text-xs text-slate-500 truncate">${s.archiveNum}_${s.fileName}</p>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2" onclick="event.stopPropagation()">
                             ${isHardcoded ? `<span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">Вшито</span>` : ''}
                             <button onclick="window.editSound('${s.id}')" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-500 dark:bg-blue-900/30 dark:hover:bg-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Изменить</button>
                             <button onclick="window.deleteSoundFromCloud('${s.id}')" class="text-red-600 hover:text-white bg-red-50 hover:bg-red-500 dark:bg-red-900/30 dark:hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Удалить</button>
@@ -1068,12 +1152,13 @@
         };
 
         window.editSound = function(id) {
+            window.openedFromAdmin = true;
             window.closeAdminPanel();
             const s = window.soundsData.find(x => x.id === id);
             if(!s) return;
             
             window.editingSoundId = id;
-            window.toggleAddModal(true); 
+            window.toggleAddModal(); 
             
             setTimeout(() => {
                 document.getElementById('add-modal-header-title').innerHTML = `<i class="fa-solid fa-pen-to-square mr-2 text-blue-600"></i><span data-lang="edit_audio">${translations[window.currentLang].edit_audio || "Редактировать аудио"}</span>`;
@@ -1324,7 +1409,7 @@
                 let colorClass = sound.ecoCategory === 'geophony' ? 'marker-geo' : sound.ecoCategory === 'biophony' ? 'marker-bio' : 'marker-anthro';
                 const isSoundwalk = sound.recPrinciple && sound.recPrinciple.includes('Soundwalk');
                 const isAmbisonic = sound.channels && sound.channels.toLowerCase().includes('ambisonics');
-                const hitRadius = window.currentPlayingId === sound.id ? 32 : 24; 
+                const hitRadius = window.currentPlayingId === sound.id ? 40 : 28; 
                 
                 const p = new ymaps.Placemark([sound.lat, sound.lng], {}, { 
                     iconLayout: createMarkerLayout(colorClass, sound.id, isSoundwalk, isAmbisonic), 
@@ -1877,8 +1962,21 @@
             // 3. Сохранение метки в JSON Яндекс.Облака
             if(btnText) btnText.textContent = "Сохранение метки в базу...";
 
+            // Рассчитываем номер в архиве для НОВОГО звука
+            const maxNum = window.soundsData.reduce((max, s) => {
+                const num = parseInt(s.archiveNum) || 0;
+                return num > max ? num : max;
+            }, 0);
+            
+            let newArchiveNum = String(maxNum + 1).padStart(3, '0');
+            if (window.editingSoundId) {
+                const existing = window.soundsData.find(x => x.id === window.editingSoundId);
+                if (existing && existing.archiveNum) newArchiveNum = existing.archiveNum;
+            }
+
             const newSoundForCloud = {
                 id: window.editingSoundId || ('new_' + Date.now()),
+                archiveNum: newArchiveNum,
                 title: title,
                 ecoCategory: ecoCat,
                 ucsCat: ucsCat,
@@ -1918,6 +2016,7 @@
 
             const success = await window.syncCloudData(updatedCloudData);
             if(success) {
+                window.openedFromAdmin = false;
                 window.showToast("Успешно сохранено!");
                 window.toggleAddModal(true);
                 window.selectSound(newSoundForCloud.id);
@@ -2242,17 +2341,25 @@
             const extraContainer = document.getElementById('details-extra-images');
 
             if(s.images && s.images.length > 0) {
-                if(detImg) detImg.src = s.images[0];
+                if(detImg) {
+                    detImg.src = s.images[0];
+                    detImg.onclick = () => window.openLightboxForSound(s.id, 0);
+                    detImg.classList.add('cursor-pointer');
+                }
                 if(extraContainer) {
                     if(s.images.length > 1) {
-                        extraContainer.innerHTML = s.images.slice(1).map(img => `<img src="${img}" class="w-16 h-16 rounded-lg border-2 border-white shadow-md object-cover">`).join('');
+                        extraContainer.innerHTML = s.images.slice(1).map((img, idx) => `<img src="${img}" onclick="event.stopPropagation(); window.openLightboxForSound('${s.id}', ${idx + 1})" class="w-16 h-16 rounded-lg border-2 border-white shadow-md object-cover cursor-pointer hover:scale-105 transition-transform">`).join('');
                         extraContainer.classList.remove('hidden');
                     } else {
                         extraContainer.classList.add('hidden');
                     }
                 }
             } else {
-                if(detImg) detImg.src = `https://picsum.photos/seed/${s.id}/800/500`;
+                if(detImg) {
+                    detImg.src = `https://picsum.photos/seed/${s.id}/800/500`;
+                    detImg.onclick = () => window.openLightbox([`https://picsum.photos/seed/${s.id}/800/500`], 0);
+                    detImg.classList.add('cursor-pointer');
+                }
                 if(extraContainer) extraContainer.classList.add('hidden');
             }
             
@@ -2261,13 +2368,19 @@
             const descEl = document.getElementById('details-description');
 
             if(titleEl) titleEl.textContent = s.title; 
-            if(fileEl) fileEl.innerHTML = `<i class="fa-solid fa-file-waveform mr-1"></i>${s.fileName}`;
+            if(fileEl) fileEl.innerHTML = `<i class="fa-solid fa-file-waveform mr-1"></i>${s.archiveNum}_${s.fileName}`;
             if(descEl) descEl.textContent = s.description;
             
             const dict = translations[window.currentLang];
             
             const makeFilterLink = (val, type) => `<span onclick="window.toggle${type}('${val}'); window.closeDetailsModal();" class="cursor-pointer hover:text-blue-500 border-b border-dashed border-slate-300 dark:border-slate-600 transition-colors" title="Добавить в фильтр">${val}</span>`;
             
+            const backBtn = document.getElementById('details-modal-back-btn');
+            if (backBtn) {
+                if (window.openedFromAdmin) backBtn.classList.remove('hidden');
+                else backBtn.classList.add('hidden');
+            }
+
             const safeHtml = (id, html) => { const el = document.getElementById(id); if(el) el.innerHTML = html; }
             const safeText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; }
 
@@ -2331,7 +2444,28 @@
             }
         }
 
+        window.goBackFromDetails = function() {
+            window.closeDetailsModal();
+            setTimeout(() => { window.openAdminPanel(); }, 300);
+        };
+
+        window.goBackFromAdd = async function() {
+            const confirmMsg = translations[window.currentLang].close_confirm || "Вы уверены, что хотите закрыть? Введенные данные не сохранятся.";
+            const confirmed = await window.CustomUI.open({
+                title: '<i class="fa-solid fa-triangle-exclamation mr-2 text-amber-500"></i>Закрыть окно?',
+                message: confirmMsg,
+                confirmText: 'Закрыть',
+                confirmClass: 'px-5 py-2.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-md'
+            });
+            if(confirmed) {
+                window.openedFromAdmin = false;
+                window.toggleAddModal(true);
+                setTimeout(() => { window.openAdminPanel(); }, 300);
+            }
+        };
+
         window.closeDetailsModal = function() {
+            window.openedFromAdmin = false;
             const m = document.getElementById('details-modal'); 
             const c = document.getElementById('details-modal-content');
             if(m && c) {
@@ -2396,6 +2530,7 @@
                 confirmClass: 'px-5 py-2.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-md'
             });
             if(confirmed) {
+                window.openedFromAdmin = false;
                 window.toggleAddModal(true);
             }
         };
@@ -2458,6 +2593,12 @@
             const m = document.getElementById('add-modal');
             const c = document.getElementById('add-modal-content');
             if(!m || !c) return;
+
+            const backBtn = document.getElementById('add-modal-back-btn');
+            if(backBtn) {
+                if(window.openedFromAdmin && window.editingSoundId) backBtn.classList.remove('hidden');
+                else backBtn.classList.add('hidden');
+            }
 
             if (m.classList.contains('hidden') && !forceClose) {
                 if(!window.editingSoundId) window.resetAddForm();
@@ -2652,6 +2793,16 @@
             window.setupAudioEvents();
             window.updateUcsSubcats(); 
             window.setupAmbisonicSphere();
+
+            // Lightbox Swipe support
+            const lbOverlay = document.getElementById('lightbox-overlay');
+            let touchStartX = 0;
+            lbOverlay.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+            lbOverlay.addEventListener('touchend', e => { 
+                let touchEndX = e.changedTouches[0].screenX; 
+                if(touchStartX - touchEndX > 50) window.nextLightbox();
+                if(touchEndX - touchStartX > 50) window.prevLightbox();
+            }, {passive: true});
 
             // АСИНХРОННАЯ ЗАГРУЗКА БАЗЫ ДАННЫХ ИЗ ЯНДЕКС ОБЛАКА
             fetch(YANDEX_BUCKET_URL + '/map_data.json?nocache=' + Date.now())
