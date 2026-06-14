@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Аудиокарта Ростовской области</title>
     
+    <!-- Tailwind CSS & Config -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         if (typeof tailwind !== 'undefined') {
@@ -19,6 +20,7 @@
         }
     </script>
     
+    <!-- FontAwesome, Yandex Maps & Omnitone (для Ambisonics) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_api_ключ_яндекс&lang=ru_RU" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/omnitone@1.3.0/build/omnitone.min.js"></script>
@@ -126,7 +128,7 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            touch-action: none; /* Запрещает скролл при перетягивании на смартфонах */
+            touch-action: none; 
         }
     </style>
 </head>
@@ -137,8 +139,10 @@
         <span id="toast-text" class="text-[13px] font-semibold tracking-wide">Уведомление</span>
     </div>
 
+    <!-- Карта -->
     <div id="map" class="absolute inset-0 z-0 transition-all duration-500"></div>
 
+    <!-- UI Слои -->
     <div class="absolute inset-0 pointer-events-none z-10 w-full h-full overflow-hidden">
         
         <button onclick="window.toggleSidebar()" class="absolute top-4 left-4 md:top-6 md:left-6 z-20 w-12 h-12 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto">
@@ -160,6 +164,7 @@
                 </div>
             </div>
 
+            <!-- Вкладки фильтров -->
             <div class="flex border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0">
                 <button onclick="window.switchFilterTab('ucs')" id="tab-ucs" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-blue-600 border-b-2 border-blue-600 transition-colors" data-lang="filter_tab_ucs"><i class="fa-solid fa-layer-group mr-1"></i>Библиотека</button>
                 <button onclick="window.switchFilterTab('tags')" id="tab-tags" class="flex-1 py-3 text-[12px] md:text-[13px] font-bold text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-800 dark:hover:text-slate-200 transition-colors" data-lang="filter_tab_tags"><i class="fa-solid fa-hashtag mr-1"></i>Теги</button>
@@ -168,6 +173,7 @@
 
             <div id="active-tags-container" class="px-6 py-2.5 flex flex-wrap gap-2 empty:hidden bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0"></div>
 
+            <!-- Панель Акустической экологии и UCS -->
             <div id="panel-ucs" class="px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-col gap-3 flex-shrink-0">
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="ucs_layer">Слои аудиоландшафта</p>
@@ -183,8 +189,10 @@
                 </div>
             </div>
 
+            <!-- Панель Общих тегов -->
             <div id="panel-tags" class="hidden px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-wrap gap-1.5 flex-shrink-0"></div>
 
+            <!-- Панель Метаданных -->
             <div id="panel-meta" class="hidden px-5 py-4 border-b border-slate-100 dark:border-slate-700/50 overflow-y-auto max-h-56 custom-scrollbar flex flex-col gap-4 flex-shrink-0">
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_principle">Принцип записи</p><div class="flex flex-wrap gap-1.5" id="filter-meta-principle"></div></div>
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-lang="meta_gear">Рекордер</p><div class="flex flex-wrap gap-1.5" id="filter-meta-gear"></div></div>
@@ -197,6 +205,7 @@
             <div id="sounds-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
         </div>
 
+        <!-- Плеер -->
         <div class="absolute bottom-0 left-0 right-0 w-full pointer-events-none flex justify-center pb-4 md:pb-6 z-40">
             <div id="player-card" class="pointer-events-auto bg-white dark:bg-slate-800 rounded-[1.8rem] md:rounded-[2rem] shadow-[0_-8px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_50px_rgba(0,0,0,0.5)] p-4 md:p-5 w-[94%] max-w-md transform translate-y-[150%] opacity-0 border border-slate-50 dark:border-slate-700 relative">
                 
@@ -244,16 +253,20 @@
                     </div>
                 </div>
 
+                <!-- Звуковая сфера (Новый интерфейс Ambisonics) -->
                 <div id="ambisonics-control" class="hidden mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 pointer-events-auto transition-all flex flex-col items-center">
                     <div class="w-full flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">
                         <span><i class="fa-solid fa-vr-cardboard mr-1 text-indigo-500"></i><span data-lang="ambisonics_pan">Звуковая сфера</span></span>
                         <span id="ambi-angle-val" class="text-indigo-600 dark:text-indigo-400">Y: 0° | P: 0°</span>
                     </div>
                     
+                    <!-- Сфера -->
                     <div id="ambi-sphere-pad" class="border-2 border-indigo-200 dark:border-indigo-800/50 bg-gradient-to-tr from-slate-100 to-white dark:from-slate-800 dark:to-slate-700 shadow-inner overflow-hidden cursor-crosshair touch-none">
+                        <!-- Сетка параллелей и меридианов -->
                         <div class="absolute inset-0 rounded-full border border-indigo-100 dark:border-indigo-900/30 scale-[0.6] pointer-events-none"></div>
                         <div class="absolute top-1/2 left-0 w-full h-[1px] bg-indigo-100 dark:bg-indigo-900/30 pointer-events-none"></div>
                         <div class="absolute top-0 left-1/2 w-[1px] h-full bg-indigo-100 dark:bg-indigo-900/30 pointer-events-none"></div>
+                        <!-- Интерактивная точка слушателя -->
                         <div id="ambi-dot" class="absolute w-4 h-4 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.8)] -ml-2 -mt-2 pointer-events-none transition-none" style="left: 50%; top: 50%;"></div>
                     </div>
                     <p class="text-[8px] text-slate-400 mt-2 text-center">Перемещайте точку (Yaw & Pitch)</p>
@@ -261,6 +274,7 @@
             </div>
         </div>
 
+        <!-- Кнопки управления справа -->
         <div class="absolute top-4 right-4 md:top-auto md:bottom-8 md:right-8 pointer-events-auto z-50 flex flex-col gap-3">
             <button onclick="window.toggleAddModal()" class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-xl border border-blue-500 transition-transform hover:scale-105 active:scale-95" title="Add Audio">
                 <i class="fa-solid fa-plus text-xl pointer-events-none"></i>
@@ -272,7 +286,8 @@
 
     </div>
 
-    <div id="settings-modal" onclick="if(event.target === this) window.toggleSettingsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+    <!-- Модальное окно Настроек -->
+    <div id="settings-modal" onmousedown="if(event.target === this) window.toggleSettingsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
         <div id="settings-modal-content" class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
             <div class="px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="settings_title"><i class="fa-solid fa-gear mr-2 text-slate-400"></i>Настройки</h3>
@@ -313,6 +328,12 @@
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
                 </div>
+                
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button onclick="window.promptAdminLogin()" class="w-full py-2.5 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 rounded-xl transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i> <span data-lang="admin_login">Вход для администратора</span>
+                    </button>
+                </div>
             </div>
             <div class="p-6 pt-0">
                 <button onclick="window.toggleSettingsModal()" class="w-full py-3.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold rounded-xl transition-all" data-lang="close">Закрыть</button>
@@ -320,17 +341,34 @@
         </div>
     </div>
 
-    <div id="add-modal" onclick="if(event.target === this) window.toggleAddModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+    <!-- Модальное окно Админ-панели -->
+    <div id="admin-modal" onmousedown="if(event.target === this) window.closeAdminPanel()" class="fixed inset-0 z-[250] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
+            <div class="px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white" data-lang="admin_panel"><i class="fa-solid fa-shield-halved mr-2 text-red-500"></i>Админ-панель</h3>
+                <button onclick="window.closeAdminPanel()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
+                </button>
+            </div>
+            <div class="p-2 overflow-y-auto custom-scrollbar flex-1" id="admin-sounds-list">
+                <!-- Сюда вставляются звуки -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно ADD AUDIO -->
+    <div id="add-modal" onmousedown="if(event.target === this) window.closeAddModalSafely()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
         <div id="add-modal-content" class="bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden transform scale-95 transition-all border border-slate-100 dark:border-slate-800 pointer-events-auto">
             
             <div class="px-6 py-5 flex justify-between items-center bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-xl font-bold text-slate-800 dark:text-white" data-lang="add_audio_title"><i class="fa-solid fa-file-audio mr-2 text-blue-600"></i>Добавить аудио</h3>
-                <button onclick="window.toggleAddModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <h3 id="add-modal-header-title" class="text-xl font-bold text-slate-800 dark:text-white"><i class="fa-solid fa-file-audio mr-2 text-blue-600"></i><span data-lang="add_audio_title">Добавить аудио</span></h3>
+                <button onclick="window.closeAddModalSafely()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                     <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
                 </button>
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                <!-- Блок 1: Основная информация (Загрузка файла и Фото) -->
                 <div class="space-y-4">
                     <div id="drop-zone" class="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors relative">
                         <input type="file" id="audio-file-input" accept=".wav" class="hidden">
@@ -368,10 +406,11 @@
 
                     <div>
                         <label class="modal-label text-slate-500 dark:text-slate-400" data-lang="sound_desc">Описание звука</label>
-                        <textarea id="add-desc" rows="3" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 h-20 resize-none leading-relaxed text-sm">Опишите звуковое окружение...</textarea>
+                        <textarea id="add-desc" rows="3" placeholder="Опишите звуковое окружение..." class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 h-20 resize-none leading-relaxed text-sm"></textarea>
                     </div>
                 </div>
 
+                <!-- Блок 2: UCS Tags -->
                 <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
                     <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-layer-group mr-1"></i><span data-lang="ucs_block_title">Классификация по стандарту UCS</span></p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -400,7 +439,8 @@
                         <div>
                             <label class="modal-label text-slate-400" data-lang="ucs_sub">Субкатегория (CatID):</label>
                             <select id="add-subcat" onchange="window.generateUCSFileName()" class="modal-input bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white appearance-none font-semibold text-xs">
-                                </select>
+                                <!-- Заполняется скриптом -->
+                            </select>
                         </div>
                     </div>
                     <div>
@@ -409,9 +449,11 @@
                     </div>
                 </div>
 
+                <!-- Блок 3: Location (Интерактивная карта), Date, Time, Weather -->
                 <div class="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 items-start">
                     <div id="add-map-container" class="w-full h-40 sm:h-auto sm:aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 relative cursor-crosshair shrink-0">
-                        </div>
+                        <!-- Сюда будет загружена Яндекс.Карта для выбора точки -->
+                    </div>
                     <div class="space-y-3 w-full">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
@@ -420,18 +462,18 @@
                             </div>
                             <div>
                                 <label class="modal-label text-slate-400" data-lang="coords">Координаты</label>
-                            <input id="add-coords" type="text" value="47.222, 39.718" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs font-mono" readonly>
-                            <button id="add-clear-route" type="button" class="hidden text-[10px] text-red-500 underline mt-1" onclick="window.clearAddModalRoute()">Очистить маршрут</button>
+                                <input id="add-coords" type="text" value="47.222, 39.718" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs font-mono" readonly>
+                                <button id="add-clear-route" type="button" class="hidden text-[10px] text-red-500 underline mt-1" onclick="window.clearAddModalRoute()">Очистить маршрут</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
                                 <label class="modal-label text-slate-400" data-lang="date">Дата</label>
-                                <input id="add-date" type="date" value="2023-10-01" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                                <input id="add-date" type="date" value="" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
                             </div>
                             <div>
                                 <label class="modal-label text-slate-400" data-lang="time">Время</label>
-                                <input id="add-time" type="time" value="12:00" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
+                                <input id="add-time" type="time" value="" class="modal-input bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white py-1.5 font-semibold text-xs">
                             </div>
                         </div>
                         <div>
@@ -449,6 +491,7 @@
                     </div>
                 </div>
 
+                <!-- Блок 4: Technical & Legal -->
                 <div class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="sm:col-span-2">
@@ -511,14 +554,15 @@
                 <p class="text-xs text-slate-500 dark:text-slate-400 text-center mb-3 flex items-center justify-center gap-1.5" data-lang="moderation_notice">
                     <i class="fa-solid fa-cloud"></i> Точки сохраняются в базу Яндекс.Облака
                 </p>
-                <button id="publish-btn" onclick="window.publishSound()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]" data-lang="publish">
+                <button id="publish-btn" onclick="window.publishSound()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98]">
                     <i class="fa-solid fa-cloud-arrow-up mr-2"></i><span id="publish-btn-text" data-lang="publish">Опубликовать звук</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="details-modal" onclick="if(event.target === this) window.closeDetailsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+    <!-- Модальное окно Деталей звука -->
+    <div id="details-modal" onmousedown="if(event.target === this) window.closeDetailsModal()" class="fixed inset-0 z-[200] bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none">
         <div id="details-modal-content" class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all pointer-events-auto">
             <div class="relative h-40 md:h-56 shrink-0 bg-slate-200 dark:bg-slate-700">
                 <img id="details-image" src="" class="w-full h-full object-cover">
@@ -530,6 +574,7 @@
             </div>
             
             <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                <!-- Шапка с тайтлом и скачиванием -->
                 <div class="flex justify-between items-start gap-4">
                     <div class="flex-grow min-w-0">
                         <div id="details-tags-container" class="flex flex-wrap gap-2 mb-3"></div>
@@ -546,6 +591,7 @@
                 
                 <p id="details-description" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base border-l-4 border-blue-500 pl-4 py-1"></p>
                 
+                <!-- Сетка метаданных -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-4 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                     <div class="meta-group">
                         <span class="meta-label" data-lang="location"><i class="fa-solid fa-location-dot"></i> Локация</span>
@@ -597,6 +643,7 @@
                     </div>
                 </div>
                 
+                <!-- Секция комментариев -->
                 <div class="mt-2 border-t border-slate-100 dark:border-slate-700/50 pt-6">
                     <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-lang="comments"><i class="fa-regular fa-comments mr-2 opacity-70"></i>Комментарии</h3>
                     <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
@@ -646,6 +693,7 @@
 
         window.addModalRoute = [];
         window.addModalPolyline = null;
+        window.editingSoundId = null;
 
         window.audioContext = null;
         window.foaDecoder = null;
@@ -658,6 +706,8 @@
 
         const YANDEX_BUCKET_URL = 'https://storage.yandexcloud.net/rosmap2026';
         const YANDEX_FUNCTION_URL = 'https://functions.yandexcloud.net/d4ebp9rd7rd53iso4p8u';
+
+        window.cloudDataCache = [];
 
         // --- 3. Utilities ---
         window.transliterate = function(word) {
@@ -756,7 +806,9 @@
                 err_no_audio: "Ошибка загрузки файла. Режим симуляции.", err_publish: "Функция загрузки будет доступна позже.",
                 success_publish: "Аудио успешно добавлено на карту!", audio_loaded: "Аудиофайл загружен", select_audio: "Пожалуйста, выберите аудиофайл",
                 comments: "Комментарии", comment_placeholder: "Оставьте комментарий...", send: "Отправить", no_comments: "Пока нет комментариев. Будьте первым!",
-                moderation_notice: "Данные сохраняются в Яндекс.Облако", meta_embedded: "Координаты {coords} успешно вшиты в метаданные файла.", soundwalk_notice: "Маршрут звуковой прогулки", ambisonics_pan: "Вращение 360°"
+                moderation_notice: "Данные сохраняются в Яндекс.Облако", meta_embedded: "Координаты {coords} успешно вшиты в метаданные файла.", soundwalk_notice: "Маршрут звуковой прогулки", ambisonics_pan: "Вращение 360°",
+                admin_login: "Вход для администратора", admin_panel: "Админ-панель", password_prompt: "Введите пароль администратора:", wrong_password: "Неверный пароль!", delete_confirm: "Вы уверены, что хотите удалить этот звук?",
+                close_confirm: "Вы уверены, что хотите закрыть? Введенные данные не сохранятся.", edit_audio: "Редактировать аудио", save_changes: "Сохранить изменения"
             },
             en: {
                 title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search sounds...",
@@ -772,7 +824,9 @@
                 err_no_audio: "Audio load error. Simulation mode.", err_publish: "Upload feature will be available later.",
                 success_publish: "Sound added to map successfully!", audio_loaded: "Audio file loaded", select_audio: "Please select an audio file",
                 comments: "Comments", comment_placeholder: "Leave a comment...", send: "Send", no_comments: "No comments yet. Be the first!",
-                moderation_notice: "Data is saved to Yandex Cloud", meta_embedded: "Coordinates {coords} embedded successfully into file metadata.", soundwalk_notice: "Soundwalk Route", ambisonics_pan: "360° Rotation"
+                moderation_notice: "Data is saved to Yandex Cloud", meta_embedded: "Coordinates {coords} embedded successfully into file metadata.", soundwalk_notice: "Soundwalk Route", ambisonics_pan: "360° Rotation",
+                admin_login: "Admin Login", admin_panel: "Admin Panel", password_prompt: "Enter admin password:", wrong_password: "Wrong password!", delete_confirm: "Are you sure you want to delete this sound?",
+                close_confirm: "Are you sure you want to close? Data will be lost.", edit_audio: "Edit Audio", save_changes: "Save Changes"
             }
         };
 
@@ -827,6 +881,185 @@
                 comments: s.comments || [],
                 images: s.images || [] 
             };
+        };
+
+        window.mergeData = function(cloudData) {
+            const combinedMap = new Map();
+            window.rawSoundsData.forEach(rs => combinedMap.set(rs.id, JSON.parse(JSON.stringify(rs))));
+            cloudData.forEach(cs => {
+                if(cs.deleted) combinedMap.delete(cs.id);
+                else combinedMap.set(cs.id, cs);
+            });
+            window.soundsData = Array.from(combinedMap.values()).map(window.formatSoundObject);
+            window.cloudDataCache = cloudData;
+        };
+
+        window.syncCloudData = async function(newCloudData) {
+            try {
+                const presignRes = await fetch(YANDEX_FUNCTION_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fileName: "map_data.json", contentType: "application/json" })
+                });
+                
+                if (!presignRes.ok) throw new Error("Ошибка получения ссылки для JSON");
+                const presignData = await presignRes.json();
+
+                await fetch(presignData.uploadUrl, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newCloudData)
+                });
+                
+                window.mergeData(newCloudData);
+                window.initFiltersData();
+                window.processFilterChange();
+                
+                const adminList = document.getElementById('admin-sounds-list');
+                if(document.getElementById('admin-modal') && !document.getElementById('admin-modal').classList.contains('hidden')) {
+                    window.renderAdminList();
+                }
+                return true;
+            } catch(e) {
+                console.error("Ошибка сохранения JSON", e);
+                window.showToast("Синхронизация с облаком не удалась.");
+                return false;
+            }
+        };
+
+        // --- ADMIN PANEL LOGIC ---
+        window.promptAdminLogin = function() {
+            const pwd = prompt(translations[window.currentLang].password_prompt || "Введите пароль администратора:");
+            if (pwd === "Скай") {
+                window.toggleSettingsModal();
+                setTimeout(() => window.openAdminPanel(), 300);
+            } else if (pwd !== null) {
+                window.showToast(translations[window.currentLang].wrong_password || "Неверный пароль!");
+            }
+        };
+
+        window.openAdminPanel = function() {
+            const m = document.getElementById('admin-modal');
+            if(m) {
+                m.classList.remove('hidden');
+                void m.offsetWidth;
+                m.classList.remove('opacity-0', 'pointer-events-none');
+                m.firstElementChild.classList.remove('scale-95');
+                window.renderAdminList();
+            }
+        };
+
+        window.closeAdminPanel = function() {
+            const m = document.getElementById('admin-modal');
+            if(m) {
+                m.classList.add('opacity-0', 'pointer-events-none');
+                m.firstElementChild.classList.add('scale-95');
+                setTimeout(() => { if(m.classList.contains('opacity-0')) m.classList.add('hidden') }, 300);
+            }
+        };
+
+        window.renderAdminList = function() {
+            const list = document.getElementById('admin-sounds-list');
+            if(!list) return;
+            
+            list.innerHTML = window.soundsData.map(s => {
+                return `
+                    <div class="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <div class="flex-1 min-w-0 pr-4">
+                            <p class="text-sm font-bold text-slate-800 dark:text-white truncate">${s.title}</p>
+                            <p class="text-xs text-slate-500 truncate">${s.fileName}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.editSound('${s.id}')" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-500 dark:bg-blue-900/30 dark:hover:bg-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Редактировать</button>
+                            <button onclick="window.deleteSoundFromCloud('${s.id}')" class="text-red-600 hover:text-white bg-red-50 hover:bg-red-500 dark:bg-red-900/30 dark:hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.editSound = function(id) {
+            window.closeAdminPanel();
+            const s = window.soundsData.find(x => x.id === id);
+            if(!s) return;
+            
+            window.editingSoundId = id;
+            window.toggleAddModal(); // Opens and resets logic
+            
+            setTimeout(() => {
+                document.getElementById('add-modal-header-title').innerHTML = `<i class="fa-solid fa-pen-to-square mr-2 text-blue-600"></i><span data-lang="edit_audio">${translations[window.currentLang].edit_audio || "Редактировать аудио"}</span>`;
+                document.getElementById('publish-btn-text').textContent = translations[window.currentLang].save_changes || "Сохранить изменения";
+                
+                document.getElementById('add-display-title').value = s.title;
+                document.getElementById('add-desc').value = s.description || '';
+                document.getElementById('add-eco').value = s.ecoCategory;
+                document.getElementById('add-category').value = s.ucsCat;
+                window.updateUcsSubcats();
+                document.getElementById('add-subcat').value = s.typeTag;
+                document.getElementById('add-tags').value = s.keywords || '';
+                document.getElementById('add-loc').value = s.location || 'Ростов-на-Дону';
+                
+                if (s.route && s.route.length > 0) {
+                    window.addModalRoute = [...s.route];
+                    document.getElementById('add-coords').value = s.route.length + " точек (Маршрут)";
+                    document.getElementById('add-clear-route').classList.remove('hidden');
+                    if(window.addModalMap) {
+                        window.addModalMap.setCenter(s.route[0]);
+                        if(!window.addModalPolyline) {
+                            window.addModalPolyline = new ymaps.Polyline(window.addModalRoute, {}, { strokeColor: '#3b82f6', strokeWidth: 4, strokeStyle: 'shortdash' });
+                            window.addModalMap.geoObjects.add(window.addModalPolyline);
+                        } else {
+                            window.addModalPolyline.geometry.setCoordinates(window.addModalRoute);
+                        }
+                        if(window.addModalPlacemark) window.addModalPlacemark.options.set('visible', false);
+                    }
+                } else {
+                    document.getElementById('add-coords').value = s.lat + ", " + s.lng;
+                    window.addModalRoute = [[s.lat, s.lng]];
+                    if(window.addModalMap) {
+                        window.addModalMap.setCenter([s.lat, s.lng]);
+                        if(window.addModalPlacemark) {
+                            window.addModalPlacemark.options.set('visible', true);
+                            window.addModalPlacemark.geometry.setCoordinates([s.lat, s.lng]);
+                        }
+                        if(window.addModalPolyline) window.addModalPolyline.geometry.setCoordinates([]);
+                    }
+                    document.getElementById('add-clear-route').classList.add('hidden');
+                }
+                
+                // Parse date logic if needed, fallback to preserving value.
+                document.getElementById('add-time').value = s.time || '12:00';
+                document.getElementById('add-weather').value = s.weather || 'Ясно (Clear)';
+                document.getElementById('add-principle').value = s.recPrinciple || 'Направленная фиксация (Spot)';
+                document.getElementById('add-recorder').value = s.gear || '';
+                document.getElementById('add-mic').value = s.micType || '';
+                document.getElementById('add-format').value = s.format || 'WAV 48kHz / 24-bit';
+                document.getElementById('add-channels').value = s.channels || 'Stereo XY';
+                document.getElementById('add-recordist').value = s.recordist || '';
+                document.getElementById('add-license').value = s.license || 'CC BY 4.0';
+                
+                window.generateUCSFileName();
+            }, 50);
+        };
+
+        window.deleteSoundFromCloud = async function(id) {
+            const confirmMsg = translations[window.currentLang].delete_confirm || "Вы уверены, что хотите удалить этот звук?";
+            if(!confirm(confirmMsg)) return;
+            
+            window.showToast("Удаление...");
+            let updatedCloud = [...window.cloudDataCache];
+            const rawIds = window.rawSoundsData.map(s => s.id);
+            
+            if (rawIds.includes(id)) {
+                let idx = updatedCloud.findIndex(x => x.id === id);
+                if(idx >= 0) updatedCloud[idx] = { id: id, deleted: true };
+                else updatedCloud.push({ id: id, deleted: true });
+            } else {
+                updatedCloud = updatedCloud.filter(s => s.id !== id);
+            }
+            
+            const success = await window.syncCloudData(updatedCloud);
+            if(success) window.showToast("Звук успешно удален!");
         };
 
         // --- 4. Filtering Logic ---
@@ -1421,6 +1654,9 @@
                 }
             }
             
+            const locEl = document.getElementById('add-loc');
+            const location = locEl ? locEl.value : 'Ростов-на-Дону';
+
             const ecoEl = document.getElementById('add-eco');
             const ecoCat = ecoEl ? ecoEl.value : 'anthrophony'; 
             
@@ -1449,16 +1685,13 @@
             
             window.generateUCSFileName();
 
-            const userDefEl = document.getElementById('add-user-defined');
-            const userDef = userDefEl ? userDefEl.value.trim() : 'NewSound';
-
             const fileNameEl = document.getElementById('add-file-name');
             const finalFileName = fileNameEl ? fileNameEl.value : `sound_${Date.now()}.wav`;
 
             const btnText = document.getElementById('publish-btn-text');
             const publishBtn = document.getElementById('publish-btn');
             
-            let finalUrl = window.currentUploadedFileUrl;
+            let finalUrl = window.editingSoundId ? window.soundsData.find(x => x.id === window.editingSoundId).url : window.currentUploadedFileUrl;
 
             // Блок реальной загрузки WAV в Яндекс.Облако
             if (window.currentUploadedFile) {
@@ -1502,21 +1735,15 @@
             // ---- СОХРАНЕНИЕ МЕТКИ В JSON ЯНДЕКС.ОБЛАКА ----
             if(btnText) btnText.textContent = "Сохранение метки в базу...";
 
-            let currentCloudData = [];
-            try {
-                // Пытаемся получить существующую базу меток (с защитой от кэша браузера)
-                const res = await fetch(YANDEX_BUCKET_URL + '/map_data.json?nocache=' + Date.now());
-                if (res.ok) currentCloudData = await res.json();
-            } catch(e) { console.warn("Файл map_data.json пока не существует, создаем новый."); }
-
             const newSoundForCloud = {
-                id: 'new_' + Date.now(),
+                id: window.editingSoundId || ('new_' + Date.now()),
                 title: title,
                 ecoCategory: ecoCat,
                 ucsCat: ucsCat,
                 lat: lat,
                 lng: lng,
                 route: routeData,
+                location: location,
                 duration: '0:00',
                 url: finalUrl,
                 typeTag: subcat,
@@ -1534,72 +1761,32 @@
                 license: document.getElementById('add-license') ? document.getElementById('add-license').value : 'CC BY 4.0',
                 fileName: finalFileName,
                 keywords: keywordsStr,
-                comments: [],
+                comments: window.editingSoundId ? window.soundsData.find(x => x.id === window.editingSoundId).comments : [],
                 images: window.uploadedImageUrls 
             };
 
-            currentCloudData.push(newSoundForCloud);
-
-            try {
-                // Запрашиваем одноразовую ссылку для перезаписи файла базы данных (JSON)
-                const presignRes = await fetch(YANDEX_FUNCTION_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ fileName: "map_data.json", contentType: "application/json" })
-                });
-                
-                if (!presignRes.ok) throw new Error("Ошибка получения ссылки для JSON");
-                const presignData = await presignRes.json();
-
-                // Записываем обновленный массив JSON обратно в бакет
-                await fetch(presignData.uploadUrl, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(currentCloudData)
-                });
-                
-                console.log("Точка успешно сохранена в Яндекс.Облако!");
-            } catch(e) {
-                console.error("Ошибка сохранения JSON", e);
-                window.showToast("Аудио загружено, но метка не сохранилась в облако.");
+            let updatedCloudData = [...window.cloudDataCache];
+            if (window.editingSoundId) {
+                const idx = updatedCloudData.findIndex(x => x.id === window.editingSoundId);
+                if (idx >= 0) updatedCloudData[idx] = newSoundForCloud;
+                else updatedCloudData.push(newSoundForCloud); 
+            } else {
+                updatedCloudData.push(newSoundForCloud);
             }
 
-            // Обновляем интерфейс
-            window.soundsData = [...window.rawSoundsData, ...currentCloudData].map(window.formatSoundObject);
-            window.initFiltersData();
-            window.processFilterChange();
-            
-            window.showToast(translations[window.currentLang].success_publish);
-            window.toggleAddModal();
+            const success = await window.syncCloudData(updatedCloudData);
+            if(success) {
+                window.showToast("Успешно сохранено!");
+                window.toggleAddModal(true); // force close without confirmation
+                window.resetAddForm();
+                window.selectSound(newSoundForCloud.id);
+                setTimeout(() => window.toggleMainPlay(), 500);
+            } else {
+                window.showToast("Аудио загружено, но метка не сохранилась в облако.");
+            }
             
             if(publishBtn) publishBtn.disabled = false;
             if(btnText) btnText.textContent = translations[window.currentLang].publish;
-
-            window.currentUploadedFileUrl = '';
-            window.currentUploadedFile = null;
-            window.uploadedImageUrls = [];
-            window.clearAddModalRoute(); 
-            const audioInput = document.getElementById('audio-file-input');
-            if(audioInput) audioInput.value = '';
-            const imgInput = document.getElementById('image-file-input');
-            if(imgInput) imgInput.value = '';
-            const imgPreview = document.getElementById('image-preview-container');
-            if(imgPreview) {
-                imgPreview.innerHTML = '';
-                imgPreview.classList.add('hidden');
-            }
-            const dzContent = document.getElementById('drop-zone-content');
-            if(dzContent) {
-                dzContent.innerHTML = `
-                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-300 dark:text-slate-500 mb-3"></i>
-                    <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-2">
-                        <span class="text-sm font-bold" data-lang="drag_drop">${translations[window.currentLang].drag_drop}</span>
-                    </div>
-                `;
-            }
-            
-            window.selectSound(newSoundForCloud.id);
-            setTimeout(() => window.toggleMainPlay(), 500);
         }
 
         window.selectSound = function(id) {
@@ -1943,7 +2130,7 @@
             const safeHtml = (id, html) => { const el = document.getElementById(id); if(el) el.innerHTML = html; }
             const safeText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; }
 
-            safeText('det-location', "Ростовская область");
+            safeText('det-location', s.location || "Ростовская область");
             safeText('det-coords', `${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`);
             safeHtml('det-datetime', `${makeFilterLink(s.date, 'Date')} / ${s.time}`);
             safeHtml('det-weather', makeFilterLink(s.weather, 'Weather'));
@@ -2033,7 +2220,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        window.addComment = function() {
+        window.addComment = async function() {
             const input = document.getElementById('new-comment-input');
             if(!input) return;
 
@@ -2046,15 +2233,92 @@
                 s.comments.push({ author: window.currentLang === 'ru' ? 'Вы (Гость)' : 'You (Guest)', text: text, date: dateStr });
                 input.value = '';
                 window.renderComments(s);
+
+                // Сохранение комментария в Яндекс Облако
+                let updatedCloud = [...window.cloudDataCache];
+                let idx = updatedCloud.findIndex(x => x.id === s.id);
+                if(idx >= 0) {
+                    updatedCloud[idx] = s;
+                } else {
+                    updatedCloud.push(s); // Если это хардкод звук, мы создаем его клон в облаке
+                }
+                await window.syncCloudData(updatedCloud);
             }
         }
         
-        window.toggleAddModal = function() {
+        window.closeAddModalSafely = function() {
+            const confirmMsg = translations[window.currentLang].close_confirm || "Вы уверены, что хотите закрыть? Введенные данные не сохранятся.";
+            if(confirm(confirmMsg)) {
+                window.toggleAddModal(true);
+            }
+        };
+
+        window.resetAddForm = function() {
+            window.editingSoundId = null;
+            document.getElementById('add-modal-header-title').innerHTML = `<i class="fa-solid fa-file-audio mr-2 text-blue-600"></i><span data-lang="add_audio_title">${translations[window.currentLang].add_audio_title || "Добавить аудио"}</span>`;
+            document.getElementById('publish-btn-text').textContent = translations[window.currentLang].publish || "Опубликовать звук";
+
+            const el = (id) => document.getElementById(id);
+            if(el('audio-file-input')) el('audio-file-input').value = '';
+            if(el('image-file-input')) el('image-file-input').value = '';
+            window.currentUploadedFile = null;
+            window.currentUploadedFileUrl = '';
+            window.uploadedImageUrls = [];
+            
+            const dropZoneContent = el('drop-zone-content');
+            if(dropZoneContent) {
+                dropZoneContent.innerHTML = `
+                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-300 dark:text-slate-500 mb-3"></i>
+                    <div class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-sm font-bold" data-lang="drag_drop">${translations[window.currentLang].drag_drop || "Нажмите или перетащите аудиофайл (.wav)"}</span>
+                    </div>
+                `;
+            }
+            
+            const imgContainer = el('image-preview-container');
+            if(imgContainer) {
+                imgContainer.innerHTML = '';
+                imgContainer.classList.add('hidden');
+            }
+
+            if(el('add-user-defined')) el('add-user-defined').value = '';
+            if(el('add-display-title')) el('add-display-title').value = 'Новая запись';
+            if(el('add-desc')) el('add-desc').value = '';
+            if(el('add-eco')) el('add-eco').value = 'anthrophony';
+            if(el('add-category')) el('add-category').value = 'AMBIENCE';
+            window.updateUcsSubcats(); 
+            
+            if(el('add-tags')) el('add-tags').value = '';
+            if(el('add-loc')) el('add-loc').value = 'Ростов-на-Дону';
+            
+            const today = new Date().toISOString().split('T')[0];
+            if(el('add-date')) el('add-date').value = today;
+            
+            const now = new Date();
+            const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            if(el('add-time')) el('add-time').value = timeStr;
+            
+            if(el('add-weather')) el('add-weather').value = 'Ясно (Clear)';
+            if(el('add-principle')) el('add-principle').value = 'Направленная фиксация (Spot)';
+            if(el('add-recorder')) el('add-recorder').value = '';
+            if(el('add-mic')) el('add-mic').value = '';
+            if(el('add-format')) el('add-format').value = 'WAV 48kHz / 24-bit';
+            if(el('add-channels')) el('add-channels').value = 'Stereo XY';
+            if(el('add-recordist')) el('add-recordist').value = '';
+            if(el('add-license')) el('add-license').value = 'CC BY 4.0';
+
+            window.clearAddModalRoute();
+            const publishBtn = el('publish-btn');
+            if(publishBtn) publishBtn.disabled = false;
+        };
+
+        window.toggleAddModal = function(forceClose = false) {
             const m = document.getElementById('add-modal');
             const c = document.getElementById('add-modal-content');
             if(!m || !c) return;
 
-            if (m.classList.contains('hidden')) {
+            if (m.classList.contains('hidden') && !forceClose) {
+                if(!window.editingSoundId) window.resetAddForm();
                 m.classList.remove('hidden');
                 void m.offsetWidth; 
                 m.classList.remove('opacity-0', 'pointer-events-none'); 
@@ -2253,8 +2517,7 @@
                 .then(res => res.ok ? res.json() : [])
                 .then(cloudData => {
                     if (cloudData.length > 0) {
-                        const combined = [...window.rawSoundsData, ...cloudData];
-                        window.soundsData = combined.map(window.formatSoundObject);
+                        window.mergeData(cloudData);
                     }
                     if (window.initFiltersData) {
                         window.initFiltersData();
