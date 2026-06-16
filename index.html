@@ -996,7 +996,8 @@
                 comments: "Комментарии", comment_placeholder: "Оставьте комментарий...", send: "Отправить", no_comments: "Пока нет комментариев. Будьте первым!",
                 moderation_notice: "Данные сохраняются в Яндекс.Облако", meta_embedded: "Координаты {coords} успешно вшиты в метаданные файла.", soundwalk_notice: "Маршрут звуковой прогулки", ambisonics_pan: "Вращение 360°",
                 admin_login: "Вход для администратора", admin_panel: "Админ-панель", password_prompt: "Введите пароль администратора:", wrong_password: "Неверный пароль!", delete_confirm: "Вы уверены, что хотите удалить этот звук?",
-                close_confirm: "Вы уверены, что хотите закрыть? Введенные данные не сохранятся.", edit_audio: "Редактировать аудио", save_changes: "Сохранить изменения"
+                close_confirm: "Вы уверены, что хотите закрыть? Введенные данные не сохранятся.", edit_audio: "Редактировать аудио", save_changes: "Сохранить изменения",
+                add_here_title: "Новая метка", add_here_msg: "Создать аудиометку по координатам", create: "Создать", cancel: "Отмена"
             },
             en: {
                 title: "Rostov Region", subtitle: "Audio Map", search_placeholder: "Search sounds...",
@@ -1014,7 +1015,8 @@
                 comments: "Comments", comment_placeholder: "Leave a comment...", send: "Send", no_comments: "No comments yet. Be the first!",
                 moderation_notice: "Data is saved to Yandex Cloud", meta_embedded: "Coordinates {coords} embedded successfully into file metadata.", soundwalk_notice: "Soundwalk Route", ambisonics_pan: "360° Rotation",
                 admin_login: "Admin Login", admin_panel: "Admin Panel", password_prompt: "Enter admin password:", wrong_password: "Wrong password!", delete_confirm: "Are you sure you want to delete this sound?",
-                close_confirm: "Are you sure you want to close? Data will be lost.", edit_audio: "Edit Audio", save_changes: "Save Changes"
+                close_confirm: "Are you sure you want to close? Data will be lost.", edit_audio: "Edit Audio", save_changes: "Save Changes",
+                add_here_title: "New Marker", add_here_msg: "Create audio marker at coordinates", create: "Create", cancel: "Cancel"
             }
         };
 
@@ -1777,6 +1779,23 @@
                 '<div class="walker-marker $[properties.colorClass]"><i class="fa-solid fa-person-walking"></i></div>'
             );
             window.updateMapMarkers();
+
+            window.map.events.add('contextmenu', async function (e) {
+                const coords = e.get('coords');
+                const lat = coords[0].toFixed(5);
+                const lng = coords[1].toFixed(5);
+                const dict = translations[window.currentLang];
+                const confirmed = await window.CustomUI.open({
+                    title: `<i class="fa-solid fa-location-dot mr-2 text-blue-500"></i>${dict.add_here_title || 'Новая метка'}`,
+                    message: `${dict.add_here_msg || 'Создать аудиометку по координатам'} <br><b class="font-mono text-slate-800 dark:text-slate-200 mt-2 block text-center bg-slate-100 dark:bg-slate-700 py-2 rounded-lg">${lat}, ${lng}</b>`,
+                    confirmText: dict.create || 'Создать',
+                    cancelText: dict.cancel || 'Отмена',
+                    confirmClass: 'px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-md'
+                });
+                if(confirmed) {
+                    window.toggleAddModal(false, coords);
+                }
+            });
         }
 
         window.handleImageFilesWrapper = function(files) {
@@ -2630,7 +2649,7 @@
             if(publishBtn) publishBtn.disabled = false;
         };
 
-        window.toggleAddModal = function(forceClose = false) {
+        window.toggleAddModal = function(forceClose = false, initialCoords = null) {
             const m = document.getElementById('add-modal');
             const c = document.getElementById('add-modal-content');
             if(!m || !c) return;
@@ -2648,13 +2667,22 @@
                 m.classList.remove('opacity-0', 'pointer-events-none'); 
                 c.classList.remove('scale-95');
                 
+                const startCoords = initialCoords || [47.222, 39.718];
+                
                 if (!window.addModalMap && typeof ymaps !== 'undefined') {
                     ymaps.ready(() => {
                         window.addModalMap = new ymaps.Map('add-map-container', {
-                            center: [47.222, 39.718], zoom: 11, controls: ['zoomControl']
+                            center: startCoords, zoom: initialCoords ? 15 : 11, controls: ['zoomControl']
                         });
-                        window.addModalPlacemark = new ymaps.Placemark([47.222, 39.718], {}, { preset: 'islands#blueDotIcon' });
+                        window.addModalPlacemark = new ymaps.Placemark(startCoords, {}, { preset: 'islands#blueDotIcon' });
                         window.addModalMap.geoObjects.add(window.addModalPlacemark);
+                        
+                        if (initialCoords) {
+                            const acoords = document.getElementById('add-coords');
+                            if(acoords) acoords.value = startCoords[0].toFixed(5) + ", " + startCoords[1].toFixed(5);
+                            window.addModalRoute = [startCoords];
+                        }
+                        
                         window.addModalMap.events.add('click', function (e) {
                             var coords = e.get('coords');
                             const principleEl = document.getElementById('add-principle');
@@ -2685,6 +2713,18 @@
                     });
                 } else if (window.addModalMap) {
                     window.addModalMap.container.fitToViewport();
+                    if (initialCoords) {
+                        window.addModalMap.setCenter(startCoords, 15);
+                        window.addModalPlacemark.geometry.setCoordinates(startCoords);
+                        window.addModalPlacemark.options.set('visible', true);
+                        if(window.addModalPolyline) window.addModalPolyline.geometry.setCoordinates([]);
+                        const acoords = document.getElementById('add-coords');
+                        if(acoords) acoords.value = startCoords[0].toFixed(5) + ", " + startCoords[1].toFixed(5);
+                        window.addModalRoute = [startCoords];
+                        const principle = document.getElementById('add-principle');
+                        if(principle) principle.value = 'Направленная фиксация (Spot)';
+                        document.getElementById('add-clear-route').classList.add('hidden');
+                    }
                 }
             } else {
                 m.classList.add('opacity-0', 'pointer-events-none'); 
